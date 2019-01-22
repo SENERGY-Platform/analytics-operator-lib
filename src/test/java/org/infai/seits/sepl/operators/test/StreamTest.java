@@ -18,13 +18,10 @@ package org.infai.seits.sepl.operators.test;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.seits.sepl.operators.Builder;
 import org.infai.seits.sepl.operators.Stream;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,9 +59,9 @@ public class StreamTest {
         driver.process("topic1", "D", "{'pipeline_id': '1', 'operator_id': '1'}");
         driver.process("topic1", "G", "{'pipeline_id': '1', 'operator_id': '2'}");
 
-        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{},\"inputs\":[{\"operator_id\":\"1\"," +
+        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"inputs\":[{\"operator_id\":\"1\"," +
                         "\"pipeline_id\":\"1\"}],\"time\":\""+ time2 +"\"}",
-                "D:{\"analytics\":{},\"inputs\":[{\"operator_id\":\"1\"," +
+                "D:{\"analytics\":{\"test\":\"1\"},\"inputs\":[{\"operator_id\":\"1\"," +
                         "\"pipeline_id\":\"1\"}],\"time\":\""+ stream.builder.time +"\"}"), processorSupplier.processed);
     }
 
@@ -88,9 +85,9 @@ public class StreamTest {
         driver.process("topic1", "B", "{'device_id': '2'}");
         driver.process("topic1", "D", "{'device_id': '1'}");
 
-        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
+        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
                         ",\"pipeline_id\":\"1\",\"time\":\""+ time2 +"\"}",
-                "D:{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
+                "D:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
                         ",\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}"), processorSupplier.processed);
     }
 
@@ -127,7 +124,7 @@ public class StreamTest {
         driver.setTime(7001L);
         driver.process("topic2", null, "{'device_id': '2', 'value':2}");
 
-        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"value\":2},{\"device_id\":\"2\",\"value\":2}]" +
+        Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"value\":2},{\"device_id\":\"2\",\"value\":2}]" +
                         ",\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}"),
                 processorSupplier.processed);
 

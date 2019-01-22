@@ -22,8 +22,8 @@ import org.infai.seits.sepl.operators.OperatorInterface;
 public class TestOperator implements OperatorInterface {
 
     @Override
-    public void run(Message input) {
-
+    public void run(Message message) {
+        message.output("test", "1");
     }
 
     @Override

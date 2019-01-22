@@ -16,6 +16,7 @@
 
 package org.infai.seits.sepl.operators;
 
+import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -52,11 +53,11 @@ public class Stream {
 
     public Builder builder;
 
-    public Stream(){
+    public Stream() {
         builder = new Builder(operatorId, pipelineId);
     }
 
-    public Stream(String operatorId, String pipelineId){
+    public Stream(String operatorId, String pipelineId) {
         this.operatorId = operatorId;
         this.pipelineId = pipelineId;
         this.builder = new Builder(operatorId, pipelineId);
@@ -80,10 +81,10 @@ public class Stream {
         return streamsConfiguration;
     }
 
-    public void start(OperatorInterface operator){
+    public void start(OperatorInterface operator) {
         operator.config(this.message);
-        if (this.config.topicCount()  == 2) {
-            if (this.config.getTopicName(0).equals(this.config.getTopicName(1))){
+        if (this.config.topicCount() == 2) {
+            if (this.config.getTopicName(0).equals(this.config.getTopicName(1))) {
                 processSingleStream2Filter(operator, this.config.getConfig());
             } else {
                 processTwoStreams(operator, this.config.getConfig());
@@ -103,30 +104,28 @@ public class Stream {
      * @param operator
      */
     public void processSingleStream(OperatorInterface operator, JSONArray topicConfig) {
-
-
         JSONObject topic = new JSONObject(topicConfig.get(0).toString());
         KStream<String, String> inputData = builder.getBuilder().stream(topic.getString("Name"));
 
         //Filter Stream
         KStream<String, String> filterData = filterStream(topic, inputData);
 
-        if(DEBUG){
+        if (DEBUG) {
             filterData.print(Printed.toSysOut());
         }
 
-        outputData = filterData.flatMapValues(value -> {
-            operator.run(this.message.setMessage(builder.formatMessage(value)));
-            return Arrays.asList(this.message.getMessageString());
+        //format message
+        filterData = filterData.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, builder.formatMessage(value)));
+            return result;
         });
-        //Debug
-        if(DEBUG){
-            outputData.print(Printed.toSysOut());
-        }
-        outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
+
+        //output stream
+        outputStream(operator, filterData);
     }
 
-    public void processSingleStream2Filter(OperatorInterface operator, JSONArray topicConfig){
+    public void processSingleStream2Filter(OperatorInterface operator, JSONArray topicConfig) {
         JSONObject topic1 = new JSONObject(topicConfig.get(0).toString());
         JSONObject topic2 = new JSONObject(topicConfig.get(1).toString());
 
@@ -136,35 +135,28 @@ public class Stream {
         KStream<String, String> filterData1 = filterStream(topic1, inputData);
         KStream<String, String> filterData2 = filterStream(topic2, inputData);
 
-        if(DEBUG){
+        if (DEBUG) {
             filterData1.print(Printed.toSysOut());
             filterData2.print(Printed.toSysOut());
         }
 
-        filterData1 = filterData1.flatMap((key, value)->{
+        filterData1 = filterData1.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair("A", value));
             return result;
         });
 
-        filterData2 = filterData2.flatMap((key, value)->{
+        filterData2 = filterData2.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair("A", value));
             return result;
         });
 
-        // Merge Streams
+        // merge Streams
         KStream<String, String> merged = builder.joinStreams(filterData1, filterData2);
 
-        outputData = merged.flatMapValues(value -> {
-            operator.run(this.message.setMessage(value));
-            return Arrays.asList(this.message.getMessageString());
-        });
-
-        if(DEBUG){
-            outputData.print(Printed.toSysOut());
-        }
-        outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
+        // output stream
+        outputStream(operator, merged);
     }
 
     public void processTwoStreams(OperatorInterface operator, JSONArray topicConfig) {
@@ -178,40 +170,62 @@ public class Stream {
         KStream<String, String> filterData1 = filterStream(topic1, inputStream1);
         KStream<String, String> filterData2 = filterStream(topic2, inputStream2);
 
-        if(DEBUG){
+        if (DEBUG) {
             filterData1.print(Printed.toSysOut());
             filterData2.print(Printed.toSysOut());
         }
 
-        filterData1 = filterData1.flatMap((key, value)->{
+        filterData1 = filterData1.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair("A", value));
             return result;
         });
 
-        filterData2 = filterData2.flatMap((key, value)->{
+        filterData2 = filterData2.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair("A", value));
             return result;
         });
 
-        // Merge Streams
+        // merge Streams
         KStream<String, String> merged = builder.joinStreams(filterData1, filterData2);
 
-        outputData = merged.flatMapValues(value -> {
+        // output stream
+        outputStream(operator, merged);
+    }
+
+    /**
+     * Output a stream.
+     *
+     * @param operator
+     * @param outputStream
+     */
+    private void outputStream(OperatorInterface operator, KStream<String, String> outputStream) {
+
+        // Execute operator logic
+        KStream<String, String> rawOutputStream = outputStream.flatMapValues(value -> {
             operator.run(this.message.setMessage(value));
             return Arrays.asList(this.message.getMessageString());
         });
+        // check if output value was set or drop message
+        outputData = rawOutputStream.filter((key, value) -> {
+            JSONObject messageObj =  new JSONObject(value);
+            JSONObject ana = new JSONObject(messageObj.get("analytics").toString());
+            if(ana.length() >0){
+                return true;
+            }
+            return false;
+        });
 
-        if(DEBUG){
+        if (DEBUG) {
             outputData.print(Printed.toSysOut());
         }
         outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
     }
 
-    private KStream<String,String> filterStream (JSONObject topic, KStream<String,String> inputData){
+    private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {
         KStream<String, String> filterData;
-        switch (topic.getString("FilterType")){
+        switch (topic.getString("FilterType")) {
             case "OperatorId":
                 KStream<String, String> pipelineFilterData = builder.filterBy(inputData, pipelineIDPath, pipelineId);
                 filterData = builder.filterBy(pipelineFilterData, operatorIdPath, topic.getString("FilterValue"));
@@ -226,7 +240,7 @@ public class Stream {
         return filterData;
     }
 
-    public KStream<String, String> getOutputStream(){
+    public KStream<String, String> getOutputStream() {
         return outputData;
     }
 
@@ -234,7 +248,7 @@ public class Stream {
         return Helper.getEnv("OUTPUT", "output-stream");
     }
 
-    public void setPipelineId(String pipelineId){
+    public void setPipelineId(String pipelineId) {
         this.pipelineId = pipelineId;
     }
 }
