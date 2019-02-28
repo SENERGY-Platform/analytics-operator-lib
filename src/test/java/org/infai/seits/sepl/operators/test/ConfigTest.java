@@ -38,4 +38,11 @@ public class ConfigTest {
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Assert.assertEquals("analytics-diff",config.getTopicName(0));
     }
+
+    @Test
+    public void testGetConfigValue(){
+        Config config = new Config("{\"config\": {\"test\": \"testValue\"},\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
+        Assert.assertEquals("testValue",config.getConfigValue("test", "test1"));
+    }
 }

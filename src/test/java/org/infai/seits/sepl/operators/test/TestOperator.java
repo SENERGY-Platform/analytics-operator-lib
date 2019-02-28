@@ -16,6 +16,7 @@
 
 package org.infai.seits.sepl.operators.test;
 
+import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 
@@ -23,7 +24,15 @@ public class TestOperator implements OperatorInterface {
 
     @Override
     public void run(Message message) {
-        message.output("test", "1");
+
+        Config config = new Config();
+
+        if (config.getConfigValue("test", "testVal") == "test"){
+            message.output("test", "2");
+        } else {
+            message.output("test", "1");
+        }
+
     }
 
     @Override

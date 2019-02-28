@@ -17,6 +17,7 @@
 package org.infai.seits.sepl.operators;
 
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -42,6 +43,14 @@ public class Config {
 
     public Integer topicCount(){
         return getTopicConfig().length();
+    }
+
+    public String getConfigValue (String value, String defaultValue) {
+        try {
+            return JsonPath.read(configString, "$.config."+value);
+        } catch (PathNotFoundException e) {
+            return defaultValue;
+        }
     }
 
     public String getTopicName(Integer index){
