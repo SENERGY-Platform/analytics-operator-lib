@@ -17,12 +17,23 @@
 package org.infai.seits.sepl.operators.test;
 
 import org.infai.seits.sepl.operators.Config;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
 
 public class ConfigTest {
+
+    @Test
+    public void testGetTopicConfig(){
+        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
+        JSONArray array =  config.getTopicConfig();
+        Assert.assertEquals("[{\"FilterType\":\"OperatorId\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]," +
+                "\"Name\":\"analytics-diff\",\"FilterValue\":\"6\"}]", array.toString());
+    }
 
     @Test
     public void testTopicOfInput(){
@@ -33,7 +44,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testGetTopicname(){
+    public void testGetTopicName(){
         Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Assert.assertEquals("analytics-diff",config.getTopicName(0));

@@ -37,8 +37,8 @@ public class Config {
     }
 
     public JSONArray getTopicConfig(){
-        String array = JsonPath.read(configString, "$.inputTopics[*]");
-        return new JSONArray(array);
+        net.minidev.json.JSONArray array = JsonPath.read(configString, "$.inputTopics[*]");
+        return new JSONArray(array.toString());
     }
 
     public Integer topicCount(){
