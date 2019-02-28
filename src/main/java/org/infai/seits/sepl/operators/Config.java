@@ -35,21 +35,22 @@ public class Config {
         this.configString = configString;
     }
 
-    public JSONArray getConfig(){
-        return new JSONArray(configString);
+    public JSONArray getTopicConfig(){
+        String array = JsonPath.read(configString, "$.inputTopics[*]");
+        return new JSONArray(array);
     }
 
     public Integer topicCount(){
-        return getConfig().length();
+        return getTopicConfig().length();
     }
 
     public String getTopicName(Integer index){
-        return new JSONObject(getConfig().get(index).toString()).get("Name").toString();
+        return JsonPath.read(this.configString, "$.inputTopics["+ index+"].Name");
     }
 
     public Map<String, Object> inputTopic(String inputName){
         Map<String, Object> topic = new HashMap<String, Object>();
-        List<Map<String, Object>> topics = JsonPath.read(this.configString,"$.*");
+        List<Map<String, Object>> topics = JsonPath.read(this.configString,"$.inputTopics.*");
         for(Map<String, Object> t : topics){
             List<Map<String, Object>> mappings = (List<Map<String, Object>>) t.get("Mappings");
             for (Map<String, Object> m : mappings){

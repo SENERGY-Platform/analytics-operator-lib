@@ -26,8 +26,16 @@ public class ConfigTest {
 
     @Test
     public void testTopicOfInput(){
-        Config config = new Config("[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\",\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]");
+        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Map<String, Object> conf =  config.inputTopic("value");
         Assert.assertEquals("analytics-diff", conf.get("Name"));
+    }
+
+    @Test
+    public void testGetTopicname(){
+        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
+        Assert.assertEquals("analytics-diff",config.getTopicName(0));
     }
 }

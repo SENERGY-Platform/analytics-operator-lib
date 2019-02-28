@@ -25,7 +25,7 @@ public class MessageTest {
     @Test
     public void testInputValue(){
         Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
-        message.setConfig("[\n" +
+        message.setConfig("{ \"inputTopics\":[\n" +
                 "  {\n" +
                 "    \"Name\": \"analytics-diff\",\n" +
                 "    \"FilterType\": \"DeviceId\",\n" +
@@ -37,7 +37,7 @@ public class MessageTest {
                 "      }\n" +
                 "    ]\n" +
                 "  }\n" +
-                "]\n");
+                "]}\n");
         message.addInput("value");
         Double value = new Double(message.getInput("value").getValue());
         Assert.assertEquals(new Double(2.0), value);

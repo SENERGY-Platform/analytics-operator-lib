@@ -85,13 +85,13 @@ public class Stream {
         operator.config(this.message);
         if (this.config.topicCount() == 2) {
             if (this.config.getTopicName(0).equals(this.config.getTopicName(1))) {
-                processSingleStream2Filter(operator, this.config.getConfig());
+                processSingleStream2Filter(operator, this.config.getTopicConfig());
             } else {
-                processTwoStreams(operator, this.config.getConfig());
+                processTwoStreams(operator, this.config.getTopicConfig());
             }
 
         } else if (this.config.topicCount() == 1) {
-            processSingleStream(operator, this.config.getConfig());
+            processSingleStream(operator, this.config.getTopicConfig());
         }
         KafkaStreams streams = new KafkaStreams(builder.getBuilder().build(), Stream.config());
         streams.start();
