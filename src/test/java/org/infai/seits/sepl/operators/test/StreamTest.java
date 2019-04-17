@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
+import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Stream;
 import org.json.JSONArray;
 import org.junit.Assert;
@@ -44,8 +45,8 @@ public class StreamTest {
         stream.setPipelineId("1");
         TestOperator operator = new TestOperator();
 
-        JSONArray topicConfig = new JSONArray("[{\"Name\":\"topic1\",\"FilterType\":\"OperatorId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"value.reading.value\"}]}]");
-        stream.processSingleStream(operator, topicConfig);
+        Config config = new Config("{\"inputTopics\": [{\"Name\":\"topic1\",\"FilterType\":\"OperatorId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"value.reading.value\"}]}]}");
+        stream.processSingleStream(operator, config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -71,8 +72,8 @@ public class StreamTest {
         Stream stream = new Stream("1", "1");
         TestOperator operator = new TestOperator();
 
-        JSONArray topicConfig = new JSONArray("[{\"Name\":\"topic1\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"value.reading.value\"}]}]");
-        stream.processSingleStream(operator, topicConfig);
+        Config config = new Config("{\"inputTopics\": [{\"Name\":\"topic1\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"value.reading.value\"}]}]}");
+        stream.processSingleStream(operator, config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -101,13 +102,13 @@ public class StreamTest {
         }
         Stream stream = new Stream("1", "1");
         TestOperator operator = new TestOperator();
-        JSONArray topicConfig = new JSONArray("[" +
+        Config config = new Config("{\"inputTopics\": [" +
                 "{\"Name\":\"topic1\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value1\",\"Source\":\"value.reading.value\"}]}," +
                 "{\"Name\":\"topic2\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"2\",\"Mappings\":[{\"Dest\":\"value2\",\"Source\":\"value.reading.value\"}]}" +
-                "]");
+                "]}");
         stream.builder.setWindowTime(5);
 
-        stream.processTwoStreams(operator, topicConfig);
+        stream.processTwoStreams(operator, config.getTopicConfig());
 
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();

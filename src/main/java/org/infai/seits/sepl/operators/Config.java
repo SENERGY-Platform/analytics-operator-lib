@@ -19,7 +19,6 @@ package org.infai.seits.sepl.operators;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,17 +26,17 @@ import java.util.Map;
 
 public class Config {
 
-    private String configString = Helper.getEnv("CONFIG", "[]");
+    private String configString = Helper.getEnv("CONFIG", "[]").toLowerCase();
 
 
     public Config(){}
 
     public Config (String configString){
-        this.configString = configString;
+        this.configString = configString.toLowerCase();
     }
 
     public JSONArray getTopicConfig(){
-        net.minidev.json.JSONArray array = JsonPath.read(configString, "$.inputTopics[*]");
+        net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
         return new JSONArray(array.toString());
     }
 
@@ -54,17 +53,22 @@ public class Config {
     }
 
     public String getTopicName(Integer index){
-        return JsonPath.read(this.configString, "$.inputTopics["+ index+"].Name");
+        try {
+            return JsonPath.read(this.configString, "$."+Values.INPUT_TOPICS+"["+ index+"]."+Values.TOPIC_NAME_KEY);
+        } catch (PathNotFoundException e) {
+            System.out.println(e.getMessage());
+            return "";
+        }
     }
 
     public Map<String, Object> inputTopic(String inputName){
         Map<String, Object> topic = new HashMap<String, Object>();
-        List<Map<String, Object>> topics = JsonPath.read(this.configString,"$.inputTopics.*");
+        List<Map<String, Object>> topics = JsonPath.read(this.configString,"$."+Values.INPUT_TOPICS+".*");
         for(Map<String, Object> t : topics){
-            List<Map<String, Object>> mappings = (List<Map<String, Object>>) t.get("Mappings");
+            List<Map<String, Object>> mappings = (List<Map<String, Object>>) t.get(Values.MAPPINGS_KEY);
             for (Map<String, Object> m : mappings){
-                if (m.get("Dest").equals(inputName)){
-                    t.put("Source", m.get("Source"));
+                if (m.get(Values.MAPPING_DEST_KEY).equals(inputName)){
+                    t.put(Values.MAPPING_SOURCE_KEY, m.get(Values.MAPPING_SOURCE_KEY));
                     topic = t;
                 }
             }

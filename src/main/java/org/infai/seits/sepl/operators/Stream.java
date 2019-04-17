@@ -106,7 +106,7 @@ public class Stream {
      */
     public void processSingleStream(OperatorInterface operator, JSONArray topicConfig) {
         JSONObject topic = new JSONObject(topicConfig.get(0).toString());
-        KStream<String, String> inputData = builder.getBuilder().stream(topic.getString("Name"));
+        KStream<String, String> inputData = builder.getBuilder().stream(topic.getString(Values.TOPIC_NAME_KEY));
 
         //Filter Stream
         KStream<String, String> filterData = filterStream(topic, inputData);
@@ -130,7 +130,7 @@ public class Stream {
         JSONObject topic1 = new JSONObject(topicConfig.get(0).toString());
         JSONObject topic2 = new JSONObject(topicConfig.get(1).toString());
 
-        KStream<String, String> inputData = builder.getBuilder().stream(topic1.getString("Name"));
+        KStream<String, String> inputData = builder.getBuilder().stream(topic1.getString(Values.TOPIC_NAME_KEY));
 
         // Filter streams
         KStream<String, String> filterData1 = filterStream(topic1, inputData);
@@ -164,8 +164,8 @@ public class Stream {
         JSONObject topic1 = new JSONObject(topicConfig.get(0).toString());
         JSONObject topic2 = new JSONObject(topicConfig.get(1).toString());
 
-        KStream<String, String> inputStream1 = builder.getBuilder().stream(topic1.getString("Name"));
-        KStream<String, String> inputStream2 = builder.getBuilder().stream(topic2.getString("Name"));
+        KStream<String, String> inputStream1 = builder.getBuilder().stream(topic1.getString(Values.TOPIC_NAME_KEY));
+        KStream<String, String> inputStream2 = builder.getBuilder().stream(topic2.getString(Values.TOPIC_NAME_KEY));
 
         // Filter streams
         KStream<String, String> filterData1 = filterStream(topic1, inputStream1);
@@ -226,13 +226,13 @@ public class Stream {
 
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {
         KStream<String, String> filterData;
-        switch (topic.getString("FilterType")) {
-            case "OperatorId":
+        switch (topic.getString(Values.FILTER_TYPE_KEY)) {
+            case Values.FILTER_TYPE_OPERATOR_KEY:
                 KStream<String, String> pipelineFilterData = builder.filterBy(inputData, pipelineIDPath, pipelineId);
-                filterData = builder.filterBy(pipelineFilterData, operatorIdPath, topic.getString("FilterValue"));
+                filterData = builder.filterBy(pipelineFilterData, operatorIdPath, topic.getString(Values.FILTER_VALUE_KEY));
                 break;
-            case "DeviceId":
-                filterData = builder.filterBy(inputData, deviceIdPath, topic.getString("FilterValue"));
+            case Values.FILTER_TYPE_DEVICE_KEY:
+                filterData = builder.filterBy(inputData, deviceIdPath, topic.getString(Values.FILTER_VALUE_KEY));
                 break;
             default:
                 filterData = inputData;

@@ -18,7 +18,6 @@ package org.infai.seits.sepl.operators.test;
 
 import org.infai.seits.sepl.operators.Config;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,8 +30,8 @@ public class ConfigTest {
         Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         JSONArray array =  config.getTopicConfig();
-        Assert.assertEquals("[{\"FilterType\":\"OperatorId\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]," +
-                "\"Name\":\"analytics-diff\",\"FilterValue\":\"6\"}]", array.toString());
+        Assert.assertEquals("[{\"mappings\":[{\"source\":\"diff\",\"dest\":\"value\"}],\"name\":\"analytics-diff\",\"filtervalue\":\"6\",\"filtertype\":\"operatorid\"}]",
+                array.toString());
     }
 
     @Test
@@ -40,7 +39,15 @@ public class ConfigTest {
         Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Map<String, Object> conf =  config.inputTopic("value");
-        Assert.assertEquals("analytics-diff", conf.get("Name"));
+        Assert.assertEquals("analytics-diff", conf.get("name"));
+    }
+
+    @Test
+    public void testTopicOfInputSmall(){
+        Config config = new Config("{\"inputTopics\":[{\"name\":\"analytics-diff\",\"filterType\":\"OperatorId\"," +
+                "\"filterValue\":\"6\",\"mappings\":[{\"dest\":\"value\",\"source\":\"diff\"}]}]}");
+        Map<String, Object> conf =  config.inputTopic("value");
+        Assert.assertEquals("analytics-diff", conf.get("name"));
     }
 
     @Test
@@ -51,9 +58,16 @@ public class ConfigTest {
     }
 
     @Test
+    public void testGetTopicNameSmall(){
+        Config config = new Config("{\"inputTopics\":[{\"name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
+        Assert.assertEquals("analytics-diff",config.getTopicName(0));
+    }
+
+    @Test
     public void testGetConfigValue(){
         Config config = new Config("{\"config\": {\"test\": \"testValue\"},\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
-        Assert.assertEquals("testValue",config.getConfigValue("test", "test1"));
+        Assert.assertEquals("testvalue",config.getConfigValue("test", "test1"));
     }
 }

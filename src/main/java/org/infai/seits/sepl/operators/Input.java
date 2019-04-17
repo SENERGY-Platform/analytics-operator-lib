@@ -29,7 +29,7 @@ public class Input {
 
     public Input(String name, String messageString, Map<String, Object> config) {
         this.messageString = messageString;
-        this.name = name;
+        this.name = name.toLowerCase();
         this.config = config;
     }
 
@@ -55,14 +55,14 @@ public class Input {
     }
 
     private String getVal(){
-        String filterType = (String) this.config.get("FilterType");
-        String filterValue = (String) this.config.get("FilterValue");
+        String filterType = (String) this.config.get(Values.FILTER_TYPE_KEY);
+        String filterValue = (String) this.config.get(Values.FILTER_VALUE_KEY);
         String value = null;
-        if (filterType.equals("OperatorId")) {
-            List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.config.get("Source"));
+        if (filterType.equals(Values.FILTER_TYPE_OPERATOR_KEY)) {
+            List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.config.get(Values.MAPPING_SOURCE_KEY));
             value = convertToString(helper.get(0));
-        } else if (filterType.equals("DeviceId")) {
-            List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.config.get("Source"));
+        } else if (filterType.equals(Values.FILTER_TYPE_DEVICE_KEY)) {
+            List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.config.get(Values.MAPPING_SOURCE_KEY));
             value = convertToString(helper.get(0));
         }
         return value;

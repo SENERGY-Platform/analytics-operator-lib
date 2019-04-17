@@ -37,13 +37,14 @@ public class Message {
     }
 
     public Input addInput (String name){
+        name = name.toLowerCase();
         Input input = new Input(name, jsonMessage, this.config.inputTopic(name));
         this.inputs.put(name, input);
         return input;
     }
 
     public Input getInput (String name){
-        return inputs.get(name).setMessage(this.jsonMessage);
+        return inputs.get(name.toLowerCase()).setMessage(this.jsonMessage);
     }
 
     public void output(String name, Object value){
