@@ -22,7 +22,6 @@ import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Stream;
-import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 

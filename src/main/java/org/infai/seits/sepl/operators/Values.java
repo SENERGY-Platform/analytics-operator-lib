@@ -21,9 +21,9 @@ public final class Values {
     public static final String MAPPINGS_KEY = "mappings";
     public static final String MAPPING_DEST_KEY = "dest";
     public static final String MAPPING_SOURCE_KEY = "source";
-    public static final String FILTER_TYPE_KEY = "filtertype";
-    public static final String FILTER_VALUE_KEY = "filtervalue";
-    public static final String FILTER_TYPE_OPERATOR_KEY = "operatorid";
-    public static final String FILTER_TYPE_DEVICE_KEY = "deviceid";
-    public static final String INPUT_TOPICS = "inputtopics";
+    public static final String FILTER_TYPE_KEY = "filterType";
+    public static final String FILTER_VALUE_KEY = "filterValue";
+    public static final String FILTER_TYPE_OPERATOR_KEY = "OperatorId";
+    public static final String FILTER_TYPE_DEVICE_KEY = "DeviceId";
+    public static final String INPUT_TOPICS = "inputTopics";
 }

@@ -29,7 +29,7 @@ public class Input {
 
     public Input(String name, String messageString, Map<String, Object> config) {
         this.messageString = messageString;
-        this.name = name.toLowerCase();
+        this.name = name;
         this.config = config;
     }
 

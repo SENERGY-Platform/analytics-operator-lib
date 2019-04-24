@@ -30,13 +30,13 @@ public class ConfigTest {
         Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         JSONArray array =  config.getTopicConfig();
-        Assert.assertEquals("[{\"mappings\":[{\"source\":\"diff\",\"dest\":\"value\"}],\"name\":\"analytics-diff\",\"filtervalue\":\"6\",\"filtertype\":\"operatorid\"}]",
+        Assert.assertEquals("[{\"mappings\":[{\"source\":\"diff\",\"dest\":\"value\"}],\"filterValue\":\"6\",\"name\":\"analytics-diff\",\"filterType\":\"OperatorId\"}]",
                 array.toString());
     }
 
     @Test
     public void testTopicOfInput(){
-        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
+        Config config = new Config("{\"InputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Map<String, Object> conf =  config.inputTopic("value");
         Assert.assertEquals("analytics-diff", conf.get("name"));
@@ -68,6 +68,6 @@ public class ConfigTest {
     public void testGetConfigValue(){
         Config config = new Config("{\"config\": {\"test\": \"testValue\"},\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
                 "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
-        Assert.assertEquals("testvalue",config.getConfigValue("test", "test1"));
+        Assert.assertEquals("testValue",config.getConfigValue("test", "test1"));
     }
 }

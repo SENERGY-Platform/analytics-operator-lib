@@ -37,6 +37,6 @@ public class TestOperator implements OperatorInterface {
 
     @Override
     public void config(Message message) {
-        message.addInput("Value");
+        message.addInput("value");
     }
 }
