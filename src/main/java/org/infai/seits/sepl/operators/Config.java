@@ -81,15 +81,15 @@ public class Config {
     }
 
     private void streamlineConfigString(){
-        this.configString = this.configString.replaceAll("(?i)"+Values.TOPIC_NAME_KEY, Values.TOPIC_NAME_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.MAPPINGS_KEY, Values.MAPPINGS_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.MAPPING_DEST_KEY, Values.MAPPING_DEST_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.MAPPING_SOURCE_KEY, Values.MAPPING_SOURCE_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.FILTER_TYPE_KEY, Values.FILTER_TYPE_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.FILTER_VALUE_KEY, Values.FILTER_VALUE_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.FILTER_TYPE_OPERATOR_KEY, Values.FILTER_TYPE_OPERATOR_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.FILTER_TYPE_DEVICE_KEY, Values.FILTER_TYPE_DEVICE_KEY);
-        this.configString = this.configString.replaceAll("(?i)"+Values.INPUT_TOPICS, Values.INPUT_TOPICS);
+        this.configString = this.configString.replaceAll("(?i)\""+Values.TOPIC_NAME_KEY+"\"", '"'+Values.TOPIC_NAME_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPINGS_KEY+"\"", '"'+Values.MAPPINGS_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPING_DEST_KEY+"\"", '"'+Values.MAPPING_DEST_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPING_SOURCE_KEY+"\"", '"'+Values.MAPPING_SOURCE_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_KEY+"\"", '"'+Values.FILTER_TYPE_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_VALUE_KEY+"\"", '"'+Values.FILTER_VALUE_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_OPERATOR_KEY+"\"", '"'+Values.FILTER_TYPE_OPERATOR_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_DEVICE_KEY+"\"", '"'+Values.FILTER_TYPE_DEVICE_KEY+'"');
+        this.configString = this.configString.replaceAll("(?i)\""+Values.INPUT_TOPICS+"\"", '"'+Values.INPUT_TOPICS+'"');
     }
 }
 
