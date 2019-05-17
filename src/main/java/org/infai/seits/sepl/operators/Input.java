@@ -54,6 +54,14 @@ public class Input {
         }
     }
 
+    public org.json.JSONArray getJSONArray(){
+        try {
+            return new org.json.JSONArray(this.getVal());
+        } catch (NullPointerException e){
+            return new org.json.JSONArray();
+        }
+    }
+
     private String getVal(){
         String filterType = (String) this.config.get(Values.FILTER_TYPE_KEY);
         String filterValue = (String) this.config.get(Values.FILTER_VALUE_KEY);
@@ -73,6 +81,8 @@ public class Input {
             return ret.toString();
         } else if (ret instanceof Integer) {
             return String.valueOf(ret);
+        } else if (ret instanceof net.minidev.json.JSONArray){
+            return ((net.minidev.json.JSONArray) ret).toString();
         } else {
             try {
                 return (String) ret;

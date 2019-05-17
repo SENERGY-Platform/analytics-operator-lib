@@ -17,6 +17,7 @@
 package org.infai.seits.sepl.operators.test;
 
 import org.infai.seits.sepl.operators.Message;
+import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,5 +49,26 @@ public class MessageTest {
         Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
         message.output("test", new Double(2));
         Assert.assertEquals("{\"analytics\":{\"test\":2.0},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}", message.getMessageString());
+    }
+
+    @Test
+    public void testArrayValue(){
+        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":[1, 2, 3]},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
+        message.setConfig("{ \"inputTopics\":[\n" +
+                "  {\n" +
+                "    \"Name\": \"analytics-diff\",\n" +
+                "    \"FilterType\": \"DeviceId\",\n" +
+                "    \"FilterValue\": \"1\",\n" +
+                "    \"Mappings\": [\n" +
+                "      {\n" +
+                "        \"Dest\": \"value\",\n" +
+                "        \"Source\": \"val\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "]}\n");
+        message.addInput("value");
+        JSONArray expected = new JSONArray().put(1).put(2).put(3);
+        Assert.assertEquals(expected.toString(), message.getInput("value").getJSONArray().toString());
     }
 }
