@@ -46,8 +46,8 @@ public class Helper {
         for (Broker broker : brokers) {
             //assuming you do not enable security
             if (broker != null) {
-                brokerList.add(broker.getBrokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))
-                        .host()+":"+broker.getBrokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
+                brokerList.add(broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))
+                        .host()+":"+broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
             }
         }
         zk.close();
