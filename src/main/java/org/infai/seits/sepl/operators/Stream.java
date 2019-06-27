@@ -47,6 +47,7 @@ public class Stream {
     private Integer windowTime = Helper.getEnv("WINDOW_TIME", 100);
     private Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
     private String operatorIdPath = "operator_id";
+    private Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
 
     final private Message message = new Message();
 
@@ -97,6 +98,11 @@ public class Stream {
             processSingleStream(operator, this.config.getTopicConfig());
         }
         KafkaStreams streams = new KafkaStreams(builder.getBuilder().build(), Stream.config());
+
+        if (resetApp){
+            streams.cleanUp();
+        }
+        
         streams.start();
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
