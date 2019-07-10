@@ -48,11 +48,16 @@ public class Config {
     }
 
     public String getConfigValue (String value, String defaultValue) {
+        String value = "";
         try {
-            return JsonPath.read(configString, "$.config."+value);
+            value = JsonPath.read(configString, "$.config."+value);
         } catch (PathNotFoundException e) {
             return defaultValue;
         }
+        if (value.length() == 0) {
+            return defaultValue;
+        }
+        return value;
     }
 
     public String getTopicName(Integer index){
