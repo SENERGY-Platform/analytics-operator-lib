@@ -190,4 +190,41 @@ public class StreamTest {
     public void test128Streams(){
         testProcessMultipleStreams(128);
     }
+
+    @Test
+    public void testComplexMessage(){
+        try{
+            FileUtils.deleteDirectory(stateDir);
+        } catch (IOException e){
+            System.err.println("Could not delete stateDir: " + e.getMessage());
+        }
+        Stream stream = new Stream("1", "1");
+        TestOperator operator = new TestOperator();
+
+        String configString = "{\"inputTopics\":[{\"name\":\"topic1\",\"filterType\":\"DeviceId\",\"filterValue\":\"1\",\"mappings\":[{\"dest\":\"value1\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp1\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic2\",\"filterType\":\"DeviceId\",\"filterValue\":\"2\",\"mappings\":[{\"dest\":\"value2\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp2\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic3\",\"filterType\":\"DeviceId\",\"filterValue\":\"3\",\"mappings\":[{\"dest\":\"value3\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp3\",\"source\":\"value.reading.time\"}]}]}";
+
+
+        Config config = new Config(configString);
+        stream.builder.setWindowTime(5);
+
+        stream.processMultipleStreams(operator, config.getTopicConfig());
+
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        stream.getOutputStream().process(processorSupplier);
+
+        driver.setUp(stream.builder.getBuilder(), new File( "./state" ));
+
+        driver.setTime(0L);
+        driver.process("topic1", null, "{'pipeline_id': '1', 'inputs':[{'device_id': 'abc', 'value':1}], 'analytics':{}}"); //To test filtering
+        driver.process("topic2", null, "{'pipeline_id': '1', 'inputs':[{'device_id': 'abc', 'value':1}], 'analytics':{}}"); //To test filtering
+
+        driver.process("topic1", null, "{'device_id':'1','service_id':'1','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
+        driver.process("topic2", null, "{'device_id':'2','service_id':'2','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
+        driver.process("topic3", null, "{'device_id':'3','service_id':'3','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
+
+        String expected = "A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"service_id\":\"1\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}},{\"device_id\":\"2\",\"service_id\":\"2\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}},{\"device_id\":\"3\",\"service_id\":\"3\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}}],\"pipeline_id\":\"1\",\"time\":\""+stream.builder.time+"\"}";
+
+        Assert.assertEquals(expected, processorSupplier.processed.get(0));
+    }
 }
