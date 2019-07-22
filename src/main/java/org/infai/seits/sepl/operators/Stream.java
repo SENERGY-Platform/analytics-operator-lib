@@ -16,24 +16,18 @@
 
 package org.infai.seits.sepl.operators;
 
-import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Printed;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class Stream {
 
@@ -87,13 +81,8 @@ public class Stream {
 
     public void start(OperatorInterface operator) {
         operator.config(this.message);
-        if (this.config.topicCount() == 2) {
-            if (this.config.getTopicName(0).equals(this.config.getTopicName(1))) {
-                processSingleStream2Filter(operator, this.config.getTopicConfig());
-            } else {
-                processTwoStreams(operator, this.config.getTopicConfig());
-            }
-
+        if (this.config.topicCount() > 1) {
+            processMultipleStreams(operator, config.getTopicConfig());
         } else if (this.config.topicCount() == 1) {
             processSingleStream(operator, this.config.getTopicConfig());
         }
@@ -134,72 +123,37 @@ public class Stream {
         outputStream(operator, filterData);
     }
 
-    public void processSingleStream2Filter(OperatorInterface operator, JSONArray topicConfig) {
-        JSONObject topic1 = new JSONObject(topicConfig.get(0).toString());
-        JSONObject topic2 = new JSONObject(topicConfig.get(1).toString());
+    /**
+     * Processes multiple streams while automatically creating only one inputStream per topic
+     * @param operator
+     * @param topicConfig
+     */
+    public void processMultipleStreams(OperatorInterface operator, JSONArray topicConfig) {
+        int length = topicConfig.length();
+        Map<String, KStream<String, String>> inputStreamsMap = new HashMap<>();
+        KStream<String, String>[] filterData = new KStream[length];
+        for(int i = 0; i < length; i++){
+            JSONObject topic = new JSONObject(topicConfig.get(i).toString());
+            String topicName = topic.getString(Values.TOPIC_NAME_KEY);
 
-        KStream<String, String> inputData = builder.getBuilder().stream(topic1.getString(Values.TOPIC_NAME_KEY));
+            if(!inputStreamsMap.containsKey(topicName)){
+                //no inputStream for topic created yet
+                inputStreamsMap.put(topicName, builder.getBuilder().stream(topicName));
+            }
 
-        // Filter streams
-        KStream<String, String> filterData1 = filterStream(topic1, inputData);
-        KStream<String, String> filterData2 = filterStream(topic2, inputData);
+            filterData[i] = filterStream(topic, inputStreamsMap.get(topicName));
 
-        if (DEBUG) {
-            filterData1.print(Printed.toSysOut());
-            filterData2.print(Printed.toSysOut());
+            if (DEBUG) {
+                filterData[i].print(Printed.toSysOut());
+            }
+
+            filterData[i] = filterData[i].flatMap((key, value) -> {
+                List<KeyValue<String, String>> result = new LinkedList<>();
+                result.add(KeyValue.pair("A", value));
+                return result;
+            });
         }
-
-        filterData1 = filterData1.flatMap((key, value) -> {
-            List<KeyValue<String, String>> result = new LinkedList<>();
-            result.add(KeyValue.pair("A", value));
-            return result;
-        });
-
-        filterData2 = filterData2.flatMap((key, value) -> {
-            List<KeyValue<String, String>> result = new LinkedList<>();
-            result.add(KeyValue.pair("A", value));
-            return result;
-        });
-
-        // merge Streams
-        KStream<String, String> merged = builder.joinStreams(filterData1, filterData2);
-
-        // output stream
-        outputStream(operator, merged);
-    }
-
-    public void processTwoStreams(OperatorInterface operator, JSONArray topicConfig) {
-        JSONObject topic1 = new JSONObject(topicConfig.get(0).toString());
-        JSONObject topic2 = new JSONObject(topicConfig.get(1).toString());
-
-        KStream<String, String> inputStream1 = builder.getBuilder().stream(topic1.getString(Values.TOPIC_NAME_KEY));
-        KStream<String, String> inputStream2 = builder.getBuilder().stream(topic2.getString(Values.TOPIC_NAME_KEY));
-
-        // Filter streams
-        KStream<String, String> filterData1 = filterStream(topic1, inputStream1);
-        KStream<String, String> filterData2 = filterStream(topic2, inputStream2);
-
-        if (DEBUG) {
-            filterData1.print(Printed.toSysOut());
-            filterData2.print(Printed.toSysOut());
-        }
-
-        filterData1 = filterData1.flatMap((key, value) -> {
-            List<KeyValue<String, String>> result = new LinkedList<>();
-            result.add(KeyValue.pair("A", value));
-            return result;
-        });
-
-        filterData2 = filterData2.flatMap((key, value) -> {
-            List<KeyValue<String, String>> result = new LinkedList<>();
-            result.add(KeyValue.pair("A", value));
-            return result;
-        });
-
-        // merge Streams
-        KStream<String, String> merged = builder.joinStreams(filterData1, filterData2);
-
-        // output stream
+        KStream<String, String> merged = builder.joinMultipleStreams(filterData);
         outputStream(operator, merged);
     }
 
