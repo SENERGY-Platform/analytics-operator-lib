@@ -107,7 +107,7 @@ public class StreamTest {
                 "]}");
         stream.builder.setWindowTime(5);
 
-        stream.processTwoStreams(operator, config.getTopicConfig());
+        stream.processMultipleStreams(operator, config.getTopicConfig());
 
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
@@ -128,5 +128,66 @@ public class StreamTest {
                         ",\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}"),
                 processorSupplier.processed);
 
+    }
+
+    private void testProcessMultipleStreams(int numStreams){
+        try{
+            FileUtils.deleteDirectory(stateDir);
+        } catch (IOException e){
+            System.err.println("Could not delete stateDir: " + e.getMessage());
+        }
+        Stream stream = new Stream("1", "1");
+        TestOperator operator = new TestOperator();
+
+        String configString = "{\"inputTopics\": [";
+        for(int i = 1; i <= numStreams; i++){
+            configString += "{\"Name\":\"topic"+i+"\",\"FilterType\":\"DeviceId\",\"FilterValue\":\""+i+"\",\"Mappings\":[{\"Dest\":\"value"+i+"\",\"Source\":\"value.reading.value\"}]},";
+        }
+        configString = configString.substring(0, configString.length()-1); //remove last ','
+        configString += "]}";
+
+
+        Config config = new Config(configString);
+        stream.builder.setWindowTime(5);
+
+        stream.processMultipleStreams(operator, config.getTopicConfig());
+
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        stream.getOutputStream().process(processorSupplier);
+
+        driver.setUp(stream.builder.getBuilder(), new File( "./state" ));
+
+        driver.setTime(0L);
+
+        for(int i = 1; i <= numStreams; i++){
+            driver.process("topic"+i, null, "{'device_id': '"+i+"', 'value':"+i+"}");
+            driver.process("topic"+i, null, "{'pipeline_id': '1', 'inputs':[{'device_id': 'abc', 'value':1}], 'analytics':{}}"); //To test filtering
+        }
+
+        String expected = "A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[";
+        for(int i = 1; i <= numStreams; i++){
+            expected += "{\"device_id\":\""+i+"\",\"value\":"+i+"},";
+        }
+        expected = expected.substring(0, expected.length()-1); //remove last ','
+        expected += "],\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}";
+
+        Assert.assertEquals(Utils.mkList(expected), processorSupplier.processed);
+
+    }
+
+    @Test
+    public void test2Streams(){
+        testProcessMultipleStreams(2);
+    }
+
+    @Test
+    public void test5Streams(){
+        testProcessMultipleStreams(5);
+    }
+
+    @Test
+    public void test128Streams(){
+        testProcessMultipleStreams(128);
     }
 }

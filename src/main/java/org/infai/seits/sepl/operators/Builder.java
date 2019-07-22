@@ -90,6 +90,30 @@ public class Builder {
         return joinedStream;
     }
 
+    public KStream<String, String> joinMultipleStreams(KStream[] streams) {
+        return joinMultipleStreams(streams, seconds);
+    }
+
+    public KStream<String, String> joinMultipleStreams(KStream[] streams, int seconds) {
+        KStream<String, String> joinedStream = streams[0];
+        for(int i = 1; i < streams.length; i++) {
+            if(i == streams.length - 1) {
+                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
+                            List<String> values = Arrays.asList(leftValue, rightValue);
+                            return formatMessage(values).toString();
+                        }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                );
+            }
+            else {
+                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> leftValue +","+ rightValue,
+                        JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                );
+            }
+        }
+
+        return joinedStream;
+    }
+
     public StreamsBuilder getBuilder() {
         return builder;
     }
@@ -116,7 +140,16 @@ public class Builder {
     public JSONObject formatMessage(List<String> values){
         JSONObject ob = createMessageWrapper();
         JSONArray inputs = new JSONArray();
-        values.forEach((v) -> inputs.put(new JSONObject(v)));
+
+        for(String value : values){
+            String[] split = value.split("},");
+            for(String splitValue : split){
+                if(!splitValue.endsWith("}")){
+                    splitValue += "}"; //'}' got removed by split if not last entry
+                }
+                inputs.put(new JSONObject(splitValue));
+            }
+        }
         ob.put("inputs", inputs);
         return ob;
     }
