@@ -140,16 +140,7 @@ public class Builder {
     public JSONObject formatMessage(List<String> values){
         JSONObject ob = createMessageWrapper();
         JSONArray inputs = new JSONArray();
-
-        for(String value : values){
-            String[] split = value.split("},");
-            for(String splitValue : split){
-                if(!splitValue.endsWith("}")){
-                    splitValue += "}"; //'}' got removed by split if not last entry
-                }
-                inputs.put(new JSONObject(splitValue));
-            }
-        }
+        values.forEach((v) -> inputs.put(new JSONObject(v)));
         ob.put("inputs", inputs);
         return ob;
     }
