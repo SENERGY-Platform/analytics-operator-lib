@@ -100,7 +100,21 @@ public class Builder {
             if(i == streams.length - 1) {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
                             List<String> values = Arrays.asList(leftValue, rightValue);
-                            return formatMessage(values).toString();
+
+                            JSONObject ob = createMessageWrapper();
+                            JSONArray inputs = new JSONArray();
+
+                            for(String value : values){
+                                String[] split = value.split("},");
+                                for(String splitValue : split){
+                                    if(!splitValue.endsWith("}")){
+                                        splitValue += "}"; //'}' got removed by split if not last entry
+                                    }
+                                    inputs.put(new JSONObject(splitValue));
+                                }
+                            }
+                            ob.put("inputs", inputs);
+                            return ob.toString();
                         }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
