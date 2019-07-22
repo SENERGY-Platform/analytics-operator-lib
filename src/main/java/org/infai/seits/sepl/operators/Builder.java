@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -99,28 +100,30 @@ public class Builder {
         for(int i = 1; i < streams.length; i++) {
             if(i == streams.length - 1) {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                            List<String> values = Arrays.asList(leftValue, rightValue);
+                    List<String> values = new LinkedList<>();
 
-                            JSONObject ob = createMessageWrapper();
-                            JSONArray inputs = new JSONArray();
-
-                            for(String value : values){
-                                String[] split = value.split("},");
-                                for(String splitValue : split){
-                                    if(!splitValue.endsWith("}")){
-                                        splitValue += "}"; //'}' got removed by split if not last entry
-                                    }
-                                    inputs.put(new JSONObject(splitValue));
-                                }
-                            }
-                            ob.put("inputs", inputs);
-                            return ob.toString();
+                    if(leftValue.startsWith("[")) {
+                        JSONArray array = new JSONArray(leftValue);
+                        for (int j=0; j<array.length(); j++) {
+                            values.add(array.getJSONObject(j).toString());
+                        }
+                    }else{
+                        values.add(leftValue);
+                    }
+                    values.add(rightValue);
+                    return formatMessage(values).toString();
                         }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
             else {
-                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> leftValue +","+ rightValue,
-                        JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
+                    if (!leftValue.startsWith("[")){
+                        leftValue = "[" + leftValue + "]";
+                    }
+
+                    return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
+                    },
+                    JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
         }
