@@ -35,7 +35,7 @@ public class StreamTest {
 
     private KStreamTestDriver driver = new KStreamTestDriver();
 
-    private File stateDir = new File("./state");
+    private File stateDir = new File("./state/db");
 
     @Test
     public void testProcessSingleStream(){
@@ -156,7 +156,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        driver.setUp(stream.builder.getBuilder(), new File( "./state" ));
+        driver.setUp(stream.builder.getBuilder(), stateDir);
 
         driver.setTime(0L);
 
@@ -172,16 +172,13 @@ public class StreamTest {
         expected = expected.substring(0, expected.length()-1); //remove last ','
         expected += "],\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}";
 
+        driver.close();
+
         Assert.assertEquals(Utils.mkList(expected), processorSupplier.processed);
 
     }
 
-    @Test
-    public void test2Streams(){
-        testProcessMultipleStreams(2);
-    }
-
-    @Test
+    //@Test
     public void test5Streams(){
         testProcessMultipleStreams(5);
     }
@@ -190,6 +187,9 @@ public class StreamTest {
     public void test128Streams(){
         testProcessMultipleStreams(128);
     }
+
+    @Test
+    public void test2Streams(){ testProcessMultipleStreams(2); }
 
     @Test
     public void testComplexMessage(){

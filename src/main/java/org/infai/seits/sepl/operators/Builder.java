@@ -52,10 +52,10 @@ public class Builder {
      *
      * @param inputStream
      * @param valuePath
-     * @param filterValue
+     * @param filterValues
      * @return KStream filterData
      */
-    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String filterValue) {
+    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String [] filterValues) {
 
         KStream<String, String> filterData = inputStream.filter((key, json) -> {
             if (valuePath != null) {
@@ -63,7 +63,7 @@ public class Builder {
                     String value = JsonPath.parse(json).read("$." + valuePath);
                     //if the ids do not match, filter the element
                     try {
-                        return filterValue.equals(value);
+                        return Arrays.asList(filterValues).contains(value);
                     } catch (NullPointerException e) {
                         System.out.println("No Device ID was set to be filtered");
                     }

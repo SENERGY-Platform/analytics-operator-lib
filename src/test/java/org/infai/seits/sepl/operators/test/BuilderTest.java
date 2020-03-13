@@ -37,11 +37,11 @@ public class BuilderTest {
         Builder builder = new Builder("1", "1");
         final String topic1 = "input-stream";
         final String deviceIdPath = "device_id";
-        final String deviceId = "1";
+        final String[] deviceIds = new String[] {"1"};
 
         final KStream<String, String> source1 = builder.getBuilder().stream(topic1);
 
-        final KStream<String, String> filtered = builder.filterBy(source1, deviceIdPath, deviceId);
+        final KStream<String, String> filtered = builder.filterBy(source1, deviceIdPath, deviceIds);
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         filtered.process(processorSupplier);
 
@@ -53,6 +53,29 @@ public class BuilderTest {
         driver.process(topic1, "D", "{'device_id': '1'}");
 
         Assert.assertEquals(Utils.mkList("A:{'device_id': '1'}", "D:{'device_id': '1'}"), processorSupplier.processed);
+    }
+
+    @Test
+    public void testFilterByMultipleDevices(){
+        Builder builder = new Builder("1", "1");
+        final String topic1 = "input-stream";
+        final String deviceIdPath = "device_id";
+        final String[] deviceIds = new String[] {"1", "2"};
+
+        final KStream<String, String> source1 = builder.getBuilder().stream(topic1);
+
+        final KStream<String, String> filtered = builder.filterBy(source1, deviceIdPath, deviceIds);
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        filtered.process(processorSupplier);
+
+        driver.setUp(builder.getBuilder());
+        driver.setTime(0L);
+
+        driver.process(topic1, "A", "{'device_id': '1'}");
+        driver.process(topic1, "B", "{'device_id': '2'}");
+        driver.process(topic1, "D", "{'device_id': '1'}");
+
+        Assert.assertEquals(Utils.mkList("A:{'device_id': '1'}", "B:{'device_id': '2'}", "D:{'device_id': '1'}"), processorSupplier.processed);
     }
 
     @Test

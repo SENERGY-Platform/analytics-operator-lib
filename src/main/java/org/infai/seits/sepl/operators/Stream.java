@@ -188,13 +188,14 @@ public class Stream {
 
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {
         KStream<String, String> filterData;
+        String[] filterValues  = topic.getString(Values.FILTER_VALUE_KEY).split(",");
         switch (topic.getString(Values.FILTER_TYPE_KEY)) {
             case Values.FILTER_TYPE_OPERATOR_KEY:
-                KStream<String, String> pipelineFilterData = builder.filterBy(inputData, pipelineIDPath, pipelineId);
-                filterData = builder.filterBy(pipelineFilterData, operatorIdPath, topic.getString(Values.FILTER_VALUE_KEY));
+                KStream<String, String> pipelineFilterData = builder.filterBy(inputData, pipelineIDPath, new String[]{pipelineId});
+                filterData = builder.filterBy(pipelineFilterData, operatorIdPath, filterValues);
                 break;
             case Values.FILTER_TYPE_DEVICE_KEY:
-                filterData = builder.filterBy(inputData, deviceIdPath, topic.getString(Values.FILTER_VALUE_KEY));
+                filterData = builder.filterBy(inputData, deviceIdPath, filterValues);
                 break;
             default:
                 filterData = inputData;
