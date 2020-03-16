@@ -16,6 +16,7 @@
 
 package org.infai.seits.sepl.operators.test;
 
+import junit.framework.TestCase;
 import org.infai.seits.sepl.operators.Config;
 import org.json.JSONArray;
 import org.junit.Assert;
@@ -23,51 +24,41 @@ import org.junit.Test;
 
 import java.util.Map;
 
-public class ConfigTest {
+public class ConfigTest extends TestCase {
+
+    Config config = new Config(new JSONFileReader().parseFile("config/config.json").toString());
 
     @Test
     public void testGetTopicConfig(){
-        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
-                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         JSONArray array =  config.getTopicConfig();
-        Assert.assertEquals("[{\"mappings\":[{\"source\":\"diff\",\"dest\":\"value\"}],\"filterValue\":\"6\",\"name\":\"analytics-diff\",\"filterType\":\"OperatorId\"}]",
+        Assert.assertEquals("[{\"mappings\":[{\"source\":\"value.temperature.level\",\"dest\":\"value\"}],\"filterValue\":\"filterValue\",\"name\":\"test\",\"filterType\":\"DeviceId\"}]",
                 array.toString());
     }
 
     @Test
     public void testTopicOfInput(){
-        Config config = new Config("{\"InputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
-                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
         Map<String, Object> conf =  config.inputTopic("value");
-        Assert.assertEquals("analytics-diff", conf.get("name"));
+        Assert.assertEquals("test", conf.get("name"));
     }
 
     @Test
     public void testTopicOfInputSmall(){
-        Config config = new Config("{\"inputTopics\":[{\"name\":\"analytics-diff\",\"filterType\":\"OperatorId\"," +
-                "\"filterValue\":\"6\",\"mappings\":[{\"dest\":\"value\",\"source\":\"diff\"}]}]}");
         Map<String, Object> conf =  config.inputTopic("value");
-        Assert.assertEquals("analytics-diff", conf.get("name"));
+        Assert.assertEquals("test", conf.get("name"));
     }
 
     @Test
     public void testGetTopicName(){
-        Config config = new Config("{\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
-                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
-        Assert.assertEquals("analytics-diff",config.getTopicName(0));
+        Assert.assertEquals("test",config.getTopicName(0));
     }
 
     @Test
     public void testGetTopicNameSmall(){
-        Config config = new Config("{\"inputTopics\":[{\"name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
-                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
-        Assert.assertEquals("analytics-diff",config.getTopicName(0));
+        Assert.assertEquals("test",config.getTopicName(0));
     }
 
     @Test
     public void testGetConfigValue(){
-        Config config = new Config("{\"config\": {\"test\": \"testValue\"},\"inputTopics\":[{\"Name\":\"analytics-diff\",\"FilterType\":\"OperatorId\"," +
-                "\"FilterValue\":\"6\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"diff\"}]}]}");
-        Assert.assertEquals("testValue",config.getConfigValue("test", "test1"));
+        Assert.assertEquals("test1",config.getConfigValue("test", "test1"));
     }
 }

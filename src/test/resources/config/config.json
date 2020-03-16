@@ -1,0 +1,15 @@
+{
+  "inputTopics": [
+    {
+      "name": "test",
+      "filterType": "DeviceId",
+      "filterValue": "FilterValue",
+      "mappings": [
+        {
+          "dest": "value",
+          "source": "value.temperature.level"
+        }
+      ]
+    }
+  ]
+}
