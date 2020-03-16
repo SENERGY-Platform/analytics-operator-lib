@@ -22,6 +22,7 @@ import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Stream;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,8 +44,8 @@ public class StreamTest {
         Stream stream = new Stream();
         stream.setPipelineId("1");
         TestOperator operator = new TestOperator();
-
-        Config config = new Config("{\"inputTopics\": [{\"Name\":\"topic1\",\"FilterType\":\"OperatorId\",\"FilterValue\":\"1\",\"Mappings\":[{\"Dest\":\"value\",\"Source\":\"value.reading.value\"}]}]}");
+        JSONFileReader reader = new JSONFileReader();
+        Config config = new Config(reader.parseFile("stream/processSingleStreamConfig.json").toString());
         stream.processSingleStream(operator, config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
