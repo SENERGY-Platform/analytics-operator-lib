@@ -35,7 +35,7 @@ public class StreamTest {
 
     private KStreamTestDriver driver = new KStreamTestDriver();
 
-    private File stateDir = new File("./state/db");
+    private File stateDir = new File("./state/stream");
 
     @Test
     public void testProcessSingleStream(){
@@ -113,7 +113,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        driver.setUp(stream.builder.getBuilder(), new File( "./state" ));
+        driver.setUp(stream.builder.getBuilder(), stateDir);
 
         driver.setTime(0L);
         driver.process("topic1", null, "{'pipeline_id': '1', 'inputs':[{'device_id': '3', 'value':1}], 'analytics':{}}");
@@ -189,7 +189,10 @@ public class StreamTest {
     }
 
     @Test
-    public void test2Streams(){ testProcessMultipleStreams(2); }
+    public void test2Streams(){
+        stateDir = new File("./state/stream/2");
+        testProcessMultipleStreams(2);
+    }
 
     @Test
     public void testComplexMessage(){
@@ -213,7 +216,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        driver.setUp(stream.builder.getBuilder(), new File( "./state" ));
+        driver.setUp(stream.builder.getBuilder(), stateDir);
 
         driver.setTime(0L);
         driver.process("topic1", null, "{'pipeline_id': '1', 'inputs':[{'device_id': 'abc', 'value':1}], 'analytics':{}}"); //To test filtering

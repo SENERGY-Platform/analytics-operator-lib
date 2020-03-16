@@ -32,6 +32,8 @@ public class BuilderTest {
 
     private KStreamTestDriver driver = new KStreamTestDriver();
 
+    private File stateDir = new File("./state/builder");
+
     @Test
     public void testFilterBy(){
         Builder builder = new Builder("1", "1");
@@ -92,7 +94,7 @@ public class BuilderTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         merged.process(processorSupplier);
 
-        driver.setUp(builder.getBuilder(), new File( "./state" ));
+        driver.setUp(builder.getBuilder(), stateDir);
         driver.setTime(0L);
         driver.process(topic1, "A", "{'device_id': '1', 'value':1}");
         driver.process(topic2, "A", "{'device_id': '2', 'value':1}");
