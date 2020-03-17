@@ -23,16 +23,15 @@ import java.io.FileReader;
 
 public class JSONFileReader {
 
-    public JSONObject parseFile(String fileName) {
+    public <K> K parseFile(String fileName) {
         JSONParser parser = new JSONParser();
         ClassLoader classLoader = getClass().getClassLoader();
         try {
-            Object obj = parser.parse(new FileReader(classLoader.getResource(fileName).getFile()));
-            return (JSONObject) obj;
+            return (K) parser.parse(new FileReader(classLoader.getResource(fileName).getFile()));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new JSONObject();
+        return null;
     }
 }

@@ -22,11 +22,22 @@ import org.infai.seits.sepl.operators.OperatorInterface;
 
 public class TestOperator implements OperatorInterface {
 
+    Config config;
+
+    public TestOperator(){
+        config = new Config();
+    }
+
+    public TestOperator(String configString){
+        config = new Config(configString);
+    }
+
     @Override
     public void run(Message message) {
 
-        Config config = new Config();
-
+        if (config.getConfigValue("input", "false").equals("true")){
+            message.getInput("value").getValue();
+        }
         if (config.getConfigValue("test", "testVal") == "test"){
             message.output("test", "2");
         } else {

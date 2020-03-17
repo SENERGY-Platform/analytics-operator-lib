@@ -16,6 +16,9 @@
 
 package org.infai.seits.sepl.operators;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +47,17 @@ public class Message {
 
     public Input getInput (String name){
         return inputs.get(name).setMessage(this.jsonMessage);
+    }
+
+    public <K> K getValue (String key){
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject obj = (JSONObject) parser.parse(this.jsonMessage);
+            return (K) obj.get(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void output(String name, Object value){

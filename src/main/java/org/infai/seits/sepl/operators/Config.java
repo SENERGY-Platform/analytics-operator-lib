@@ -38,6 +38,10 @@ public class Config {
         streamlineConfigString();
     }
 
+    public String getConfigString() {
+        return configString;
+    }
+
     public JSONArray getTopicConfig(){
         net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
         return new JSONArray(array.toString());
