@@ -14,30 +14,31 @@
  * limitations under the License.
  */
 
-package org.infai.ses.senergy.operators.test;
+package org.infai.ses.senergy.operators;
 
-import org.infai.ses.senergy.operators.BaseOperator;
-import org.infai.ses.senergy.operators.Message;
+public class BaseOperator implements OperatorInterface {
 
-public class TestOperator extends BaseOperator {
+    protected Config config;
 
+    public BaseOperator(){
+        this.config = new Config();
+    }
 
     @Override
     public void run(Message message) {
-
-        if (getConfig().getConfigValue("input", "false").equals("true")){
-            message.getInput("value").getValue();
-        }
-        if (getConfig().getConfigValue("test", "testVal") == "test"){
-            message.output("test", "2");
-        } else {
-            message.output("test", "1");
-        }
 
     }
 
     @Override
     public void configMessage(Message message) {
-        message.addInput("value");
+
+    }
+
+    public void setConfig (String configString){
+        this.config = new Config(configString);
+    }
+
+    protected Config getConfig (){
+        return this.config;
     }
 }

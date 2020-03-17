@@ -44,8 +44,9 @@ public class OperatorTest extends TestCase {
         Builder builder = new Builder("1", "1");
         Message message = new Message();
         message.setConfig(configString);
-        testOperator = new TestOperator(configString);
-        testOperator.config(message);
+        testOperator = new TestOperator();
+        testOperator.setConfig(configString);
+        testOperator.configMessage(message);
         Map <String, String> map = new HashMap<>();
         map.put("test", "1");
         for(Object msg : messages){

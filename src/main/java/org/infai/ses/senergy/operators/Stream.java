@@ -80,7 +80,7 @@ public class Stream {
     }
 
     public void start(OperatorInterface operator) {
-        operator.config(this.message);
+        operator.configMessage(this.message);
         if (this.config.topicCount() > 1) {
             processMultipleStreams(operator, config.getTopicConfig());
         } else if (this.config.topicCount() == 1) {
