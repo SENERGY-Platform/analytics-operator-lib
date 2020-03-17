@@ -24,7 +24,7 @@ import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
 import org.junit.Assert;
 import org.junit.Test;
-import util.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONFileReader;
 
 import java.io.File;
 import java.io.IOException;

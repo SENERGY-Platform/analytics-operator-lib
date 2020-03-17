@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package util;
+package org.infai.ses.senergy.testing.utils;
 
 import org.json.simple.parser.JSONParser;
 

@@ -21,7 +21,7 @@ import org.infai.ses.senergy.operators.Config;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
-import util.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONFileReader;
 
 import java.util.Map;
 

@@ -23,7 +23,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
-import util.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONFileReader;
 
 import java.util.HashMap;
 import java.util.Map;
