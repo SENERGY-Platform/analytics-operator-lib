@@ -45,12 +45,15 @@ public class OperatorTest extends TestCase {
         message.setConfig(configString);
         testOperator = new TestOperator(configString);
         testOperator.config(message);
+        Map <String, String> map = new HashMap<>();
+        map.put("test", "1");
         for(Object msg : messages){
             message.setMessage(builder.formatMessage(msg.toString()));
             testOperator.run(message);
+            System.out.println(message.getMessageString());
+            Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+            Assert.assertEquals(msg, message.<JSONArray>getValue("inputs").get(0));
         }
-        Map <String, String> map = new HashMap<>();
-        map.put("test", "1");
-        Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+
     }
 }

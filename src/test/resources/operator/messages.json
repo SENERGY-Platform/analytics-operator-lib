@@ -4,7 +4,15 @@
       "device_id": "1",
       "value": {
         "reading": {
-          "value": 5.0
+          "value": 5.5
+        }
+      }
+    },
+    {
+      "device_id": "2",
+      "value": {
+        "reading": {
+          "value": 5.5
         }
       }
     }
