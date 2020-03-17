@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package org.infai.ses.senergy.operators.test;
 
 import junit.framework.TestCase;
-import org.infai.seits.sepl.operators.Config;
+import org.infai.ses.senergy.operators.Config;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
+import util.JSONFileReader;
 
 import java.util.Map;
 

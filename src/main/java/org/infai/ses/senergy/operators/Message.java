@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators;
+package org.infai.ses.senergy.operators;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

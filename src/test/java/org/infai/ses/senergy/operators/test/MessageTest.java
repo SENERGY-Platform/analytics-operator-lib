@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package org.infai.ses.senergy.operators.test;
 
-import org.infai.seits.sepl.operators.Message;
+import org.infai.ses.senergy.operators.Message;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;

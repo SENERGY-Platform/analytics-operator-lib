@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators;
+package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators;
+package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
-import netscape.javascript.JSObject;
-import org.apache.kafka.common.protocol.types.Field;
 
 import java.util.List;
 import java.util.Map;

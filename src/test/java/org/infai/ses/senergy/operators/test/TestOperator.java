@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package org.infai.ses.senergy.operators.test;
 
-import org.infai.seits.sepl.operators.Config;
-import org.infai.seits.sepl.operators.Message;
-import org.infai.seits.sepl.operators.OperatorInterface;
+import org.infai.ses.senergy.operators.Config;
+import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.operators.OperatorInterface;
 
 public class TestOperator implements OperatorInterface {
 

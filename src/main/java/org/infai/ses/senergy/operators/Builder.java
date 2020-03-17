@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators;
+package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serdes;
@@ -30,8 +30,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.infai.seits.sepl.operators.Helper.checkPathExists;
 
 public class Builder {
 
@@ -59,7 +57,7 @@ public class Builder {
 
         KStream<String, String> filterData = inputStream.filter((key, json) -> {
             if (valuePath != null) {
-                if (checkPathExists(json, "$." + valuePath)) {
+                if (Helper.checkPathExists(json, "$." + valuePath)) {
                     String value = JsonPath.parse(json).read("$." + valuePath);
                     //if the ids do not match, filter the element
                     try {

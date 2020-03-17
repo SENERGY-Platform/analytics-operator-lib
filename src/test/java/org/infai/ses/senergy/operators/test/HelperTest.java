@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package org.infai.ses.senergy.operators.test;
 
 import com.jayway.jsonpath.JsonPath;
-import org.infai.seits.sepl.operators.Helper;
+import org.infai.ses.senergy.operators.Helper;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;

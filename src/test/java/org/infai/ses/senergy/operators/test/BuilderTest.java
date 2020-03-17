@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package org.infai.ses.senergy.operators.test;
 
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.seits.sepl.operators.Builder;
+import org.infai.ses.senergy.operators.Builder;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.infai.seits.sepl.operators.test;
+package util;
 
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
