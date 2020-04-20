@@ -52,7 +52,27 @@ public class OperatorTest extends TestCase {
         for(Object msg : messages){
             message.setMessage(builder.formatMessage(msg.toString()));
             testOperator.run(message);
-            System.out.println(message.getMessageString());
+            Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+            Assert.assertEquals(msg, message.<JSONArray>getValue("inputs").get(0));
+        }
+
+    }
+
+    @Test
+    public void testTwoFilterValuesWithMessagesWithTwoValues(){
+        Builder builder = new Builder("1", "1");
+        Message message = new Message();
+        message.setConfig(new JSONFileReader().parseFile("operator/config-2.json").toString());
+        testOperator = new TestOperator();
+        testOperator.setConfig(new JSONFileReader().parseFile("operator/config-2.json").toString());
+        testOperator.configMessage(message);
+        Map <String, String> map = new HashMap<>();
+        map.put("val", "5.5");
+        map.put("val2", "3.5");
+        messages = new JSONFileReader().parseFile("operator/messages-2.json");
+        for(Object msg : messages){
+            message.setMessage(builder.formatMessage(msg.toString()));
+            testOperator.run(message);
             Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
             Assert.assertEquals(msg, message.<JSONArray>getValue("inputs").get(0));
         }

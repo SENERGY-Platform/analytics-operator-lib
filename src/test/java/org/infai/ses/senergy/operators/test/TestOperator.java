@@ -24,13 +24,16 @@ public class TestOperator extends BaseOperator {
 
     @Override
     public void run(Message message) {
-
         if (getConfig().getConfigValue("input", "false").equals("true")){
             message.getInput("value").getValue();
         }
-        if (getConfig().getConfigValue("test", "testVal") == "test"){
+        if (getConfig().getConfigValue("test", "testVal").equals("test")){
             message.output("test", "2");
-        } else {
+        } else if (getConfig().getConfigValue("inputs", "1").equals("2")) {
+            message.output("val", message.getInput("value").getValue().toString());
+            message.output("val2", message.getInput("value2").getValue().toString());
+        }
+        else {
             message.output("test", "1");
         }
 
@@ -39,5 +42,6 @@ public class TestOperator extends BaseOperator {
     @Override
     public void configMessage(Message message) {
         message.addInput("value");
+        message.addInput("value2");
     }
 }
