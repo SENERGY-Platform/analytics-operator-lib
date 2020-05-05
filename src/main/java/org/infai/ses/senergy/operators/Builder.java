@@ -22,10 +22,10 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
+import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,8 +37,6 @@ public class Builder {
     private Integer seconds = 5;
     private String pipelineId;
     private String operatorId;
-
-    public String time;
 
     public Builder (String operatorId, String pipelineId){
         this.operatorId = operatorId;
@@ -133,16 +131,10 @@ public class Builder {
         return builder;
     }
 
-    private void setTime(){
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        this.time =timestamp.toInstant().toString();
-    }
-
     private JSONObject createMessageWrapper(){
-        setTime();
         return new JSONObject().
                 put("pipeline_id", pipelineId).
-                put("time", this.time).
+                put("time", TimeProvider.nowUTCToString()).
                 put("operator_id", operatorId).
                 put("analytics", new JSONObject());
     }

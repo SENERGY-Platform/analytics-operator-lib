@@ -16,23 +16,38 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.utils.TimeProvider;
+import org.json.simple.JSONArray;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
 
-public class BuilderTest {
+public class BuilderTest extends TestCase {
 
     private static final String APP_ID = "app-id";
 
     private KStreamTestDriver driver = new KStreamTestDriver();
 
     private File stateDir = new File("./state/builder");
+
+    private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
+
+    @Override
+    protected void setUp() throws Exception {
+        TimeProvider.useFixedClockAt(time);
+    }
 
     @Test
     public void testFilterBy(){
@@ -82,7 +97,8 @@ public class BuilderTest {
 
     @Test
     public void testJoinStreams(){
-
+        JSONArray messages = new JSONFileReader().parseFile("builder/messages.json");
+        JSONArray results = new JSONFileReader().parseFile("builder/results.json");
         Builder builder = new Builder("1", "1");
         final String topic1 = "input-stream";
         final String topic2 = "input-stream2";
@@ -93,21 +109,16 @@ public class BuilderTest {
         final KStream<String, String> merged = builder.joinStreams(source1, source2);
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         merged.process(processorSupplier);
-
         driver.setUp(builder.getBuilder(), stateDir);
         driver.setTime(0L);
-        driver.process(topic1, "A", "{'device_id': '1', 'value':1}");
-        driver.process(topic2, "A", "{'device_id': '2', 'value':1}");
-        String time2 = builder.time;
-        driver.process(topic2, "A", "{'device_id': '2', 'value':3}");
-
-
-        Assert.assertEquals(Utils.mkList(
-                "A:{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"value\":1},{\"device_id\":\"2\",\"value\":1}]," +
-                        "\"pipeline_id\":\"1\",\"time\":\""+ time2 +"\"}",
-        "A:{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"value\":1},{\"device_id\":\"2\",\"value\":3}]," +
-                "\"pipeline_id\":\"1\",\"time\":\""+ builder.time +"\"}"),
-                processorSupplier.processed);
+        driver.process(topic1, "A", messages.get(0).toString());
+        driver.process(topic2, "A", messages.get(1).toString());
+        driver.process(topic2, "A", messages.get(2).toString());
+        Assert.assertEquals(2, processorSupplier.processed.size());
+        int index = 0;
+        for (Object result:results){
+            Assert.assertEquals(result.toString(),processorSupplier.processedValues.get(index++));
+        }
     }
 
     @Test
@@ -115,7 +126,7 @@ public class BuilderTest {
         Builder builder = new Builder("1", "1");
         String message = builder.formatMessage("{'device_id': '1'}");
         Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]," +
-                "\"pipeline_id\":\"1\",\"time\":\""+ builder.time +"\"}",message);
+                "\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
     }
 
     @Test
@@ -123,7 +134,18 @@ public class BuilderTest {
         Builder builder = new Builder("1", "2");
         String message = builder.formatMessage("{'analytics':{'test': 1},'inputs':[{'device_id': '1'}],'pipeline_id':'1'}");
         Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"analytics\":{\"test\":1}," +
-                "\"inputs\":[{\"device_id\":\"1\"}],\"pipeline_id\":\"1\"}],\"pipeline_id\":\"2\",\"time\":\""+ builder.time +"\"}",message);
+                "\"inputs\":[{\"device_id\":\"1\"}],\"pipeline_id\":\"1\"}],\"pipeline_id\":\"2\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
+    }
+
+    @After
+    public void deleteOutputFile() {
+        if(stateDir.exists()){
+            try {
+                FileUtils.deleteDirectory(stateDir);
+            } catch (IOException e) {
+                System.out.println("Could not delete state dir.");
+            }
+        }
     }
 
 }

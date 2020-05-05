@@ -1,0 +1,61 @@
+{
+  "analytics": {
+    "test": "1"
+  },
+  "operator_id": "1",
+  "inputs": [
+    {
+      "device_id": "1",
+      "service_id": "1",
+      "value": {
+        "reading": {
+          "OBIS_16_7": {
+            "unit": "kW",
+            "value": 0.36
+          },
+          "time": "2019-07-18T12:19:04.250355Z",
+          "OBIS_1_8_0": {
+            "unit": "kWh",
+            "value": 226.239
+          }
+        }
+      }
+    },
+    {
+      "device_id": "2",
+      "service_id": "2",
+      "value": {
+        "reading": {
+          "OBIS_16_7": {
+            "unit": "kW",
+            "value": 0.36
+          },
+          "time": "2019-07-18T12:19:04.250355Z",
+          "OBIS_1_8_0": {
+            "unit": "kWh",
+            "value": 226.239
+          }
+        }
+      }
+    },
+    {
+      "device_id": "3",
+      "service_id": "3",
+      "value": {
+        "reading": {
+          "OBIS_16_7": {
+            "unit": "kW",
+            "value": 0.36
+          },
+          "time": "2019-07-18T12:19:04.250355Z",
+          "OBIS_1_8_0": {
+            "unit": "kWh",
+            "value": 226.239
+          }
+        }
+      }
+    }
+  ],
+  "pipeline_id": "1",
+  "time": "2020-01-01T00:01:00Z"
+  }

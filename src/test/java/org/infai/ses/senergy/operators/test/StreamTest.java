@@ -16,27 +16,38 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.utils.TimeProvider;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.infai.ses.senergy.testing.utils.JSONFileReader;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 
-public class StreamTest {
+public class StreamTest extends TestCase {
 
     private static final String APP_ID = "app-id";
 
     private KStreamTestDriver driver = new KStreamTestDriver();
 
     private File stateDir = new File("./state/stream");
+
+    private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
+
+    @Override
+    protected void setUp() throws Exception {
+        TimeProvider.useFixedClockAt(time);
+    }
 
     @Test
     public void testProcessSingleStream(){
@@ -56,14 +67,13 @@ public class StreamTest {
 
         driver.process("topic1", "A", "{'pipeline_id': '1', 'operator_id': '1'}");
         driver.process("topic1", "B", "{'pipeline_id': '2', 'operator_id': '1'}");
-        String time2 = stream.builder.time;
         driver.process("topic1", "D", "{'pipeline_id': '1', 'operator_id': '1'}");
         driver.process("topic1", "G", "{'pipeline_id': '1', 'operator_id': '2'}");
 
         Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"inputs\":[{\"operator_id\":\"1\"," +
-                        "\"pipeline_id\":\"1\"}],\"time\":\""+ time2 +"\"}",
+                        "\"pipeline_id\":\"1\"}],\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",
                 "D:{\"analytics\":{\"test\":\"1\"},\"inputs\":[{\"operator_id\":\"1\"," +
-                        "\"pipeline_id\":\"1\"}],\"time\":\""+ stream.builder.time +"\"}"), processorSupplier.processed);
+                        "\"pipeline_id\":\"1\"}],\"time\":\""+ TimeProvider.nowUTCToString() +"\"}"), processorSupplier.processed);
     }
 
     @Test
@@ -82,14 +92,13 @@ public class StreamTest {
         driver.setTime(0L);
 
         driver.process("topic1", "A", "{'device_id': '1'}");
-        String time2 = stream.builder.time;
         driver.process("topic1", "B", "{'device_id': '2'}");
         driver.process("topic1", "D", "{'device_id': '1'}");
 
         Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
-                        ",\"pipeline_id\":\"1\",\"time\":\""+ time2 +"\"}",
+                        ",\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",
                 "D:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]" +
-                        ",\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}"), processorSupplier.processed);
+                        ",\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}"), processorSupplier.processed);
     }
 
     @Test
@@ -126,7 +135,7 @@ public class StreamTest {
         driver.process("topic2", null, "{'device_id': '2', 'value':2}");
 
         Assert.assertEquals(Utils.mkList("A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"value\":2},{\"device_id\":\"2\",\"value\":2}]" +
-                        ",\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}"),
+                        ",\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}"),
                 processorSupplier.processed);
 
     }
@@ -171,7 +180,7 @@ public class StreamTest {
             expected += "{\"device_id\":\""+i+"\",\"value\":"+i+"},";
         }
         expected = expected.substring(0, expected.length()-1); //remove last ','
-        expected += "],\"pipeline_id\":\"1\",\"time\":\""+ stream.builder.time +"\"}";
+        expected += "],\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}";
 
         driver.close();
 
@@ -227,8 +236,20 @@ public class StreamTest {
         driver.process("topic2", null, "{'device_id':'2','service_id':'2','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
         driver.process("topic3", null, "{'device_id':'3','service_id':'3','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
 
-        String expected = "A:{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"service_id\":\"1\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}},{\"device_id\":\"2\",\"service_id\":\"2\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}},{\"device_id\":\"3\",\"service_id\":\"3\",\"value\":{\"reading\":{\"OBIS_16_7\":{\"unit\":\"kW\",\"value\":0.36},\"time\":\"2019-07-18T12:19:04.250355Z\",\"OBIS_1_8_0\":{\"unit\":\"kWh\",\"value\":226.239}}}}],\"pipeline_id\":\"1\",\"time\":\""+stream.builder.time+"\"}";
+        JSONFileReader reader = new JSONFileReader();
+        String expected = reader.parseFile("stream/testComplexMessageExpected.json").toString();;
 
-        Assert.assertEquals(expected, processorSupplier.processed.get(0));
+        Assert.assertEquals(expected, processorSupplier.processedValues.get(0));
+    }
+
+    @After
+    public void deleteOutputFile() {
+        if(stateDir.exists()){
+            try {
+                FileUtils.deleteDirectory(stateDir);
+            } catch (IOException e) {
+                System.out.println("Could not delete state dir.");
+            }
+        }
     }
 }
