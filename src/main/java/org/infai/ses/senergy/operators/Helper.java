@@ -19,9 +19,12 @@ package org.infai.ses.senergy.operators;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import kafka.cluster.Broker;
-import kafka.utils.ZkUtils;
+import kafka.zk.KafkaZkClient;
+import kafka.zookeeper.ZooKeeperClient;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.common.network.ListenerName;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
+import org.apache.kafka.common.utils.Time;
 import org.json.JSONObject;
 import scala.collection.JavaConversions;
 
@@ -30,6 +33,8 @@ import java.util.List;
 
 public class Helper {
 
+    private final static String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
+    private final static String ZOOKEEPER_METRIC_TYPE = "zookeeper";
     /**
      * Returns a String list of kafka instances from zookeeper.
      *
@@ -39,10 +44,11 @@ public class Helper {
     public static String getBrokerList(String zookeeperConnect){
         int sessionTimeoutMs = 10 * 1000;
         int connectionTimeoutMs = 8 * 1000;
-
-        ZkUtils zk = ZkUtils.apply(zookeeperConnect, sessionTimeoutMs, connectionTimeoutMs, true);
+        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, 300,300,300, Time.SYSTEM,ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
+        KafkaZkClient client =  new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
+        client.getAllBrokersInCluster();
         List<String> brokerList = new ArrayList<String>();
-        List<Broker> brokers = JavaConversions.seqAsJavaList(zk.getAllBrokersInCluster());
+        List<Broker> brokers = JavaConversions.seqAsJavaList(client.getAllBrokersInCluster());
         for (Broker broker : brokers) {
             //assuming you do not enable security
             if (broker != null) {
@@ -50,7 +56,8 @@ public class Helper {
                         .host()+":"+broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
             }
         }
-        zk.close();
+        client.close();
+        zooKeeperClient.close();
         return String.join(",", brokerList);
     }
 

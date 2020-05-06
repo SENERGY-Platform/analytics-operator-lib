@@ -1,7 +1,7 @@
 {
   "inputTopics": [
     {
-      "Name": "topic1",
+      "Name": "input-topic",
       "FilterType": "OperatorId",
       "FilterValue": "1",
       "Mappings": [

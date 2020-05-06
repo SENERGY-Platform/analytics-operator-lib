@@ -1,0 +1,25 @@
+[{
+  "analytics": {
+    "test": "1"
+  },
+  "inputs": [
+    {
+      "operator_id": "1",
+      "pipeline_id": "1"
+    }
+  ],
+  "time": "2020-01-01T00:01:00Z"
+},
+  {
+    "analytics": {
+      "test": "1"
+    },
+    "inputs": [
+      {
+        "operator_id": "1",
+        "pipeline_id": "1"
+      }
+    ],
+    "time": "2020-01-01T00:01:00Z"
+  }
+]

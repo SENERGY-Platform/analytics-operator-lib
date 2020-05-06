@@ -26,6 +26,7 @@ import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -78,13 +79,18 @@ public class Builder {
     }
 
     public KStream<String, String> joinStreams(KStream<String, String> stream1, KStream<String, String> stream2, Integer seconds) {
-        KStream<String, String> joinedStream = stream1.join(stream2, (leftValue, rightValue) -> {
-            List <String> values = Arrays.asList(leftValue,rightValue);
-            return formatMessage(values).toString();
-            },JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+        KStream<String, String> joined = stream1.join(stream2,
+                (leftValue, rightValue) -> {
+                    List <String> values = Arrays.asList(leftValue,rightValue);
+                    return formatMessage(values).toString();
+                }, /* ValueJoiner */
+                JoinWindows.of(Duration.ofSeconds(TimeUnit.SECONDS.toMillis(seconds))),
+                Joined.with(
+                        Serdes.String(), /* key */
+                        Serdes.String(),   /* left value */
+                        Serdes.String())  /* right value */
         );
-
-        return joinedStream;
+        return joined;
     }
 
     public KStream<String, String> joinMultipleStreams(KStream[] streams) {

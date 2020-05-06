@@ -17,10 +17,15 @@
 package org.infai.ses.senergy.operators.test;
 
 import com.jayway.jsonpath.JsonPath;
+import kafka.zk.EmbeddedZookeeper;
+import org.apache.kafka.streams.integration.utils.EmbeddedKafkaCluster;
 import org.infai.ses.senergy.operators.Helper;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.IOException;
 
 public class HelperTest {
 
@@ -29,8 +34,8 @@ public class HelperTest {
     protected JSONObject ob3 = new JSONObject();
 
     public HelperTest (){
-        ob1.put("device_id", "1").put("value", new JSONObject().put("metrics", new JSONObject().put("level", new Double(5.4))));
-        ob2.put("device_id", "1").put("value", new JSONObject().put("metrics", new JSONObject().put("level", new Integer(5))));
+        ob1.put("device_id", "1").put("value", new JSONObject().put("metrics", new JSONObject().put("level", Double.valueOf(5.4))));
+        ob2.put("device_id", "1").put("value", new JSONObject().put("metrics", new JSONObject().put("level", Integer.valueOf(5))));
         ob3.put("device_id", "1").put("value", new JSONObject().put("metrics", new JSONObject().put("level", new String("{lat: 5.1213123, lon: 23.123123}"))));
     }
 
@@ -42,8 +47,8 @@ public class HelperTest {
 
     @Test
     public void testGetJSONPathValueDouble(){
-        Double value = new Double(Helper.getJSONPathValue(ob1.toString(), "value.metrics.level"));
-        Assert.assertEquals(new Double(5.4) , value);
+        Double value = Double.valueOf(Helper.getJSONPathValue(ob1.toString(), "value.metrics.level"));
+        Assert.assertEquals(Double.valueOf(5.4) , value);
     }
 
     @Test
@@ -54,8 +59,8 @@ public class HelperTest {
 
     @Test
     public void testGetJSONPathValueInteger(){
-        Integer value = new Integer(Helper.getJSONPathValue(ob2.toString(), "value.metrics.level"));
-        Assert.assertEquals(new Integer(5) , value);
+        Integer value = Integer.valueOf(Helper.getJSONPathValue(ob2.toString(), "value.metrics.level"));
+        Assert.assertEquals(Integer.valueOf(5) , value);
     }
 
     @Test
@@ -68,9 +73,9 @@ public class HelperTest {
     @Test
     public void testSetJSONPathValueDouble(){
         String path = "test.test";
-        String result = Helper.setJSONPathValue(ob1.toString(), path, new Double(2.2));
+        String result = Helper.setJSONPathValue(ob1.toString(), path, Double.valueOf(2.2));
         Double test = JsonPath.parse(result).read("$." + path);
-        Assert.assertEquals(new Double(2.2) , test);
+        Assert.assertEquals(Double.valueOf(2.2) , test);
     }
 
     @Test
@@ -80,7 +85,15 @@ public class HelperTest {
         s = Helper.setJSONPathValue(s, path + ".test2", 3);
         Integer test1 = JsonPath.parse(s).read("$." + path+".test");
         Integer test2 = JsonPath.parse(s).read("$." + path+".test2");
-        Assert.assertEquals(new Integer(2), test1);
-        Assert.assertEquals(new Integer(3), test2);
+        Assert.assertEquals(Integer.valueOf(2), test1);
+        Assert.assertEquals(Integer.valueOf(3), test2);
+    }
+
+    @Test
+    public void testGetBrokerList() throws IOException, InterruptedException {
+        EmbeddedKafkaCluster cluster = new EmbeddedKafkaCluster(1);
+        cluster.start();
+        Assert.assertEquals(cluster.bootstrapServers(), Helper.getBrokerList(cluster.zKConnectString()));
+        cluster.deleteAllTopicsAndWait(2000);
     }
 }

@@ -18,9 +18,10 @@ package org.infai.ses.senergy.operators.test;
 
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.test.KStreamTestDriver;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Builder;
 import org.infai.ses.senergy.testing.utils.JSONFileReader;
@@ -32,92 +33,125 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Properties;
+import static java.util.Arrays.asList;
+
 
 public class BuilderTest extends TestCase {
 
-    private static final String APP_ID = "app-id";
+    private static final String INPUT_TOPIC  = "input-topic";
 
-    private KStreamTestDriver driver = new KStreamTestDriver();
+    private static final String INPUT_TOPIC_2  = "input-topic-2";
+
+    private static final String OUTPUT_TOPIC  = "output-topic";
 
     private File stateDir = new File("./state/builder");
 
     private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
 
+    Properties props = new Properties();
+
     @Override
     protected void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
+        // setup test driver
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
+        props.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
     }
 
     @Test
-    public void testFilterBy(){
+    public void testFilterBy() {
         Builder builder = new Builder("1", "1");
-        final String topic1 = "input-stream";
         final String deviceIdPath = "device_id";
-        final String[] deviceIds = new String[] {"1"};
+        final String[] deviceIds = new String[]{"1"};
 
-        final KStream<String, String> source1 = builder.getBuilder().stream(topic1);
-
+        final KStream<String, String> source1 = builder.getBuilder().stream(INPUT_TOPIC);
         final KStream<String, String> filtered = builder.filterBy(source1, deviceIdPath, deviceIds);
+        filtered.to(OUTPUT_TOPIC);
+
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         filtered.process(processorSupplier);
 
-        driver.setUp(builder.getBuilder());
-        driver.setTime(0L);
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{'device_id': '1'}");
+            inputTopic.pipeInput("B", "{'device_id': '2'}");
+            inputTopic.pipeInput("D", "{'device_id': '1'}");
+        }
 
-        driver.process(topic1, "A", "{'device_id': '1'}");
-        driver.process(topic1, "B", "{'device_id': '2'}");
-        driver.process(topic1, "D", "{'device_id': '1'}");
-
-        Assert.assertEquals(Utils.mkList("A:{'device_id': '1'}", "D:{'device_id': '1'}"), processorSupplier.processed);
+        assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{'device_id': '1'}", 0),
+                new KeyValueTimestamp<>("D", "{'device_id': '1'}", 2000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
     }
 
     @Test
     public void testFilterByMultipleDevices(){
         Builder builder = new Builder("1", "1");
-        final String topic1 = "input-stream";
         final String deviceIdPath = "device_id";
         final String[] deviceIds = new String[] {"1", "2"};
 
-        final KStream<String, String> source1 = builder.getBuilder().stream(topic1);
-
+        final KStream<String, String> source1 = builder.getBuilder().stream(INPUT_TOPIC);
         final KStream<String, String> filtered = builder.filterBy(source1, deviceIdPath, deviceIds);
+        filtered.to(OUTPUT_TOPIC);
+
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         filtered.process(processorSupplier);
 
-        driver.setUp(builder.getBuilder());
-        driver.setTime(0L);
-
-        driver.process(topic1, "A", "{'device_id': '1'}");
-        driver.process(topic1, "B", "{'device_id': '2'}");
-        driver.process(topic1, "D", "{'device_id': '1'}");
-
-        Assert.assertEquals(Utils.mkList("A:{'device_id': '1'}", "B:{'device_id': '2'}", "D:{'device_id': '1'}"), processorSupplier.processed);
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{'device_id': '1'}");
+            inputTopic.pipeInput("B", "{'device_id': '2'}");
+            inputTopic.pipeInput("D", "{'device_id': '1'}");
+        }
+        assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{'device_id': '1'}", 0),
+                new KeyValueTimestamp<>("B", "{'device_id': '2'}", 1000),
+                new KeyValueTimestamp<>("D", "{'device_id': '1'}", 2000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
     }
 
     @Test
     public void testJoinStreams(){
         JSONArray messages = new JSONFileReader().parseFile("builder/messages.json");
-        JSONArray results = new JSONFileReader().parseFile("builder/results.json");
-        Builder builder = new Builder("1", "1");
-        final String topic1 = "input-stream";
-        final String topic2 = "input-stream2";
+        JSONArray expected = new JSONFileReader().parseFile("builder/results.json");
 
-        final KStream<String, String> source1 = builder.getBuilder().stream(topic1);
-        final KStream<String, String> source2 = builder.getBuilder().stream(topic2);
+        Builder builder = new Builder("1", "1");
+
+        final KStream<String, String> source1 = builder.getBuilder().stream(INPUT_TOPIC);
+        final KStream<String, String> source2 = builder.getBuilder().stream(INPUT_TOPIC_2);
 
         final KStream<String, String> merged = builder.joinStreams(source1, source2);
+        merged.to(OUTPUT_TOPIC);
+
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         merged.process(processorSupplier);
-        driver.setUp(builder.getBuilder(), stateDir);
-        driver.setTime(0L);
-        driver.process(topic1, "A", messages.get(0).toString());
-        driver.process(topic2, "A", messages.get(1).toString());
-        driver.process(topic2, "A", messages.get(2).toString());
-        Assert.assertEquals(2, processorSupplier.processed.size());
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            final TestInputTopic<String, String> inputTopic2 =
+                    driver.createInputTopic(INPUT_TOPIC_2, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic1.pipeInput("A", messages.get(0).toString());
+            inputTopic2.pipeInput("A", messages.get(1).toString());
+            inputTopic2.pipeInput("A", messages.get(2).toString());
+        }
+        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
         int index = 0;
-        for (Object result:results){
-            Assert.assertEquals(result.toString(),processorSupplier.processedValues.get(index++));
+        int timestamp = 0;
+        for (Object result:processorSupplier.theCapturedProcessor().processed){
+            Assert.assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+                    result);
+            timestamp = timestamp+ 1000;
         }
     }
 

@@ -40,9 +40,9 @@ public class Input {
 
     public Double getValue() {
         try {
-            return new Double(this.getVal());
+            return Double.valueOf(this.getVal());
         } catch (NullPointerException e){
-            return new Double(0);
+            return Double.valueOf(0);
         }
     }
 
