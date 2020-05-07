@@ -24,6 +24,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -45,7 +46,7 @@ public class Stream {
 
     final private Message message = new Message();
 
-    private Config config = new Config();
+    private Config config = ConfigProvider.getConfig();
 
     public Builder builder;
 
@@ -80,11 +81,11 @@ public class Stream {
     }
 
     public void start(OperatorInterface operator) {
-        operator.configMessage(this.message);
-        if (this.config.topicCount() > 1) {
+        operator.configMessage(message);
+        if (config.topicCount() > 1) {
             processMultipleStreams(operator, config.getTopicConfig());
-        } else if (this.config.topicCount() == 1) {
-            processSingleStream(operator, this.config.getTopicConfig());
+        } else if (config.topicCount() == 1) {
+            processSingleStream(operator, config.getTopicConfig());
         }
         KafkaStreams streams = new KafkaStreams(builder.getBuilder().build(), Stream.config());
 

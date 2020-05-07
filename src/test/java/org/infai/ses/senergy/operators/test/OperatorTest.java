@@ -18,7 +18,9 @@ package org.infai.ses.senergy.operators.test;
 
 import junit.framework.TestCase;
 import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
@@ -41,11 +43,10 @@ public class OperatorTest extends TestCase {
 
     @Test
     public void testTwoFilterValues(){
+        ConfigProvider.setConfig(new Config(configString));
         Builder builder = new Builder("1", "1");
         Message message = new Message();
-        message.setConfig(configString);
         testOperator = new TestOperator();
-        testOperator.setConfig(configString);
         testOperator.configMessage(message);
         Map <String, String> map = new HashMap<>();
         map.put("test", "1");
@@ -60,11 +61,10 @@ public class OperatorTest extends TestCase {
 
     @Test
     public void testTwoFilterValuesWithMessagesWithTwoValues(){
+        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("operator/config-2.json").toString()));
         Builder builder = new Builder("1", "1");
         Message message = new Message();
-        message.setConfig(new JSONFileReader().parseFile("operator/config-2.json").toString());
         testOperator = new TestOperator();
-        testOperator.setConfig(new JSONFileReader().parseFile("operator/config-2.json").toString());
         testOperator.configMessage(message);
         Map <String, String> map = new HashMap<>();
         map.put("val", "5.5");

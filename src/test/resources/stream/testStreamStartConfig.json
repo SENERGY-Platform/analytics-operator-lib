@@ -1,0 +1,15 @@
+{
+  "inputTopics": [
+    {
+      "name": "iot_bc59400c-405c-4c84-9862-a791daa82b60",
+      "filterType": "DeviceId",
+      "filterValue": "iot#7d2af918-9a0d-45f9-9ed3-91c906c3d937",
+      "mappings": [
+        {
+          "dest": "value",
+          "source": "value.reading.OBIS_1_8_0.value"
+        }
+      ]
+    }
+  ]
+}

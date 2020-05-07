@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class Config {
 
-    private String configString = Helper.getEnv("CONFIG", "[]");
+    private String configString = Helper.getEnv("CONFIG", "[{}]");
 
 
     public Config(){

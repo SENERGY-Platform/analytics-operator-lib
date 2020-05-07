@@ -24,6 +24,7 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
@@ -55,6 +56,7 @@ public class StreamTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
+        ConfigProvider.setConfig(new Config());
         // setup test driver
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");

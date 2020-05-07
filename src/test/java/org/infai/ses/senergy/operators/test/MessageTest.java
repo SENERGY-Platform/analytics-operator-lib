@@ -16,7 +16,10 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,7 +29,7 @@ public class MessageTest {
     @Test
     public void testInputValue(){
         Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
-        message.setConfig("{ \"inputTopics\":[\n" +
+        ConfigProvider.setConfig(new Config("{ \"inputTopics\":[\n" +
                 "  {\n" +
                 "    \"Name\": \"analytics-diff\",\n" +
                 "    \"FilterType\": \"DeviceId\",\n" +
@@ -38,7 +41,7 @@ public class MessageTest {
                 "      }\n" +
                 "    ]\n" +
                 "  }\n" +
-                "]}\n");
+                "]}\n"));
         message.addInput("value");
         Double value = new Double(message.getInput("value").getValue());
         Assert.assertEquals(new Double(2.0), value);
@@ -53,8 +56,7 @@ public class MessageTest {
 
     @Test
     public void testArrayValue(){
-        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":[1, 2, 3]},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
-        message.setConfig("{ \"inputTopics\":[\n" +
+        ConfigProvider.setConfig(new Config("{ \"inputTopics\":[\n" +
                 "  {\n" +
                 "    \"Name\": \"analytics-diff\",\n" +
                 "    \"FilterType\": \"DeviceId\",\n" +
@@ -66,7 +68,8 @@ public class MessageTest {
                 "      }\n" +
                 "    ]\n" +
                 "  }\n" +
-                "]}\n");
+                "]}\n"));
+        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":[1, 2, 3]},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
         message.addInput("value");
         JSONArray expected = new JSONArray().put(1).put(2).put(3);
         Assert.assertEquals(expected.toString(), message.getInput("value").getJSONArray().toString());

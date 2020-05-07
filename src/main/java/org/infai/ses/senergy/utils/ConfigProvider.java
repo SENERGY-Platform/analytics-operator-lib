@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-package org.infai.ses.senergy.operators;
+package org.infai.ses.senergy.utils;
 
-import org.infai.ses.senergy.utils.ConfigProvider;
+import org.infai.ses.senergy.operators.Config;
 
-public class BaseOperator implements OperatorInterface {
+public class ConfigProvider {
+    static Config config = new Config();
 
-    protected Config config;
-
-    public BaseOperator(){
-        this.config = ConfigProvider.getConfig();
+    public static Config getConfig(){
+        return config;
     }
 
-    @Override
-    public void run(Message message) {
-
-    }
-
-    @Override
-    public void configMessage(Message message) {
-
-    }
-
-    protected Config getConfig (){
-        return this.config;
+    public static void setConfig(Config conf){
+        config = conf;
     }
 }

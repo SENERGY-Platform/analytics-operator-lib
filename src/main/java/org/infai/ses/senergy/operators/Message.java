@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -26,7 +27,7 @@ public class Message {
 
     private String jsonMessage;
     private Map<String, Input> inputs = new HashMap<String, Input>();
-    private Config config = new Config();
+    private Config config = ConfigProvider.getConfig();
 
     public Message (){}
 
@@ -66,9 +67,5 @@ public class Message {
 
     public String getMessageString(){
         return this.jsonMessage;
-    }
-
-    public void setConfig(String configString){
-        this.config = new Config(configString);
     }
 }
