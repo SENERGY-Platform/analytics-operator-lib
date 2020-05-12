@@ -16,15 +16,13 @@
 
 package org.infai.ses.senergy.operators;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.infai.ses.senergy.utils.ConfigProvider;
+import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -45,8 +43,9 @@ public class Stream {
     private Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
 
     final private Message message = new Message();
-
     private Config config = ConfigProvider.getConfig();
+
+    private KafkaStreams streams;
 
     public Builder builder;
 
@@ -61,25 +60,6 @@ public class Stream {
         this.builder.setWindowTime(windowTime);
     }
 
-    /**
-     * Set config values for Stream processor.
-     *
-     * @return Properties streamsConfiguration
-     */
-    public static Properties config() {
-        Properties streamsConfiguration = new Properties();
-
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, Helper.getEnv("CONFIG_APPLICATION_ID", "stream-operator"));
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Helper.getEnv("CONFIG_BOOTSTRAP_SERVERS", Helper.getBrokerList(Helper.getEnv("ZK_QUORUM", "localhost:2181"))));
-        streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        streamsConfiguration.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
-        streamsConfiguration.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, Helper.getEnv("STREAM_THREADS_CONFIG", "1"));
-        streamsConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, Helper.getEnv("CONSUMER_AUTO_OFFSET_RESET_CONFIG", "earliest"));
-
-        return streamsConfiguration;
-    }
-
     public void start(OperatorInterface operator) {
         operator.configMessage(message);
         if (config.topicCount() > 1) {
@@ -87,14 +67,17 @@ public class Stream {
         } else if (config.topicCount() == 1) {
             processSingleStream(operator, config.getTopicConfig());
         }
-        KafkaStreams streams = new KafkaStreams(builder.getBuilder().build(), Stream.config());
-
+        streams = new KafkaStreams(builder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
         if (resetApp){
             streams.cleanUp();
         }
         
         streams.start();
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+
+    public void closeStreams(){
+        streams.close();
     }
 
     /**
@@ -105,7 +88,6 @@ public class Stream {
     public void processSingleStream(OperatorInterface operator, JSONArray topicConfig) {
         JSONObject topic = new JSONObject(topicConfig.get(0).toString());
         KStream<String, String> inputData = builder.getBuilder().stream(topic.getString(Values.TOPIC_NAME_KEY));
-
         //Filter Stream
         KStream<String, String> filterData = filterStream(topic, inputData);
 
@@ -184,7 +166,9 @@ public class Stream {
         if (DEBUG) {
             outputData.print(Printed.toSysOut());
         }
+
         outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
+
     }
 
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {

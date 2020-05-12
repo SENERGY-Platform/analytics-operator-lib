@@ -17,15 +17,11 @@
 package org.infai.ses.senergy.operators.test;
 
 import com.jayway.jsonpath.JsonPath;
-import kafka.zk.EmbeddedZookeeper;
-import org.apache.kafka.streams.integration.utils.EmbeddedKafkaCluster;
 import org.infai.ses.senergy.operators.Helper;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 
 public class HelperTest {
 
@@ -87,13 +83,5 @@ public class HelperTest {
         Integer test2 = JsonPath.parse(s).read("$." + path+".test2");
         Assert.assertEquals(Integer.valueOf(2), test1);
         Assert.assertEquals(Integer.valueOf(3), test2);
-    }
-
-    @Test
-    public void testGetBrokerList() throws IOException, InterruptedException {
-        EmbeddedKafkaCluster cluster = new EmbeddedKafkaCluster(1);
-        cluster.start();
-        Assert.assertEquals(cluster.bootstrapServers(), Helper.getBrokerList(cluster.zKConnectString()));
-        cluster.deleteAllTopicsAndWait(2000);
     }
 }

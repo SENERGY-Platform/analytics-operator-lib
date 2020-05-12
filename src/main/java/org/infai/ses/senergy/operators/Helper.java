@@ -42,9 +42,12 @@ public class Helper {
      * @return string list of kafka instances.
      */
     public static String getBrokerList(String zookeeperConnect){
+        if (zookeeperConnect == null || zookeeperConnect.equals("")){
+            return "localhost:2181";
+        }
         int sessionTimeoutMs = 10 * 1000;
         int connectionTimeoutMs = 8 * 1000;
-        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, 300,300,300, Time.SYSTEM,ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
+        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, sessionTimeoutMs,connectionTimeoutMs,1, Time.SYSTEM,ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
         KafkaZkClient client =  new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
         client.getAllBrokersInCluster();
         List<String> brokerList = new ArrayList<String>();

@@ -26,6 +26,7 @@ public class TestOperator extends BaseOperator {
     public void run(Message message) {
         if (getConfig().getConfigValue("input", "false").equals("true")){
             message.getInput("value").getValue();
+
         }
         if (getConfig().getConfigValue("test", "testVal").equals("test")){
             message.output("test", "2");
@@ -36,7 +37,6 @@ public class TestOperator extends BaseOperator {
         else {
             message.output("test", "1");
         }
-
     }
 
     @Override
