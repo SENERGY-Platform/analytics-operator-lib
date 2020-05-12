@@ -43,14 +43,14 @@ public class MessageTest {
                 "  }\n" +
                 "]}\n"));
         message.addInput("value");
-        Double value = new Double(message.getInput("value").getValue());
-        Assert.assertEquals(new Double(2.0), value);
+        Double value = Double.valueOf(message.getInput("value").getValue());
+        Assert.assertEquals(Double.valueOf(2.0), value);
     }
 
     @Test
     public void testOutputValue(){
         Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
-        message.output("test", new Double(2));
+        message.output("test", Double.valueOf(2));
         Assert.assertEquals("{\"analytics\":{\"test\":2.0},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}", message.getMessageString());
     }
 

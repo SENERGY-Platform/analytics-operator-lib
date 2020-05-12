@@ -168,7 +168,6 @@ public class Stream {
         }
 
         outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
-
     }
 
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {

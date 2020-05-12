@@ -16,13 +16,12 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import kafka.utils.MockTime;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.integration.utils.EmbeddedKafkaCluster;
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
@@ -31,19 +30,15 @@ import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
-import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.KafkaContainer;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 public class StreamIntegrationTest {
-    private static final int NUM_BROKERS = 1;
 
-    @ClassRule
-    public static final EmbeddedKafkaCluster CLUSTER = new EmbeddedKafkaCluster(NUM_BROKERS);
-    private final MockTime mockTime = CLUSTER.time;
     private static final String inputTopic = "input-stream";
     private static final String outputTopic = "output-stream";
 
@@ -53,37 +48,42 @@ public class StreamIntegrationTest {
     }
 
     @Test
-    public void testStreamStart() throws Exception{
-        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("stream/testStreamStartConfig.json").toString()));
+    public void testStreamStart() throws Exception {
         JSONArray messages = new JSONFileReader().parseFile("stream/testStreamStartMessages.json");
-        CLUSTER.createTopics(inputTopic, outputTopic);
         List<String> inputValues = Arrays.asList(
                 messages.get(0).toString(),
                 messages.get(1).toString(),
                 messages.get(2).toString()
-                );
-        StreamsConfigProvider.setZookeeperConnectionString(CLUSTER.zKConnectString());
-        IntegrationTestUtils.purgeLocalStreamsState(StreamsConfigProvider.getStreamsConfiguration());
+        );
+        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("stream/testStreamStartConfig.json").toString()));
+        KafkaContainer kafka = new KafkaContainer();
+        kafka.start();
+
+        System.out.println(kafka.getBootstrapServers());
+        StreamsConfigProvider.setKafkaBootstrapString(kafka.getBootstrapServers());
         Stream stream = new Stream();
         TestOperator operator = new TestOperator();
         stream.start(operator);
 
+        //Setup producer
         Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, CLUSTER.bootstrapServers());
+        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         producerConfig.put(ProducerConfig.ACKS_CONFIG, "all");
         producerConfig.put(ProducerConfig.RETRIES_CONFIG, 0);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        IntegrationTestUtils.produceValuesSynchronously(inputTopic, inputValues, producerConfig, mockTime);
 
         Properties consumerConfig = new Properties();
-        consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, CLUSTER.bootstrapServers());
+        consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer");
         consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        IntegrationTestUtils.produceValuesSynchronously(inputTopic, inputValues, producerConfig, Time.SYSTEM);
         List<KeyValue<String, String>> results = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig,
                 outputTopic, 2);
         stream.closeStreams();
+        //stop kafka
+        kafka.stop();
     }
 }
