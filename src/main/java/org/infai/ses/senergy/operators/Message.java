@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import com.jayway.jsonpath.JsonPath;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -28,6 +29,8 @@ public class Message {
     private String jsonMessage;
     private Map<String, Input> inputs = new HashMap<String, Input>();
     private Config config = ConfigProvider.getConfig();
+    private String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
+    private String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
 
     public Message (){}
 
@@ -59,6 +62,31 @@ public class Message {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public String getMessageEntityId(){
+        String id = "";
+        for (int i = 0; i < this.config.getTopicConfig().length(); i++) {
+            switch (((org.json.JSONObject)this.config.getTopicConfigById(i).get(0)).get(Values.FILTER_TYPE_KEY).toString()) {
+                case Values.FILTER_TYPE_OPERATOR_KEY:
+                    if (Helper.checkPathExists(this.jsonMessage, "$.inputs["+ i+"]." + pipelineIDPath)) {
+                        id += JsonPath.parse(this.jsonMessage).read("$.inputs["+ i+"]." + pipelineIDPath);
+                    }
+                    break;
+                case Values.FILTER_TYPE_DEVICE_KEY:
+                    if (Helper.checkPathExists(this.jsonMessage, "$.inputs["+ i+"]."+ deviceIdPath)) {
+                        id += JsonPath.parse(this.jsonMessage).read("$.inputs["+ i+"]." + deviceIdPath);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (this.config.getTopicConfig().length() > 1 && i < this.config.getTopicConfig().length()-1){
+                id += ",";
+            }
+        }
+
+        return id;
     }
 
     public void output(String name, Object value){

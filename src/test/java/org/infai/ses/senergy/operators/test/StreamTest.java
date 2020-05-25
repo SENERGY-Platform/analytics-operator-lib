@@ -17,20 +17,14 @@
 package org.infai.ses.senergy.operators.test;
 
 import junit.framework.TestCase;
-import kafka.utils.MockTime;
 import org.apache.commons.io.FileUtils;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.integration.utils.EmbeddedKafkaCluster;
-import org.apache.kafka.streams.integration.utils.IntegrationTestUtils;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
 import org.infai.ses.senergy.utils.ConfigProvider;
-import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.*;

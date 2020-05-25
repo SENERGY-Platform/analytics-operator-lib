@@ -21,10 +21,20 @@ import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.testing.utils.JSONFileReader;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class MessageTest {
+
+    @Test
+    public void testGetMessageEntityId() {
+        Config config = new Config(new JSONFileReader().parseFile("message/testGetMessageEntityIdConfig.json").toString());
+        ConfigProvider.setConfig(config);
+        JSONObject jsonMessage = new JSONFileReader().parseFile("message/testGetMessageEntityIdMessage.json");
+        Message message = new Message(jsonMessage.toString());
+        Assert.assertEquals("134534", message.getMessageEntityId());
+    }
 
     @Test
     public void testInputValue(){

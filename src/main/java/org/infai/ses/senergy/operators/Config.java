@@ -47,6 +47,16 @@ public class Config {
         return new JSONArray(array.toString());
     }
 
+    public JSONArray getTopicConfigById(Integer index){
+        try {
+            net.minidev.json.JSONArray array = JsonPath.read(this.configString, "$.."+Values.INPUT_TOPICS+"["+ index+"]");
+            return new JSONArray(array.toString());
+        } catch (PathNotFoundException e) {
+            System.out.println(e.getMessage());
+            return new JSONArray();
+        }
+    }
+
     public Integer topicCount(){
         return getTopicConfig().length();
     }
