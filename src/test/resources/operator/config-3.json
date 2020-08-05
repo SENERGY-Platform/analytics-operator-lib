@@ -1,0 +1,30 @@
+{
+  "config": {
+    "input": "true",
+    "inputs": "2"
+  },
+  "inputTopics": [
+    {
+      "name": "op1",
+      "filterType": "OperatorId",
+      "filterValue": "op1",
+      "mappings": [
+        {
+          "dest": "value",
+          "source": "value"
+        }
+      ]
+    },
+    {
+      "name": "op2",
+      "filterType": "OperatorId",
+      "filterValue": "op2",
+      "mappings": [
+        {
+          "dest": "value2",
+          "source": "value"
+        }
+      ]
+    }
+  ]
+}

@@ -67,11 +67,15 @@ public class Input {
         String filterValueString = (String) this.config.get(Values.FILTER_VALUE_KEY);
         String[] filterValues = filterValueString.split(",");
         String value = null;
-        for ( String filterValue: filterValues) {
-            if (filterType.equals(Values.FILTER_TYPE_OPERATOR_KEY) && filterValue.equals (JsonPath.read(this.messageString, "$.inputs[0].operator_id"))) {
+        List<String> operatorIds = JsonPath.read(this.messageString, "$.inputs[*].operator_id");
+        List<String> deviceIds = JsonPath.read(this.messageString, "$.inputs[*].device_id");
+
+        for (String filterValue : filterValues) {
+            if (filterType.equals(Values.FILTER_TYPE_OPERATOR_KEY) && operatorIds.contains(filterValue)) {
                 List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.config.get(Values.MAPPING_SOURCE_KEY));
                 value = convertToString(helper.get(0));
-            } else if (filterType.equals(Values.FILTER_TYPE_DEVICE_KEY) && filterValue.equals (JsonPath.read(this.messageString, "$.inputs[0].device_id"))) {
+            } else
+            if (filterType.equals(Values.FILTER_TYPE_DEVICE_KEY) && deviceIds.contains(filterValue)) {
                 List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.config.get(Values.MAPPING_SOURCE_KEY));
                 value = convertToString(helper.get(0));
             }

@@ -78,4 +78,19 @@ public class OperatorTest extends TestCase {
         }
 
     }
+
+    @Test
+    public void testReadingValuesFromTwoInputs() {
+        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("operator/config-3.json").toString()));
+        Message message = new Message();
+        testOperator = new TestOperator();
+        Map <String, String> map = new HashMap<>();
+        map.put("val", "1.0");
+        map.put("val2", "2.0");
+        String msgInputs = new JSONFileReader().parseFile("operator/messages-3.json").toString();
+        message.setMessage(msgInputs);
+        testOperator.configMessage(message);
+        testOperator.run(message);
+        Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+    }
 }
