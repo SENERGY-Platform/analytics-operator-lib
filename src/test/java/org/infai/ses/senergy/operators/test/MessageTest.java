@@ -18,7 +18,7 @@ package org.infai.ses.senergy.operators.test;
 
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
@@ -29,9 +29,9 @@ public class MessageTest {
 
     @Test
     public void testGetMessageEntityId() {
-        Config config = new Config(new JSONFileReader().parseFile("message/testGetMessageEntityIdConfig.json").toString());
+        Config config = new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString());
         ConfigProvider.setConfig(config);
-        JSONObject jsonMessage = new JSONFileReader().parseFile("message/testGetMessageEntityIdMessage.json");
+        JSONObject jsonMessage = new JSONHelper().parseFile("message/testGetMessageEntityIdMessage.json");
         Message message = new Message(jsonMessage.toString());
         Assert.assertEquals("134534", message.getMessageEntityId());
     }

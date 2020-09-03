@@ -25,7 +25,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.simple.JSONArray;
@@ -49,13 +49,13 @@ public class StreamIntegrationTest {
 
     @Test
     public void testStreamStart() throws Exception {
-        JSONArray messages = new JSONFileReader().parseFile("stream/testStreamStartMessages.json");
+        JSONArray messages = new JSONHelper().parseFile("stream/testStreamStartMessages.json");
         List<String> inputValues = Arrays.asList(
                 messages.get(0).toString(),
                 messages.get(1).toString(),
                 messages.get(2).toString()
         );
-        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("stream/testStreamStartConfig.json").toString()));
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("stream/testStreamStartConfig.json").toString()));
         KafkaContainer kafka = new KafkaContainer();
         kafka.start();
 

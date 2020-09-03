@@ -21,13 +21,13 @@ import org.infai.ses.senergy.operators.Config;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 
 import java.util.Map;
 
 public class ConfigTest extends TestCase {
 
-    Config config = new Config(new JSONFileReader().parseFile("config/config.json").toString());
+    Config config = new Config(new JSONHelper().parseFile("config/config.json").toString());
 
     @Test
     public void testGetTopicConfig(){

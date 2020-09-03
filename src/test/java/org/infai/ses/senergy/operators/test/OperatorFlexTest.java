@@ -20,7 +20,7 @@ import junit.framework.TestCase;
 import org.infai.ses.senergy.operators.Builder;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -33,8 +33,8 @@ import java.util.Map;
 public class OperatorFlexTest extends TestCase {
 
     static TestFlexOperator testOperator;
-    protected JSONArray messages = new JSONFileReader().parseFile("operatorFlex/messages-1.json");
-    static String configString = new JSONFileReader().parseFile("operatorFlex/config-1.json").toString();
+    protected JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-1.json");
+    static String configString = new JSONHelper().parseFile("operatorFlex/config-1.json").toString();
 
 
     @Override
@@ -53,7 +53,7 @@ public class OperatorFlexTest extends TestCase {
         for(Object msg : messages){
             message.setMessage(builder.formatMessage(msg.toString()));
             testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
         }
 
     }

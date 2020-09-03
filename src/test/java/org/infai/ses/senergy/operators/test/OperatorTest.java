@@ -25,7 +25,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +33,8 @@ import java.util.Map;
 public class OperatorTest extends TestCase {
 
     static TestOperator testOperator;
-    protected JSONArray messages = new JSONFileReader().parseFile("operator/messages.json");
-    static String configString = new JSONFileReader().parseFile("operator/config-1.json").toString();
+    protected JSONArray messages = new JSONHelper().parseFile("operator/messages.json");
+    static String configString = new JSONHelper().parseFile("operator/config-1.json").toString();
 
 
     @Override
@@ -53,15 +53,15 @@ public class OperatorTest extends TestCase {
         for(Object msg : messages){
             message.setMessage(builder.formatMessage(msg.toString()));
             testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
-            Assert.assertEquals(msg, message.<JSONArray>getValue("inputs").get(0));
+            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
+            Assert.assertEquals(msg, JSONHelper.<JSONArray>getValue("inputs", message.getMessageString()).get(0));
         }
 
     }
 
     @Test
     public void testTwoFilterValuesWithMessagesWithTwoValues(){
-        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("operator/config-2.json").toString()));
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("operator/config-2.json").toString()));
         Builder builder = new Builder("1", "1");
         Message message = new Message();
         testOperator = new TestOperator();
@@ -69,28 +69,28 @@ public class OperatorTest extends TestCase {
         Map <String, String> map = new HashMap<>();
         map.put("val", "5.5");
         map.put("val2", "3.5");
-        messages = new JSONFileReader().parseFile("operator/messages-2.json");
+        messages = new JSONHelper().parseFile("operator/messages-2.json");
         for(Object msg : messages){
             message.setMessage(builder.formatMessage(msg.toString()));
             testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
-            Assert.assertEquals(msg, message.<JSONArray>getValue("inputs").get(0));
+            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
+            Assert.assertEquals(msg, JSONHelper.<JSONArray>getValue("inputs", message.getMessageString()).get(0));
         }
 
     }
 
     @Test
     public void testReadingValuesFromTwoInputs() {
-        ConfigProvider.setConfig(new Config(new JSONFileReader().parseFile("operator/config-3.json").toString()));
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("operator/config-3.json").toString()));
         Message message = new Message();
         testOperator = new TestOperator();
         Map <String, String> map = new HashMap<>();
         map.put("val", "1.0");
         map.put("val2", "2.0");
-        String msgInputs = new JSONFileReader().parseFile("operator/messages-3.json").toString();
+        String msgInputs = new JSONHelper().parseFile("operator/messages-3.json").toString();
         message.setMessage(msgInputs);
         testOperator.configMessage(message);
         testOperator.run(message);
-        Assert.assertEquals(new JSONObject(map), message.<JSONObject>getValue("analytics"));
+        Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
     }
 }

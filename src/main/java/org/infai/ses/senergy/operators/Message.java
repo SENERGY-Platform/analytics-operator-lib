@@ -63,18 +63,7 @@ public class Message {
     public FlexInput getFlexInput (String name){
         return flexInputs.get(name).setMessage(this.jsonMessage);
     }
-
-    public <K> K getValue (String key){
-        JSONParser parser = new JSONParser();
-        try {
-            JSONObject obj = (JSONObject) parser.parse(this.jsonMessage);
-            return (K) obj.get(key);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
+    
     public String getMessageEntityId(){
         String id = "";
         for (int i = 0; i < this.config.getTopicConfig().length(); i++) {

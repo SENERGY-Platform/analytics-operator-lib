@@ -16,11 +16,12 @@
 
 package org.infai.ses.senergy.testing.utils;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
 
-public class JSONFileReader {
+public class JSONHelper {
 
     public <K> K parseFile(String fileName) {
         JSONParser parser = new JSONParser();
@@ -28,6 +29,24 @@ public class JSONFileReader {
         try {
             return (K) parser.parse(new FileReader(classLoader.getResource(fileName).getFile()));
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Returns a value of a json string.
+     *
+     * @param key
+     * @param <K>
+     * @return value of json string
+     */
+    public static  <K> K getValue (String key, String jsonMessage){
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject obj = (JSONObject) parser.parse(jsonMessage);
+            return (K) obj.get(key);
         } catch (Exception e) {
             e.printStackTrace();
         }

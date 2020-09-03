@@ -28,7 +28,7 @@ import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.*;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,8 +79,8 @@ public class StreamTest extends TestCase {
         Stream stream = new Stream();
         stream.setPipelineId("1");
         TestOperator operator = new TestOperator();
-        Config config = new Config(new JSONFileReader().parseFile("stream/testProcessSingleStreamConfig.json").toString());
-        JSONArray expected = new JSONFileReader().parseFile("stream/testProcessSingleStreamExpected.json");
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
         stream.processSingleStream(operator, config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
@@ -110,8 +110,8 @@ public class StreamTest extends TestCase {
         Stream stream = new Stream("1", "1");
         TestOperator operator = new TestOperator();
 
-        Config config = new Config(new JSONFileReader().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
-        JSONArray expected = new JSONFileReader().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
 
         stream.processSingleStream(operator, config.getTopicConfig());
 
@@ -140,7 +140,7 @@ public class StreamTest extends TestCase {
     public void testProcessTwoStreams2DeviceId(){
         Stream stream = new Stream("1", "1");
         TestOperator operator = new TestOperator();
-        Config config = new Config(new JSONFileReader().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         stream.builder.setWindowTime(5);
 
         stream.processMultipleStreams(operator, config.getTopicConfig());
@@ -165,7 +165,7 @@ public class StreamTest extends TestCase {
         }
         assertEquals(asList(
                 new KeyValueTimestamp<>("A",
-                        new JSONFileReader().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json").toString(),
+                        new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json").toString(),
                         8000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
@@ -261,7 +261,7 @@ public class StreamTest extends TestCase {
             inputTopic3.pipeInput(null, "{'device_id':'3','service_id':'3','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
         }
 
-        String expected = new JSONFileReader().parseFile("stream/testComplexMessageExpected.json").toString();;
+        String expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json").toString();;
 
         Assert.assertEquals(new KeyValueTimestamp<>("A",
                 expected,

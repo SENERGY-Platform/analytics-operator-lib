@@ -24,7 +24,7 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Builder;
-import org.infai.ses.senergy.testing.utils.JSONFileReader;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
@@ -122,8 +122,8 @@ public class BuilderTest extends TestCase {
 
     @Test
     public void testJoinStreams(){
-        JSONArray messages = new JSONFileReader().parseFile("builder/messages.json");
-        JSONArray expected = new JSONFileReader().parseFile("builder/results.json");
+        JSONArray messages = new JSONHelper().parseFile("builder/messages.json");
+        JSONArray expected = new JSONHelper().parseFile("builder/results.json");
 
         Builder builder = new Builder("1", "1");
 
