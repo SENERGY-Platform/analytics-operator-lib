@@ -16,8 +16,11 @@
 
 package org.infai.ses.senergy.operators;
 
+import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import org.infai.ses.senergy.models.ConfigModel;
+import org.infai.ses.senergy.models.InputTopicModel;
 import org.json.JSONArray;
 
 import java.util.HashMap;
@@ -26,25 +29,42 @@ import java.util.Map;
 
 public class Config {
 
-    private String configString = Helper.getEnv("CONFIG", "[{}]");
-
+    private String configString = Helper.getEnv("CONFIG", "{}");
+    private ConfigModel configModel;
 
     public Config(){
         streamlineConfigString();
+        this.configModel = new Gson().fromJson(this.configString, ConfigModel.class);
     }
 
     public Config (String configString){
         this.configString = configString;
         streamlineConfigString();
+        this.configModel = new Gson().fromJson(this.configString, ConfigModel.class);
     }
 
     public String getConfigString() {
         return configString;
     }
 
+    /**
+     * @Deprecated
+     *
+     * @return
+     */
+    @Deprecated
     public JSONArray getTopicConfig(){
         net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
         return new JSONArray(array.toString());
+    }
+
+    /**
+     * Returns a list of inputtopic models.
+     *
+     * @return list of inputtopic models
+     */
+    public List<InputTopicModel> getInputTopicsConfigs() {
+        return this.configModel.getInputTopics();
     }
 
     public JSONArray getTopicConfigById(Integer index){
@@ -83,7 +103,13 @@ public class Config {
         }
     }
 
-    public Map<String, Object> inputTopic(String inputName){
+    /**
+     * Returns the the input topic configuration which corresponds to the dest name given.
+     *
+     * @param inputName
+     * @return
+     */
+    public Map<String, Object> getInputTopicByInputName(String inputName){
         Map<String, Object> topic = new HashMap<String, Object>();
         List<Map<String, Object>> topics = JsonPath.read(this.configString,"$."+Values.INPUT_TOPICS+".*");
         for(Map<String, Object> t : topics){

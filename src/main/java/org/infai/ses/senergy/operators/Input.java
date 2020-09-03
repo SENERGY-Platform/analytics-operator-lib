@@ -17,20 +17,20 @@
 package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
+import org.infai.ses.senergy.utils.ConfigProvider;
+import org.infai.ses.senergy.utils.MessageProvider;
 
 import java.util.List;
 import java.util.Map;
 
 public class Input {
 
-    private String name = "";
-    private String messageString = "";
-    private Map<String, Object> config;
+    private String messageString = MessageProvider.getMessage().getMessageString();
+    private final Config config = ConfigProvider.getConfig();
+    private final Map<String, Object> topicConfig;
 
-    public Input(String name, String messageString, Map<String, Object> config) {
-        this.messageString = messageString;
-        this.name = name;
-        this.config = config;
+    public Input(String name) {
+        this.topicConfig = this.config.getInputTopicByInputName(name);
     }
 
     public Input setMessage(String message) {
@@ -42,7 +42,7 @@ public class Input {
         try {
             return Double.valueOf(this.getVal());
         } catch (NullPointerException e){
-            return Double.valueOf(0);
+            return null;
         }
     }
 
@@ -63,8 +63,8 @@ public class Input {
     }
 
     private String getVal(){
-        String filterType = (String) this.config.get(Values.FILTER_TYPE_KEY);
-        String filterValueString = (String) this.config.get(Values.FILTER_VALUE_KEY);
+        String filterType = (String) this.topicConfig.get(Values.FILTER_TYPE_KEY);
+        String filterValueString = (String) this.topicConfig.get(Values.FILTER_VALUE_KEY);
         String[] filterValues = filterValueString.split(",");
         String value = null;
         List<String> operatorIds = JsonPath.read(this.messageString, "$.inputs[*].operator_id");
@@ -72,11 +72,11 @@ public class Input {
 
         for (String filterValue : filterValues) {
             if (filterType.equals(Values.FILTER_TYPE_OPERATOR_KEY) && operatorIds.contains(filterValue)) {
-                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.config.get(Values.MAPPING_SOURCE_KEY));
+                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.topicConfig.get(Values.MAPPING_SOURCE_KEY));
                 value = convertToString(helper.get(0));
             } else
             if (filterType.equals(Values.FILTER_TYPE_DEVICE_KEY) && deviceIds.contains(filterValue)) {
-                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.config.get(Values.MAPPING_SOURCE_KEY));
+                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.topicConfig.get(Values.MAPPING_SOURCE_KEY));
                 value = convertToString(helper.get(0));
             }
         }
@@ -89,7 +89,7 @@ public class Input {
         } else if (ret instanceof Integer) {
             return String.valueOf(ret);
         } else if (ret instanceof net.minidev.json.JSONArray){
-            return ((net.minidev.json.JSONArray) ret).toString();
+            return ret.toString();
         } else {
             try {
                 return (String) ret;

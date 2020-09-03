@@ -38,13 +38,13 @@ public class ConfigTest extends TestCase {
 
     @Test
     public void testTopicOfInput(){
-        Map<String, Object> conf =  config.inputTopic("value");
+        Map<String, Object> conf =  config.getInputTopicByInputName("value");
         Assert.assertEquals("test", conf.get("name"));
     }
 
     @Test
     public void testTopicOfInputSmall(){
-        Map<String, Object> conf =  config.inputTopic("value");
+        Map<String, Object> conf =  config.getInputTopicByInputName("value");
         Assert.assertEquals("test", conf.get("name"));
     }
 

@@ -27,10 +27,11 @@ import java.util.Map;
 public class Message {
 
     private String jsonMessage;
-    private Map<String, Input> inputs = new HashMap<String, Input>();
-    private Config config = ConfigProvider.getConfig();
-    private String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
-    private String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
+    private final Map<String, Input> inputs = new HashMap<String, Input>();
+    private final Map<String, FlexInput> flexInputs = new HashMap<String, FlexInput>();
+    private final Config config = ConfigProvider.getConfig();
+    private final String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
+    private final String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
 
     public Message (){}
 
@@ -44,13 +45,23 @@ public class Message {
     }
 
     public Input addInput (String name){
-        Input input = new Input(name, jsonMessage, this.config.inputTopic(name));
+        Input input = new Input(name);
         this.inputs.put(name, input);
         return input;
     }
 
+    public FlexInput addFlexInput (String name){
+        FlexInput flexInput = new FlexInput(name);
+        this.flexInputs.put(name, flexInput);
+        return flexInput;
+    }
+
     public Input getInput (String name){
         return inputs.get(name).setMessage(this.jsonMessage);
+    }
+
+    public FlexInput getFlexInput (String name){
+        return flexInputs.get(name).setMessage(this.jsonMessage);
     }
 
     public <K> K getValue (String key){
