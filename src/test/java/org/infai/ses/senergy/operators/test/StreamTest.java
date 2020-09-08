@@ -122,9 +122,9 @@ public class StreamTest {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             inputTopic.pipeInput("A", "{'pipeline_id': '1', 'device_id': '1'}");
-            inputTopic.pipeInput("A", "{'pipeline_id': '1', 'device_id': '1'}");
-            inputTopic.pipeInput("A", "{'pipeline_id': '2', 'device_id': '1'}");
-            inputTopic.pipeInput("A", "{'pipeline_id': '1', 'device_id': '2'}");
+            inputTopic.pipeInput("B", "{'pipeline_id': '1', 'device_id': '1'}");
+            inputTopic.pipeInput("C", "{'pipeline_id': '2', 'device_id': '1'}");
+            inputTopic.pipeInput("D", "{'pipeline_id': '1', 'device_id': '2'}");
         }
 
         int index = 0;
