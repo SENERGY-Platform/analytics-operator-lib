@@ -130,7 +130,11 @@ public class BuilderTest extends TestCase {
         final KStream<String, String> source1 = builder.getBuilder().stream(INPUT_TOPIC);
         final KStream<String, String> source2 = builder.getBuilder().stream(INPUT_TOPIC_2);
 
-        final KStream<String, String> merged = builder.joinStreams(source1, source2);
+        KStream<String, String>[] streams = new KStream[2];
+        streams[0] = source1;
+        streams[1] = source2;
+
+        final KStream<String, String> merged = builder.joinMultipleStreams(streams);
         merged.to(OUTPUT_TOPIC);
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
