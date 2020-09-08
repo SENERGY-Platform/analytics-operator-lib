@@ -22,7 +22,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.StreamJoined;
-import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,16 +30,13 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Builder {
+public class StreamBuilder extends BaseBuilder {
 
     private StreamsBuilder builder = new StreamsBuilder();
     private Integer seconds = Values.WINDOW_TIME;
-    private String pipelineId;
-    private String operatorId;
 
-    public Builder (String operatorId, String pipelineId){
-        this.operatorId = operatorId;
-        this.pipelineId = pipelineId;
+    public StreamBuilder(String operatorId, String pipelineId) {
+        super(operatorId, pipelineId);
     }
 
     /**
@@ -93,7 +89,7 @@ public class Builder {
                         values.add(leftValue);
                     }
                     values.add(rightValue);
-                    return formatMessage(values).toString();
+                    return this.formatMessage(values).toString();
                         }, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
@@ -114,28 +110,7 @@ public class Builder {
     }
 
     public StreamsBuilder getBuilder() {
-        return builder;
-    }
-
-    private JSONObject createMessageWrapper(){
-        return new JSONObject().
-                put("pipeline_id", pipelineId).
-                put("time", TimeProvider.nowUTCToString()).
-                put("operator_id", operatorId).
-                put("analytics", new JSONObject());
-    }
-
-    public String formatMessage (String value) {
-        List <String> values = Arrays.asList(value);
-        return formatMessage(values).toString();
-    }
-
-    public JSONObject formatMessage(List<String> values){
-        JSONObject ob = createMessageWrapper();
-        JSONArray inputs = new JSONArray();
-        values.forEach((v) -> inputs.put(new JSONObject(v)));
-        ob.put("inputs", inputs);
-        return ob;
+        return this.builder;
     }
 
     public void setWindowTime(Integer seconds){

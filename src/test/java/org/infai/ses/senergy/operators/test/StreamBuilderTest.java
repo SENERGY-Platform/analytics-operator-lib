@@ -23,7 +23,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
@@ -40,7 +40,7 @@ import java.util.Properties;
 import static java.util.Arrays.asList;
 
 
-public class BuilderTest extends TestCase {
+public class StreamBuilderTest extends TestCase {
 
     private static final String INPUT_TOPIC  = "input-topic";
 
@@ -66,7 +66,7 @@ public class BuilderTest extends TestCase {
 
     @Test
     public void testFilterBy() {
-        Builder builder = new Builder("1", "1");
+        StreamBuilder builder = new StreamBuilder("1", "1");
         final String deviceIdPath = "device_id";
         final String[] deviceIds = new String[]{"1"};
 
@@ -94,7 +94,7 @@ public class BuilderTest extends TestCase {
 
     @Test
     public void testFilterByMultipleDevices(){
-        Builder builder = new Builder("1", "1");
+        StreamBuilder builder = new StreamBuilder("1", "1");
         final String deviceIdPath = "device_id";
         final String[] deviceIds = new String[] {"1", "2"};
 
@@ -125,7 +125,7 @@ public class BuilderTest extends TestCase {
         JSONArray messages = new JSONHelper().parseFile("builder/messages.json");
         JSONArray expected = new JSONHelper().parseFile("builder/results.json");
 
-        Builder builder = new Builder("1", "1");
+        StreamBuilder builder = new StreamBuilder("1", "1");
 
         final KStream<String, String> source1 = builder.getBuilder().stream(INPUT_TOPIC);
         final KStream<String, String> source2 = builder.getBuilder().stream(INPUT_TOPIC_2);
@@ -157,22 +157,6 @@ public class BuilderTest extends TestCase {
                     result);
             timestamp = timestamp+ 1000;
         }
-    }
-
-    @Test
-    public void testFormatMessage(){
-        Builder builder = new Builder("1", "1");
-        String message = builder.formatMessage("{'device_id': '1'}");
-        Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]," +
-                "\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
-    }
-
-    @Test
-    public void testFormatMessage2(){
-        Builder builder = new Builder("1", "2");
-        String message = builder.formatMessage("{'analytics':{'test': 1},'inputs':[{'device_id': '1'}],'pipeline_id':'1'}");
-        Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"analytics\":{\"test\":1}," +
-                "\"inputs\":[{\"device_id\":\"1\"}],\"pipeline_id\":\"1\"}],\"pipeline_id\":\"2\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
     }
 
     @After

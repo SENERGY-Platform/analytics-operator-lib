@@ -47,16 +47,16 @@ public class Stream {
 
     private KafkaStreams streams;
 
-    public Builder builder;
+    public StreamBuilder builder;
 
     public Stream() {
-        builder = new Builder(operatorId, pipelineId);
+        builder = new StreamBuilder(operatorId, pipelineId);
     }
 
     public Stream(String operatorId, String pipelineId) {
         this.operatorId = operatorId;
         this.pipelineId = pipelineId;
-        this.builder = new Builder(operatorId, pipelineId);
+        this.builder = new StreamBuilder(operatorId, pipelineId);
         this.builder.setWindowTime(windowTime);
     }
 

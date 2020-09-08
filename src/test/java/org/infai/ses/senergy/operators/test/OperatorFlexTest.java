@@ -17,7 +17,7 @@
 package org.infai.ses.senergy.operators.test;
 
 import junit.framework.TestCase;
-import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
@@ -44,7 +44,7 @@ public class OperatorFlexTest extends TestCase {
     @Test
     public void testTwoFilterValues(){
         ConfigProvider.setConfig(new Config(configString));
-        Builder builder = new Builder("1", "1");
+        StreamBuilder builder = new StreamBuilder("1", "1");
         Message message = new Message();
         testOperator = new TestFlexOperator();
         testOperator.configMessage(message);
