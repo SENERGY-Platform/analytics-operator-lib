@@ -26,4 +26,5 @@ public final class Values {
     public static final String FILTER_TYPE_OPERATOR_KEY = "OperatorId";
     public static final String FILTER_TYPE_DEVICE_KEY = "DeviceId";
     public static final String INPUT_TOPICS = "inputTopics";
+    public static final Integer WINDOW_TIME = 100;
 }

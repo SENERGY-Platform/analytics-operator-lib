@@ -34,7 +34,7 @@ import java.util.List;
 public class Builder {
 
     private StreamsBuilder builder = new StreamsBuilder();
-    private Integer seconds = 5;
+    private Integer seconds = Values.WINDOW_TIME;
     private String pipelineId;
     private String operatorId;
 

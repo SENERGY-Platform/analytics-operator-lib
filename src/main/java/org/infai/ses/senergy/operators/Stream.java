@@ -37,7 +37,7 @@ public class Stream {
     private String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
     private String pipelineId = Helper.getEnv("PIPELINE_ID", "");
     private String operatorId = Helper.getEnv("OPERATOR_ID", "");
-    private Integer windowTime = Helper.getEnv("WINDOW_TIME", 100);
+    private Integer windowTime = Helper.getEnv("WINDOW_TIME", Values.WINDOW_TIME);
     private Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
     private String operatorIdPath = "operator_id";
     private Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
