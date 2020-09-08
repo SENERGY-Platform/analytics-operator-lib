@@ -30,7 +30,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Builder {
 
@@ -72,25 +71,6 @@ public class Builder {
             return true;
         });
         return filterData;
-    }
-
-    public KStream<String, String> joinStreams(KStream<String, String> stream1, KStream<String, String> stream2){
-        return joinStreams(stream1, stream2, seconds);
-    }
-
-    public KStream<String, String> joinStreams(KStream<String, String> stream1, KStream<String, String> stream2, Integer seconds) {
-        KStream<String, String> joined = stream1.join(stream2,
-                (leftValue, rightValue) -> {
-                    List <String> values = Arrays.asList(leftValue,rightValue);
-                    return formatMessage(values).toString();
-                }, /* ValueJoiner */
-                JoinWindows.of(Duration.ofSeconds(seconds)),
-                StreamJoined.with(
-                        Serdes.String(), /* key */
-                        Serdes.String(),   /* left value */
-                        Serdes.String())  /* right value */
-        );
-        return joined;
     }
 
     public KStream<String, String> joinMultipleStreams(KStream[] streams) {
