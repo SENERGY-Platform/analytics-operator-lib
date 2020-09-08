@@ -77,7 +77,7 @@ public class StreamTest extends TestCase {
     @Test
     public void testProcessSingleStream(){
         Stream stream = new Stream();
-        stream.setPipelineId("1");
+        stream.setPipelineId("AAA");
         TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
@@ -98,7 +98,7 @@ public class StreamTest extends TestCase {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+            Assert.assertEquals(new KeyValueTimestamp<>("AAA",expected.get(index++).toString(), timestamp),
                     result);
             timestamp = timestamp+ 1000;
         }
@@ -107,7 +107,7 @@ public class StreamTest extends TestCase {
 
     @Test
     public void testProcessSingleStreamDeviceId(){
-        Stream stream = new Stream("1", "1");
+        Stream stream = new Stream("AZB", "1");
         TestOperator operator = new TestOperator();
 
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
@@ -130,7 +130,7 @@ public class StreamTest extends TestCase {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+            Assert.assertEquals(new KeyValueTimestamp<>("AZB",expected.get(index++).toString(), timestamp),
                     result);
             timestamp = timestamp+ 1000;
         }
@@ -138,7 +138,7 @@ public class StreamTest extends TestCase {
 
     @Test
     public void testProcessTwoStreams2DeviceId(){
-        Stream stream = new Stream("1", "1");
+        Stream stream = new Stream("AZB", "1");
         TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         stream.builder.setWindowTime(5);
@@ -164,7 +164,7 @@ public class StreamTest extends TestCase {
             inputTopic2.pipeInput(null, "{'device_id': '2', 'value':2}");
         }
         assertEquals(asList(
-                new KeyValueTimestamp<>("A",
+                new KeyValueTimestamp<>("AZB",
                         new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json").toString(),
                         8000)
                 ),
@@ -172,7 +172,7 @@ public class StreamTest extends TestCase {
     }
 
     private void testProcessMultipleStreams(int numStreams){
-        Stream stream = new Stream("1", "1");
+        Stream stream = new Stream("AZB", "1");
         TestOperator operator = new TestOperator();
 
         String configString = "{\"inputTopics\": [";
@@ -201,14 +201,14 @@ public class StreamTest extends TestCase {
             }
         }
 
-        String expected = "{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"1\",\"inputs\":[";
+        String expected = "{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"AZB\",\"inputs\":[";
         for(int i = 0; i <= numStreams; i++){
             expected += "{\"device_id\":\""+i+"\",\"value\":"+i+"},";
         }
         expected = expected.substring(0, expected.length()-1); //remove last ','
         expected += "],\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}";
 
-        Assert.assertEquals(asList(new KeyValueTimestamp<>("A",
+        Assert.assertEquals(asList(new KeyValueTimestamp<>("AZB",
                 expected,
                 0))
                 , processorSupplier.theCapturedProcessor().processed);
@@ -231,7 +231,7 @@ public class StreamTest extends TestCase {
 
     @Test
     public void testComplexMessage(){
-        Stream stream = new Stream("1", "1");
+        Stream stream = new Stream("AZB", "1");
         TestOperator operator = new TestOperator();
 
         String configString = "{\"inputTopics\":[{\"name\":\"topic1\",\"filterType\":\"DeviceId\",\"filterValue\":\"1\",\"mappings\":[{\"dest\":\"value1\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp1\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic2\",\"filterType\":\"DeviceId\",\"filterValue\":\"2\",\"mappings\":[{\"dest\":\"value2\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp2\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic3\",\"filterType\":\"DeviceId\",\"filterValue\":\"3\",\"mappings\":[{\"dest\":\"value3\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp3\",\"source\":\"value.reading.time\"}]}]}";
@@ -263,7 +263,7 @@ public class StreamTest extends TestCase {
 
         String expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json").toString();;
 
-        Assert.assertEquals(new KeyValueTimestamp<>("A",
+        Assert.assertEquals(new KeyValueTimestamp<>("AZB",
                 expected,
                 0), processorSupplier.theCapturedProcessor().processed.get(0));
     }

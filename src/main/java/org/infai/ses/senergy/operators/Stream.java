@@ -149,9 +149,11 @@ public class Stream {
     private void outputStream(OperatorInterface operator, KStream<String, String> outputStream) {
 
         // Execute operator logic
-        KStream<String, String> rawOutputStream = outputStream.flatMapValues(value -> {
+        KStream<String, String> rawOutputStream = outputStream.flatMap((key,value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
             operator.run(this.message.setMessage(value));
-            return Arrays.asList(this.message.getMessageString());
+            result.add(KeyValue.pair(this.operatorId != null ? this.operatorId : this.pipelineId, this.message.getMessageString()));
+            return result;
         });
         // check if output value was set or drop message
         outputData = rawOutputStream.filter((key, value) -> {
