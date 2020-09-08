@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import junit.framework.TestCase;
 import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
@@ -24,21 +23,22 @@ import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class OperatorTest extends TestCase {
+public class OperatorTest {
 
     static TestOperator testOperator;
     protected JSONArray messages = new JSONHelper().parseFile("operator/messages.json");
     static String configString = new JSONHelper().parseFile("operator/config-1.json").toString();
 
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
     }
 
     @Test

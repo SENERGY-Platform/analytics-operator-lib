@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import junit.framework.TestCase;
 import org.infai.ses.senergy.operators.Config;
 import org.json.JSONArray;
 import org.junit.Assert;
@@ -25,7 +24,7 @@ import org.infai.ses.senergy.testing.utils.JSONHelper;
 
 import java.util.Map;
 
-public class ConfigTest extends TestCase {
+public class ConfigTest {
 
     Config config = new Config(new JSONHelper().parseFile("config/config.json").toString());
 

@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -29,6 +28,7 @@ import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -40,7 +40,7 @@ import java.util.Properties;
 import static java.util.Arrays.asList;
 
 
-public class StreamBuilderTest extends TestCase {
+public class StreamBuilderTest {
 
     private static final String INPUT_TOPIC  = "input-topic";
 
@@ -54,8 +54,8 @@ public class StreamBuilderTest extends TestCase {
 
     Properties props = new Properties();
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
         // setup test driver
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -85,7 +85,7 @@ public class StreamBuilderTest extends TestCase {
             inputTopic.pipeInput("D", "{'device_id': '1'}");
         }
 
-        assertEquals(asList(
+        Assert.assertEquals(asList(
                 new KeyValueTimestamp<>("A", "{'device_id': '1'}", 0),
                 new KeyValueTimestamp<>("D", "{'device_id': '1'}", 2000)
                 ),
@@ -112,7 +112,7 @@ public class StreamBuilderTest extends TestCase {
             inputTopic.pipeInput("B", "{'device_id': '2'}");
             inputTopic.pipeInput("D", "{'device_id': '1'}");
         }
-        assertEquals(asList(
+        Assert.assertEquals(asList(
                 new KeyValueTimestamp<>("A", "{'device_id': '1'}", 0),
                 new KeyValueTimestamp<>("B", "{'device_id': '2'}", 1000),
                 new KeyValueTimestamp<>("D", "{'device_id': '1'}", 2000)
@@ -149,7 +149,7 @@ public class StreamBuilderTest extends TestCase {
             inputTopic2.pipeInput("A", messages.get(1).toString());
             inputTopic2.pipeInput("A", messages.get(2).toString());
         }
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
+        Assert.assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){

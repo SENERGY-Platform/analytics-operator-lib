@@ -16,20 +16,20 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import junit.framework.TestCase;
 import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-public class BaseBuilderTest extends TestCase {
+public class BaseBuilderTest {
 
     private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
     }
     @Test

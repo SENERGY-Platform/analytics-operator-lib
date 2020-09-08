@@ -39,7 +39,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 
-public class StreamTest extends TestCase {
+public class StreamTest {
 
     private static final String INPUT_TOPIC  = "input-topic";
 
@@ -51,8 +51,8 @@ public class StreamTest extends TestCase {
 
     Properties props = new Properties();
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
         ConfigProvider.setConfig(new Config());
         // setup test driver
@@ -163,7 +163,7 @@ public class StreamTest extends TestCase {
             inputTopic2.advanceTime(Duration.ofSeconds(2));
             inputTopic2.pipeInput(null, "{'device_id': '2', 'value':2}");
         }
-        assertEquals(asList(
+        Assert.assertEquals(asList(
                 new KeyValueTimestamp<>("AZB",
                         new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json").toString(),
                         8000)
@@ -215,6 +215,7 @@ public class StreamTest extends TestCase {
     }
 
     //@Test
+    @Test
     public void test5Streams(){
         testProcessMultipleStreams(5);
     }

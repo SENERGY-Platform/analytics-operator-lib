@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -34,6 +33,7 @@ import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -46,7 +46,7 @@ import java.util.Properties;
 import static java.util.Arrays.asList;
 
 
-public class TableBuilderTest extends TestCase {
+public class TableBuilderTest {
 
     private static final String INPUT_TOPIC  = "input-topic";
 
@@ -60,8 +60,8 @@ public class TableBuilderTest extends TestCase {
 
     Properties props = new Properties();
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TimeProvider.useFixedClockAt(time);
         // setup test driver
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -161,7 +161,7 @@ public class TableBuilderTest extends TestCase {
             inputTopic2.pipeInput("A", messages.get(1).toString());
             inputTopic2.pipeInput("A", messages.get(2).toString());
         }
-        assertEquals(3, processorSupplier.theCapturedProcessor().processed.size());
+        Assert.assertEquals(3, processorSupplier.theCapturedProcessor().processed.size());
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
