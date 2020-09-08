@@ -84,7 +84,7 @@ public class Builder {
                     List <String> values = Arrays.asList(leftValue,rightValue);
                     return formatMessage(values).toString();
                 }, /* ValueJoiner */
-                JoinWindows.of(Duration.ofSeconds(TimeUnit.SECONDS.toMillis(seconds))),
+                JoinWindows.of(Duration.ofSeconds(seconds)),
                 StreamJoined.with(
                         Serdes.String(), /* key */
                         Serdes.String(),   /* left value */
@@ -114,7 +114,7 @@ public class Builder {
                     }
                     values.add(rightValue);
                     return formatMessage(values).toString();
-                        }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                        }, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
             else {
@@ -125,7 +125,7 @@ public class Builder {
 
                     return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
                     },
-                    JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                    JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
         }
