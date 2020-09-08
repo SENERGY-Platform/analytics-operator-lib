@@ -20,8 +20,8 @@ import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
-import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.StreamJoined;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -85,7 +85,7 @@ public class Builder {
                     return formatMessage(values).toString();
                 }, /* ValueJoiner */
                 JoinWindows.of(Duration.ofSeconds(TimeUnit.SECONDS.toMillis(seconds))),
-                Joined.with(
+                StreamJoined.with(
                         Serdes.String(), /* key */
                         Serdes.String(),   /* left value */
                         Serdes.String())  /* right value */
@@ -114,7 +114,7 @@ public class Builder {
                     }
                     values.add(rightValue);
                     return formatMessage(values).toString();
-                        }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                        }, JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
             else {
@@ -125,7 +125,7 @@ public class Builder {
 
                     return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
                     },
-                    JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), Joined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                    JoinWindows.of(TimeUnit.SECONDS.toMillis(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
         }
