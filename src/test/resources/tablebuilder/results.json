@@ -1,0 +1,74 @@
+[
+  {
+    "analytics": {},
+    "operator_id": "OperatorId",
+    "inputs": [
+      {
+        "device_id": "1",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      },
+      {
+        "device_id": "1",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      }
+    ],
+    "pipeline_id": "PipelineId",
+    "time": "2020-01-01T00:01:00Z"
+  },
+  {
+    "analytics": {},
+    "operator_id": "OperatorId",
+    "inputs": [
+      {
+        "device_id": "1",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      },
+      {
+        "device_id": "2",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      }
+    ],
+    "pipeline_id": "PipelineId",
+    "time": "2020-01-01T00:01:00Z"
+  },
+  {
+    "analytics": {},
+    "operator_id": "OperatorId",
+    "inputs": [
+      {
+        "device_id": "1",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      },
+      {
+        "device_id": "3",
+        "value": {
+          "reading": {
+            "value": 5.5
+          }
+        }
+      }
+    ],
+    "pipeline_id": "PipelineId",
+    "time": "2020-01-01T00:01:00Z"
+  }
+]

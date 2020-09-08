@@ -18,9 +18,9 @@ package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.StreamJoined;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,11 +30,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class StreamBuilder extends BaseBuilder {
+public class TableBuilder extends BaseBuilder {
 
-    private Integer seconds = Values.WINDOW_TIME;
-
-    public StreamBuilder(String operatorId, String pipelineId) {
+    public TableBuilder(String operatorId, String pipelineId) {
         super(operatorId, pipelineId);
     }
 
@@ -46,9 +44,9 @@ public class StreamBuilder extends BaseBuilder {
      * @param filterValues
      * @return KStream filterData
      */
-    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String [] filterValues) {
-
-        KStream<String, String> filterData = inputStream.filter((key, json) -> {
+    public KTable<String, String> filterBy(KTable<String, String> inputStream, String valuePath, String [] filterValues) {
+        //TODO: Tombstones herausfiltern
+        KTable<String, String> filterData = inputStream.filter((key, json) -> {
             if (valuePath != null) {
                 if (Helper.checkPathExists(json, "$." + valuePath)) {
                     String value = JsonPath.parse(json).read("$." + valuePath);
@@ -60,7 +58,7 @@ public class StreamBuilder extends BaseBuilder {
                     }
                 }
                 //if the path does not exist, the element is filtered
-                return false;
+                //return false;
             }
             // if no path is given, everything is processed
             return true;
@@ -68,48 +66,38 @@ public class StreamBuilder extends BaseBuilder {
         return filterData;
     }
 
-    public KStream<String, String> joinMultipleStreams(KStream[] streams) {
-        return joinMultipleStreams(streams, seconds);
-    }
-
-    public KStream<String, String> joinMultipleStreams(KStream[] streams, int seconds) {
-        KStream<String, String> joinedStream = streams[0];
+    public KTable<String, String> joinMultipleStreams(KTable[] streams) {
+        KTable<String, String> joinedStream = streams[0];
         for(int i = 1; i < streams.length; i++) {
             if(i == streams.length - 1) {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                    List<String> values = new LinkedList<>();
+                            List<String> values = new LinkedList<>();
 
-                    if(leftValue.startsWith("[")) {
-                        JSONArray array = new JSONArray(leftValue);
-                        for (int j=0; j<array.length(); j++) {
-                            values.add(array.getJSONObject(j).toString());
+                            if(leftValue.startsWith("[")) {
+                                JSONArray array = new JSONArray(leftValue);
+                                for (int j=0; j<array.length(); j++) {
+                                    values.add(array.getJSONObject(j).toString());
+                                }
+                            }else{
+                                values.add(leftValue);
+                            }
+                            values.add((String) rightValue);
+                            return this.formatMessage(values).toString();
                         }
-                    }else{
-                        values.add(leftValue);
-                    }
-                    values.add(rightValue);
-                    return this.formatMessage(values).toString();
-                        }, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
             else {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                    if (!leftValue.startsWith("[")){
-                        leftValue = "[" + leftValue + "]";
-                    }
+                            if (!leftValue.startsWith("[")){
+                                leftValue = "[" + leftValue + "]";
+                            }
 
-                    return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
-                    },
-                    JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                            return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
+                        }
                 );
             }
         }
 
         return joinedStream;
     }
-
-    public void setWindowTime(Integer seconds){
-        this.seconds = seconds;
-    }
-
 }

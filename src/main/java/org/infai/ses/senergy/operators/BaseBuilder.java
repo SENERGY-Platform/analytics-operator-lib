@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.apache.kafka.streams.StreamsBuilder;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +26,7 @@ import java.util.List;
 
 public class BaseBuilder {
 
+    protected StreamsBuilder builder = new StreamsBuilder();
     private String pipelineId;
     private String operatorId;
 
@@ -52,5 +54,9 @@ public class BaseBuilder {
         values.forEach((v) -> inputs.put(new JSONObject(v)));
         ob.put("inputs", inputs);
         return ob;
+    }
+
+    public StreamsBuilder getBuilder() {
+        return this.builder;
     }
 }
