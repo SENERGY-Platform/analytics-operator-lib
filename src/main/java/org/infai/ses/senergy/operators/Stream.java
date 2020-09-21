@@ -47,19 +47,27 @@ public class Stream {
 
     private KafkaStreams streams;
 
-    public StreamBuilder builder;
+    public StreamBuilder streamBuilder;
+    public TableBuilder tableBuilder;
 
     public Stream() {
-        builder = new StreamBuilder(operatorId, pipelineId);
+        streamBuilder = new StreamBuilder(operatorId, pipelineId);
+        tableBuilder = new TableBuilder(operatorId, pipelineId);
     }
 
     public Stream(String operatorId, String pipelineId) {
         this.operatorId = operatorId;
         this.pipelineId = pipelineId;
-        this.builder = new StreamBuilder(operatorId, pipelineId);
-        this.builder.setWindowTime(windowTime);
+        this.streamBuilder = new StreamBuilder(operatorId, pipelineId);
+        this.streamBuilder.setWindowTime(windowTime);
+        this.tableBuilder = new TableBuilder(operatorId, pipelineId);
     }
 
+    /**
+     * Start the streams application.
+     *
+     * @param operator OperatorInterface
+     */
     public void start(OperatorInterface operator) {
         operator.configMessage(message);
         if (config.topicCount() > 1) {
@@ -67,7 +75,7 @@ public class Stream {
         } else if (config.topicCount() == 1) {
             processSingleStream(operator, config.getTopicConfig());
         }
-        streams = new KafkaStreams(builder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
+        streams = new KafkaStreams(streamBuilder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
         if (resetApp){
             streams.cleanUp();
         }
@@ -76,20 +84,26 @@ public class Stream {
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
+    /**
+     * Close the streams application.
+     */
     public void closeStreams(){
         streams.close();
     }
 
     /**
-     * Process a single stream.
+     * Process a single stream as a record stream.
      *
-     * @param operator
+     * @param operator OperatorInterface
+     * @param topicConfig JSONArray
      */
     public void processSingleStream(OperatorInterface operator, JSONArray topicConfig) {
         JSONObject topic = new JSONObject(topicConfig.get(0).toString());
-        KStream<String, String> inputData = builder.getBuilder().stream(topic.getString(Values.TOPIC_NAME_KEY));
+
+        KStream<String, String> inputData = streamBuilder.getBuilder().stream(topic.getString(Values.TOPIC_NAME_KEY));
         //Filter Stream
         KStream<String, String> filterData = filterStream(topic, inputData);
+
 
         if (DEBUG) {
             filterData.print(Printed.toSysOut());
@@ -98,7 +112,7 @@ public class Stream {
         //format message
         filterData = filterData.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
-            result.add(KeyValue.pair(key, builder.formatMessage(value)));
+            result.add(KeyValue.pair(key, streamBuilder.formatMessage(value)));
             return result;
         });
 
@@ -107,9 +121,39 @@ public class Stream {
     }
 
     /**
-     * Processes multiple streams while automatically creating only one inputStream per topic
-     * @param operator
-     * @param topicConfig
+     * Process a single stream as a changelog stream.
+     *
+     * @param operator OperatorInterface
+     * @param topicConfig JSONArray
+     */
+    public void processSingleStreamAsTable (OperatorInterface operator, JSONArray topicConfig){
+        JSONObject topic = new JSONObject(topicConfig.get(0).toString());
+
+        KTable<String, String> inputData = streamBuilder.getBuilder().table(topic.getString(Values.TOPIC_NAME_KEY));
+        //Filter Stream
+        KTable<String, String> filterData = filterStream(topic, inputData);
+
+
+        if (DEBUG) {
+            filterData.toStream().print(Printed.toSysOut());
+        }
+
+        //format message
+        KStream<String, String> outputStream = filterData.toStream().flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, streamBuilder.formatMessage(value)));
+            return result;
+        });
+
+        //output stream
+        outputStream(operator, outputStream);
+    }
+
+    /**
+     * Processes multiple streams as a record stream while automatically creating only one inputStream per topic.
+     *
+     * @param operator OperatorInterface
+     * @param topicConfig JSONArray
      */
     public void processMultipleStreams(OperatorInterface operator, JSONArray topicConfig) {
         int length = topicConfig.length();
@@ -121,7 +165,7 @@ public class Stream {
 
             if(!inputStreamsMap.containsKey(topicName)){
                 //no inputStream for topic created yet
-                inputStreamsMap.put(topicName, builder.getBuilder().stream(topicName));
+                inputStreamsMap.put(topicName, streamBuilder.getBuilder().stream(topicName));
             }
 
             filterData[i] = filterStream(topic, inputStreamsMap.get(topicName));
@@ -136,18 +180,52 @@ public class Stream {
                 return result;
             });
         }
-        KStream<String, String> merged = builder.joinMultipleStreams(filterData);
+        KStream<String, String> merged = streamBuilder.joinMultipleStreams(filterData);
         outputStream(operator, merged);
+    }
+
+    /**
+     * Processes multiple streams as a changelog stream while automatically creating only one inputStream per topic.
+     *
+     * @param operator OperatorInterface
+     * @param topicConfig JSONArray
+     */
+    public void processMultipleStreamsAsTable(OperatorInterface operator, JSONArray topicConfig) {
+        int length = topicConfig.length();
+        Map<String, KTable<String, String>> inputStreamsMap = new HashMap<>();
+        KTable<String, String>[] filterData = new KTable[length];
+        for(int i = 0; i < length; i++){
+            JSONObject topic = new JSONObject(topicConfig.get(i).toString());
+            String topicName = topic.getString(Values.TOPIC_NAME_KEY);
+
+            if(!inputStreamsMap.containsKey(topicName)){
+                //no inputStream for topic created yet
+                inputStreamsMap.put(topicName, streamBuilder.getBuilder().table(topicName));
+            }
+
+            filterData[i] = filterStream(topic, inputStreamsMap.get(topicName));
+
+            if (DEBUG) {
+                filterData[i].toStream().print(Printed.toSysOut());
+            }
+
+            filterData[i] = filterData[i].toStream().flatMap((key, value) -> {
+                List<KeyValue<String, String>> result = new LinkedList<>();
+                result.add(KeyValue.pair("A", value));
+                return result;
+            }).toTable();
+        }
+        KTable<String, String> merged = tableBuilder.joinMultipleStreams(filterData);
+        outputStream(operator, merged.toStream());
     }
 
     /**
      * Output a stream.
      *
-     * @param operator
-     * @param outputStream
+     * @param operator OperatorInterface
+     * @param outputStream KStream
      */
     private void outputStream(OperatorInterface operator, KStream<String, String> outputStream) {
-
         // Execute operator logic
         KStream<String, String> rawOutputStream = outputStream.flatMap((key,value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
@@ -172,16 +250,48 @@ public class Stream {
         outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
     }
 
+    /**
+     * Filter the input stream as a record stream by operatorId or deviceId.
+     *
+     * @param topic JSONObject
+     * @param inputData KStream
+     * @return KStream
+     */
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {
         KStream<String, String> filterData;
         String[] filterValues  = topic.getString(Values.FILTER_VALUE_KEY).split(",");
         switch (topic.getString(Values.FILTER_TYPE_KEY)) {
             case Values.FILTER_TYPE_OPERATOR_KEY:
-                KStream<String, String> pipelineFilterData = builder.filterBy(inputData, pipelineIDPath, new String[]{pipelineId});
-                filterData = builder.filterBy(pipelineFilterData, operatorIdPath, filterValues);
+                KStream<String, String> pipelineFilterData = streamBuilder.filterBy(inputData, pipelineIDPath, new String[]{pipelineId});
+                filterData = streamBuilder.filterBy(pipelineFilterData, operatorIdPath, filterValues);
                 break;
             case Values.FILTER_TYPE_DEVICE_KEY:
-                filterData = builder.filterBy(inputData, deviceIdPath, filterValues);
+                filterData = streamBuilder.filterBy(inputData, deviceIdPath, filterValues);
+                break;
+            default:
+                filterData = inputData;
+                break;
+        }
+        return filterData;
+    }
+
+    /**
+     * Filter the input stream as a changelog stream by operatorId or deviceId.
+     *
+     * @param topic JSONObject
+     * @param inputData KTable
+     * @return KTable
+     */
+    private KTable<String, String> filterStream(JSONObject topic, KTable<String, String> inputData) {
+        KTable<String, String> filterData;
+        String[] filterValues  = topic.getString(Values.FILTER_VALUE_KEY).split(",");
+        switch (topic.getString(Values.FILTER_TYPE_KEY)) {
+            case Values.FILTER_TYPE_OPERATOR_KEY:
+                KTable<String, String> pipelineFilterData = tableBuilder.filterBy(inputData, pipelineIDPath, new String[]{pipelineId});
+                filterData = tableBuilder.filterBy(pipelineFilterData, operatorIdPath, filterValues);
+                break;
+            case Values.FILTER_TYPE_DEVICE_KEY:
+                filterData = tableBuilder.filterBy(inputData, deviceIdPath, filterValues);
                 break;
             default:
                 filterData = inputData;

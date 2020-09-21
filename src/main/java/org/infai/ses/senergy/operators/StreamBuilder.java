@@ -18,7 +18,6 @@ package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.StreamJoined;

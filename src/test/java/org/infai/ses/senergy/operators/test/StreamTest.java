@@ -86,7 +86,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             inputTopic.pipeInput("A", "{'pipeline_id': '1', 'operator_id': '1'}");
@@ -118,7 +118,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             inputTopic.pipeInput("A", "{'pipeline_id': '1', 'device_id': '1'}");
@@ -141,14 +141,14 @@ public class StreamTest {
         Stream stream = new Stream("AZB", "1");
         TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
-        stream.builder.setWindowTime(5);
+        stream.streamBuilder.setWindowTime(5);
 
         stream.processMultipleStreams(operator, config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             final TestInputTopic<String, String> inputTopic1 =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
             final TestInputTopic<String, String> inputTopic2 =
@@ -184,7 +184,7 @@ public class StreamTest {
 
 
         Config config = new Config(configString);
-        stream.builder.setWindowTime(5);
+        stream.streamBuilder.setWindowTime(5);
 
         stream.processMultipleStreams(operator, config.getTopicConfig());
 
@@ -192,7 +192,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             List<TestInputTopic<String, String>> topics = new ArrayList<TestInputTopic<String, String>>();
             for(int i = 0; i <= numStreams; i++){
                 topics.add(driver.createInputTopic("topic"+i, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO));
@@ -207,6 +207,8 @@ public class StreamTest {
         }
         expected = expected.substring(0, expected.length()-1); //remove last ','
         expected += "],\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}";
+
+        System.out.println(processorSupplier.theCapturedProcessor().processed.size());
 
         Assert.assertEquals(asList(new KeyValueTimestamp<>("AZB",
                 expected,
@@ -239,7 +241,7 @@ public class StreamTest {
 
 
         Config config = new Config(configString);
-        stream.builder.setWindowTime(5);
+        stream.streamBuilder.setWindowTime(5);
 
         stream.processMultipleStreams(operator, config.getTopicConfig());
 
@@ -247,7 +249,7 @@ public class StreamTest {
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             final TestInputTopic<String, String> inputTopic1 =
                     driver.createInputTopic("topic1", new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
             final TestInputTopic<String, String> inputTopic2 =

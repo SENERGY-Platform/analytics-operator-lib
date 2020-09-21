@@ -35,13 +35,12 @@ public class TableBuilder extends BaseBuilder {
     /**
      * Filter by device id.
      *
-     * @param inputStream
-     * @param valuePath
-     * @param filterValues
+     * @param inputStream KTable
+     * @param valuePath String
+     * @param filterValues String []
      * @return KStream filterData
      */
     public KTable<String, String> filterBy(KTable<String, String> inputStream, String valuePath, String [] filterValues) {
-        //TODO: Tombstones herausfiltern
         KTable<String, String> filterData = inputStream.filter((key, json) -> {
             if (valuePath != null) {
                 if (Helper.checkPathExists(json, "$." + valuePath)) {
@@ -54,7 +53,7 @@ public class TableBuilder extends BaseBuilder {
                     }
                 }
                 //if the path does not exist, the element is filtered
-                //return false;
+                return false;
             }
             // if no path is given, everything is processed
             return true;
