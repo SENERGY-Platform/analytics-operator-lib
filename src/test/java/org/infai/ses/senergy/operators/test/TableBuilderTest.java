@@ -23,16 +23,13 @@ import org.apache.kafka.streams.KeyValueTimestamp;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.operators.TableBuilder;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,6 +41,7 @@ import java.time.LocalDateTime;
 import java.util.Properties;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 
 public class TableBuilderTest {
@@ -70,7 +68,6 @@ public class TableBuilderTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
     }
 
-    /*
     @Test
     public void testFilterBy() {
         TableBuilder builder = new TableBuilder("1", "1");
@@ -127,7 +124,7 @@ public class TableBuilderTest {
                 new KeyValueTimestamp<>("D", "{'device_id': '1'}", 3000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
-    }*/
+    }
 
 
     @Test
@@ -161,11 +158,11 @@ public class TableBuilderTest {
             inputTopic2.pipeInput("A", messages.get(1).toString());
             inputTopic2.pipeInput("A", messages.get(2).toString());
         }
-        Assert.assertEquals(3, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(3, processorSupplier.theCapturedProcessor().processed.size());
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+            assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
                     result);
             timestamp += 1000;
 

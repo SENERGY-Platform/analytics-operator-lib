@@ -17,15 +17,11 @@
 package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.StreamJoined;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,7 +59,13 @@ public class TableBuilder extends BaseBuilder {
             // if no path is given, everything is processed
             return true;
         });
-        return filterData;
+        KStream<String, String> filterDataStream = filterData.toStream().filter((key, value) -> {
+            if (value == null) {
+                return false;
+            }
+            return true;
+        });
+        return filterDataStream.toTable();
     }
 
     public KTable<String, String> joinMultipleStreams(KTable[] streams) {
