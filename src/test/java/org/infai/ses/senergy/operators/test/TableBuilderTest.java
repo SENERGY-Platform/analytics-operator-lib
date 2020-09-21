@@ -92,7 +92,7 @@ public class TableBuilderTest {
 
         assertEquals(asList(
                 new KeyValueTimestamp<>("A", "{'device_id': '1'}", 0),
-                new KeyValueTimestamp<>("D", "{'device_id': '1'}", 2000)
+                new KeyValueTimestamp<>("D", "{'device_id': '1'}", 3000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
