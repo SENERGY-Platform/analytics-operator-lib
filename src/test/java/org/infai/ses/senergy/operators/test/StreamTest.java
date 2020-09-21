@@ -253,7 +253,7 @@ public class StreamTest {
     public void test5StreamsWithMultipleMessages(){
         testProcessMultipleStreamsWithMultipleMessages(10);
     }
-    
+
     @Test
     public void testComplexMessage(){
         Stream stream = new Stream("AZB", "1");

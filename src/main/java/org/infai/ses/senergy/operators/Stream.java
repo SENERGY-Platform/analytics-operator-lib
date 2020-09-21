@@ -33,14 +33,15 @@ public class Stream {
 
     final Serde<String> stringSerde = Serdes.String();
     private KStream<String, String> outputData;
-    private String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
-    private String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
+    private final String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
+    private final String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
     private String pipelineId = Helper.getEnv("PIPELINE_ID", "");
     private String operatorId = Helper.getEnv("OPERATOR_ID", "");
-    private Integer windowTime = Helper.getEnv("WINDOW_TIME", Values.WINDOW_TIME);
-    private Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
-    private String operatorIdPath = "operator_id";
-    private Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
+    private final Integer windowTime = Helper.getEnv("WINDOW_TIME", Values.WINDOW_TIME);
+    private final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
+    private final String operatorIdPath = "operator_id";
+    private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
+    private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "false"));
 
     final private Message message = new Message();
     private Config config = ConfigProvider.getConfig();
@@ -71,7 +72,11 @@ public class Stream {
     public void start(OperatorInterface operator) {
         operator.configMessage(message);
         if (config.topicCount() > 1) {
-            processMultipleStreams(operator, config.getTopicConfig());
+            if (kTableProcessing) {
+                processMultipleStreamsAsTable(operator, config.getTopicConfig());
+            } else {
+                processMultipleStreams(operator, config.getTopicConfig());
+            }
         } else if (config.topicCount() == 1) {
             processSingleStream(operator, config.getTopicConfig());
         }
