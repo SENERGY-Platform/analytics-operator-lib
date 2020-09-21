@@ -5,7 +5,7 @@
   "inputs": [
     {
       "operator_id": "1",
-      "pipeline_id": "1"
+      "pipeline_id": "AAA"
     }
   ],
   "time": "2020-01-01T00:01:00Z"
@@ -17,7 +17,7 @@
     "inputs": [
       {
         "operator_id": "1",
-        "pipeline_id": "1"
+        "pipeline_id": "AAA"
       }
     ],
     "time": "2020-01-01T00:01:00Z"
