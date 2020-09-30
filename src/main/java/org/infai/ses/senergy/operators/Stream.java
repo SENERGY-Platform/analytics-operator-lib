@@ -41,7 +41,7 @@ public class Stream {
     private final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
     private final String operatorIdPath = "operator_id";
     private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
-    private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "false"));
+    private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "true"));
 
     final private Message message = new Message();
     private Config config = ConfigProvider.getConfig();
