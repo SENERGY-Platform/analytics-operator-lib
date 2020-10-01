@@ -30,6 +30,7 @@ import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.simple.JSONArray;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.testcontainers.containers.KafkaContainer;
 
@@ -37,6 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+
+@Ignore
 public class StreamIntegrationTest {
 
     private static final String inputTopic = "input-stream";
