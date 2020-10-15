@@ -30,7 +30,7 @@ public class JSONHelper {
             return (K) parser.parse(new FileReader(classLoader.getResource(fileName).getFile()));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return null;
     }
@@ -48,7 +48,7 @@ public class JSONHelper {
             JSONObject obj = (JSONObject) parser.parse(jsonMessage);
             return (K) obj.get(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return null;
     }

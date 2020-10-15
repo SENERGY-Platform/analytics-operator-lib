@@ -18,7 +18,7 @@ package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.utils.ConfigProvider;
 
-public class BaseOperator implements OperatorInterface {
+public abstract class BaseOperator implements OperatorInterface {
 
     protected Config config;
 
