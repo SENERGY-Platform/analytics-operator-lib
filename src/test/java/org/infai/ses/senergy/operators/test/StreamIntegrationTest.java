@@ -51,7 +51,6 @@ public class StreamIntegrationTest {
         StreamsConfigProvider.setZookeeperConnectionString("");
     }
 
-    @Ignore
     @Test
     public void testStreamStart() throws Exception {
         JSONArray messages = new JSONHelper().parseFile("stream/testStreamStartMessages.json");
@@ -90,5 +89,6 @@ public class StreamIntegrationTest {
         stream.closeStreams();
         //stop kafka
         kafka.stop();
+        Assert.assertNull(kafka.getNetwork());
     }
 }

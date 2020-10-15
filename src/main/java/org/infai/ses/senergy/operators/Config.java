@@ -53,9 +53,9 @@ public class Config {
     /**
      * @Deprecated (uses wrong JSON lib)
      *
-     * @return
+     * @return JSONArray
      */
-    @Deprecated(forRemoval=true)
+    @Deprecated
     public JSONArray getTopicConfig(){
         net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
         return new JSONArray(array.toString());

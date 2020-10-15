@@ -16,21 +16,15 @@
 
 package org.infai.ses.senergy.operators;
 
-import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class TableBuilder extends BaseBuilder {
-
-    private static final Logger log = Logger.getLogger(TableBuilder.class.getName());
 
     public TableBuilder(String operatorId, String pipelineId) {
         super(operatorId, pipelineId);

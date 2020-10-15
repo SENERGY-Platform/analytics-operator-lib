@@ -98,7 +98,7 @@ public class Input {
             try {
                 return (String) ret;
             } catch (ClassCastException e){
-                log.log(Level.SEVERE, "Error converting input value: " + e.getMessage());
+                log.log(Level.SEVERE, "Error converting input value: {0}", e.getMessage());
                 return null;
             }
         }

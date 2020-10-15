@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators;
 
-import com.jayway.jsonpath.JsonPath;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
@@ -25,17 +24,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class StreamBuilder extends BaseBuilder {
 
     private Integer seconds = Values.WINDOW_TIME;
-
-    private static final Logger log = Logger.getLogger(StreamBuilder.class.getName());
 
     public StreamBuilder(String operatorId, String pipelineId) {
         super(operatorId, pipelineId);
@@ -50,11 +44,8 @@ public class StreamBuilder extends BaseBuilder {
      * @return KStream filterData
      */
     public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String [] filterValues) {
-        KStream<String, String> filterData = inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
-        return filterData;
+        return inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
     }
-
-
 
     public KStream<String, String> joinMultipleStreams(KStream[] streams) {
         return joinMultipleStreams(streams, seconds);

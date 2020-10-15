@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
+import org.apache.kafka.common.protocol.types.Field;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -65,29 +66,29 @@ public class Message {
     }
     
     public String getMessageEntityId(){
-        final String INPUTS = "$.inputs";
-        String id = "";
+        StringBuilder id = new StringBuilder();
         for (int i = 0; i < this.config.getTopicConfig().length(); i++) {
             switch (((org.json.JSONObject)this.config.getTopicConfigById(i).get(0)).get(Values.FILTER_TYPE_KEY).toString()) {
                 case Values.FILTER_TYPE_OPERATOR_KEY:
-                    if (Helper.checkPathExists(this.jsonMessage, INPUTS+ "["+ i+"]." + pipelineIDPath)) {
-                        id += JsonPath.parse(this.jsonMessage).read(INPUTS+ "["+ i+"]." + pipelineIDPath);
+                    String PIPE_ID_PATH = "$.inputs["+ i+"]." + pipelineIDPath;
+                    if (Helper.checkPathExists(this.jsonMessage, PIPE_ID_PATH)) {
+                        id.append((String) JsonPath.parse(this.jsonMessage).read(PIPE_ID_PATH));
                     }
                     break;
                 case Values.FILTER_TYPE_DEVICE_KEY:
-                    if (Helper.checkPathExists(this.jsonMessage, INPUTS+ "["+ i+"]."+ deviceIdPath)) {
-                        id += JsonPath.parse(this.jsonMessage).read(INPUTS+ "["+ i+"]." + deviceIdPath);
+                    String DEVICE_ID_PATH = "$.inputs["+ i+"]." + deviceIdPath;
+                    if (Helper.checkPathExists(this.jsonMessage, DEVICE_ID_PATH)) {
+                        id.append((String) JsonPath.parse(this.jsonMessage).read(DEVICE_ID_PATH));
                     }
                     break;
                 default:
                     break;
             }
             if (this.config.getTopicConfig().length() > 1 && i < this.config.getTopicConfig().length()-1){
-                id += ",";
+                id.append(",");
             }
         }
-
-        return id;
+        return id.toString();
     }
 
     public void output(String name, Object value){
