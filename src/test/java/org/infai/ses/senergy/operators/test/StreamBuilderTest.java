@@ -26,6 +26,7 @@ import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Properties;
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 
 public class StreamBuilderTest {
@@ -153,9 +155,12 @@ public class StreamBuilderTest {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+            JSONObject value = (JSONObject)expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            assertEquals(new KeyValueTimestamp<>("A",value.toString(), timestamp),
                     result);
-            timestamp = timestamp+ 1000;
+            timestamp += 1000;
+
         }
     }
 
