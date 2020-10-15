@@ -51,7 +51,7 @@ public class BaseBuilder {
     public JSONObject formatMessage(List<String> values){
         JSONObject ob = createMessageWrapper();
         JSONArray inputs = new JSONArray();
-        values.forEach((v) -> inputs.put(new JSONObject(v)));
+        values.forEach(v -> inputs.put(new JSONObject(v)));
         ob.put("inputs", inputs);
         return ob;
     }

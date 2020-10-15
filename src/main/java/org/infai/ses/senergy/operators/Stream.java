@@ -38,12 +38,12 @@ public class Stream {
     private String pipelineId = Helper.getEnv("PIPELINE_ID", "");
     private String operatorId = Helper.getEnv("OPERATOR_ID", "");
     private final Integer windowTime = Helper.getEnv("WINDOW_TIME", Values.WINDOW_TIME);
-    private final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
-    private final String operatorIdPath = "operator_id";
+    private static final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
+    private static final String operatorIdPath = "operator_id";
     private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
     private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "true"));
 
-    final private Message message = new Message();
+    private final Message message = new Message();
     private Config config = ConfigProvider.getConfig();
 
     private KafkaStreams streams;
@@ -72,7 +72,7 @@ public class Stream {
     public void start(OperatorInterface operator) {
         operator.configMessage(message);
         if (config.topicCount() > 1) {
-            if (kTableProcessing) {
+            if (Boolean.TRUE.equals(kTableProcessing)) {
                 processMultipleStreamsAsTable(operator, config.getTopicConfig());
             } else {
                 processMultipleStreams(operator, config.getTopicConfig());
@@ -81,7 +81,7 @@ public class Stream {
             processSingleStream(operator, config.getTopicConfig());
         }
         streams = new KafkaStreams(streamBuilder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
-        if (resetApp){
+        if (Boolean.TRUE.equals(resetApp)){
             streams.cleanUp();
         }
         
@@ -110,7 +110,7 @@ public class Stream {
         KStream<String, String> filterData = filterStream(topic, inputData);
 
 
-        if (DEBUG) {
+        if (Boolean.TRUE.equals(DEBUG)) {
             filterData.print(Printed.toSysOut());
         }
 
@@ -139,7 +139,7 @@ public class Stream {
         KTable<String, String> filterData = filterStream(topic, inputData);
 
 
-        if (DEBUG) {
+        if (Boolean.TRUE.equals(DEBUG)) {
             filterData.toStream().print(Printed.toSysOut());
         }
 
@@ -175,7 +175,7 @@ public class Stream {
 
             filterData[i] = filterStream(topic, inputStreamsMap.get(topicName));
 
-            if (DEBUG) {
+            if (Boolean.TRUE.equals(DEBUG)) {
                 filterData[i].print(Printed.toSysOut());
             }
 
@@ -210,7 +210,7 @@ public class Stream {
 
             filterData[i] = filterStream(topic, inputStreamsMap.get(topicName));
 
-            if (DEBUG) {
+            if (Boolean.TRUE.equals(DEBUG)) {
                 filterData[i].toStream().print(Printed.toSysOut());
             }
 
@@ -242,13 +242,10 @@ public class Stream {
         outputData = rawOutputStream.filter((key, value) -> {
             JSONObject messageObj =  new JSONObject(value);
             JSONObject ana = new JSONObject(messageObj.get("analytics").toString());
-            if(ana.length() >0){
-                return true;
-            }
-            return false;
+            return ana.length() > 0;
         });
 
-        if (DEBUG) {
+        if (Boolean.TRUE.equals(DEBUG)) {
             outputData.print(Printed.toSysOut());
         }
 

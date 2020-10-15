@@ -34,7 +34,7 @@ public class TimeProvider {
 
     public static String nowUTCToString() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
-        return ZonedDateTime.of(LocalDateTime.now(clock), zoneId).format(formatter).toString();
+        return ZonedDateTime.of(LocalDateTime.now(clock), zoneId).format(formatter);
     }
 
     public static LocalDateTime utc(){

@@ -113,7 +113,7 @@ public class Config {
      * @return
      */
     public Map<String, Object> getInputTopicByInputName(String inputName){
-        Map<String, Object> topic = new HashMap<String, Object>();
+        Map<String, Object> topic = new HashMap<>();
         List<Map<String, Object>> topics = JsonPath.read(this.configString,"$."+Values.INPUT_TOPICS+".*");
         for(Map<String, Object> t : topics){
             List<Map<String, Object>> mappings;

@@ -17,10 +17,7 @@
 package org.infai.ses.senergy.operators;
 
 import com.jayway.jsonpath.JsonPath;
-import org.apache.kafka.common.protocol.types.Field;
 import org.infai.ses.senergy.utils.ConfigProvider;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +25,8 @@ import java.util.Map;
 public class Message {
 
     private String jsonMessage;
-    private final Map<String, Input> inputs = new HashMap<String, Input>();
-    private final Map<String, FlexInput> flexInputs = new HashMap<String, FlexInput>();
+    private final Map<String, Input> inputs = new HashMap<>();
+    private final Map<String, FlexInput> flexInputs = new HashMap<>();
     private final Config config = ConfigProvider.getConfig();
     private final String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
     private final String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
@@ -70,15 +67,15 @@ public class Message {
         for (int i = 0; i < this.config.getTopicConfig().length(); i++) {
             switch (((org.json.JSONObject)this.config.getTopicConfigById(i).get(0)).get(Values.FILTER_TYPE_KEY).toString()) {
                 case Values.FILTER_TYPE_OPERATOR_KEY:
-                    String PIPE_ID_PATH = "$.inputs["+ i+"]." + pipelineIDPath;
-                    if (Helper.checkPathExists(this.jsonMessage, PIPE_ID_PATH)) {
-                        id.append((String) JsonPath.parse(this.jsonMessage).read(PIPE_ID_PATH));
+                    String pipeIdPath = "$.inputs["+ i+"]." + pipelineIDPath;
+                    if (Helper.checkPathExists(this.jsonMessage, pipeIdPath)) {
+                        id.append((String) JsonPath.parse(this.jsonMessage).read(pipeIdPath));
                     }
                     break;
                 case Values.FILTER_TYPE_DEVICE_KEY:
-                    String DEVICE_ID_PATH = "$.inputs["+ i+"]." + deviceIdPath;
-                    if (Helper.checkPathExists(this.jsonMessage, DEVICE_ID_PATH)) {
-                        id.append((String) JsonPath.parse(this.jsonMessage).read(DEVICE_ID_PATH));
+                    String deviceIdPath = "$.inputs["+ i+"]." + this.deviceIdPath;
+                    if (Helper.checkPathExists(this.jsonMessage, deviceIdPath)) {
+                        id.append((String) JsonPath.parse(this.jsonMessage).read(deviceIdPath));
                     }
                     break;
                 default:

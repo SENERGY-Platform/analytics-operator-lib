@@ -36,8 +36,8 @@ import java.util.logging.Logger;
 public class Helper {
 
     private static final Logger log = Logger.getLogger(Helper.class.getName());
-    private final static String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
-    private final static String ZOOKEEPER_METRIC_TYPE = "zookeeper";
+    private static final String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
+    private static final String ZOOKEEPER_METRIC_TYPE = "zookeeper";
 
     private Helper() {
         throw new IllegalStateException("Utility class");
@@ -58,7 +58,7 @@ public class Helper {
         ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, sessionTimeoutMs,connectionTimeoutMs,1, Time.SYSTEM,ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
         KafkaZkClient client =  new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
         client.getAllBrokersInCluster();
-        List<String> brokerList = new ArrayList<String>();
+        List<String> brokerList = new ArrayList<>();
         List<Broker> brokers = JavaConversions.seqAsJavaList(client.getAllBrokersInCluster());
         for (Broker broker : brokers) {
             //assuming you do not enable security

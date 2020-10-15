@@ -23,6 +23,7 @@ import org.infai.ses.senergy.utils.MessageProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FlexInput {
@@ -47,8 +48,8 @@ public class FlexInput {
         return this;
     }
 
-    public ArrayList<Double> getValues() {
-        ArrayList<Double> values = new ArrayList<Double>();
+    public List<Double> getValues() {
+        ArrayList<Double> values = new ArrayList<>();
         for (Input input : this.inputs.values()) {
             values.add(input.setMessage(this.messageString).getValue());
         }

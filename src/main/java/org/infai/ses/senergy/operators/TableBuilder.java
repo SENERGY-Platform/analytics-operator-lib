@@ -40,12 +40,7 @@ public class TableBuilder extends BaseBuilder {
      */
     public KTable<String, String> filterBy(KTable<String, String> inputStream, String valuePath, String [] filterValues) {
         KTable<String, String> filterData = inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
-        KStream<String, String> filterDataStream = filterData.toStream().filter((key, value) -> {
-            if (value == null) {
-                return false;
-            }
-            return true;
-        });
+        KStream<String, String> filterDataStream = filterData.toStream().filter((key, value) -> value != null);
         return filterDataStream.toTable();
     }
 
