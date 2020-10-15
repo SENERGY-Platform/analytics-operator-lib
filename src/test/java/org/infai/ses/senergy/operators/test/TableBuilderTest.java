@@ -29,6 +29,7 @@ import org.infai.ses.senergy.operators.TableBuilder;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -162,7 +163,9 @@ public class TableBuilderTest {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            assertEquals(new KeyValueTimestamp<>("A",expected.get(index++).toString(), timestamp),
+            JSONObject value = (JSONObject)expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            assertEquals(new KeyValueTimestamp<>("A",value.toString(), timestamp),
                     result);
             timestamp += 1000;
 

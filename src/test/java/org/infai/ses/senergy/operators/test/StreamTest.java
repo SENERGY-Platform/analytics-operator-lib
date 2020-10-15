@@ -26,6 +26,7 @@ import org.infai.ses.senergy.operators.Stream;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.*;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 
@@ -37,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 public class StreamTest {
 
@@ -96,9 +98,12 @@ public class StreamTest {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("AAA",expected.get(index++).toString(), timestamp),
+            JSONObject value = (JSONObject)expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            assertEquals(new KeyValueTimestamp<>("AAA",value.toString(), timestamp),
                     result);
-            timestamp = timestamp+ 1000;
+            timestamp += 1000;
+
         }
     }
 
@@ -126,9 +131,12 @@ public class StreamTest {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("AAA",expected.get(index++).toString(), timestamp),
+            JSONObject value = (JSONObject)expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            assertEquals(new KeyValueTimestamp<>("AAA",value.toString(), timestamp),
                     result);
-            timestamp = timestamp+ 1000;
+            timestamp += 1000;
+
         }
     }
 
@@ -158,9 +166,12 @@ public class StreamTest {
         int index = 0;
         int timestamp = 0;
         for (Object result:processorSupplier.theCapturedProcessor().processed){
-            Assert.assertEquals(new KeyValueTimestamp<>("AZB",expected.get(index++).toString(), timestamp),
+            JSONObject value = (JSONObject)expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            assertEquals(new KeyValueTimestamp<>("AZB",value.toString(), timestamp),
                     result);
-            timestamp = timestamp+ 1000;
+            timestamp += 1000;
+
         }
     }
 
@@ -191,9 +202,11 @@ public class StreamTest {
             inputTopic2.advanceTime(Duration.ofSeconds(2));
             inputTopic2.pipeInput(null, "{'device_id': '2', 'value':2}");
         }
+        JSONObject expected = new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json");
+        expected.put("time", TimeProvider.nowUTCToString());
         Assert.assertEquals(asList(
                 new KeyValueTimestamp<>("AZB",
-                        new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json").toString(),
+                        expected.toString(),
                         8000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
@@ -226,9 +239,14 @@ public class StreamTest {
             inputTopic2.advanceTime(Duration.ofSeconds(2));
             inputTopic2.pipeInput("A", "{'device_id': '2', 'value':2}");
         }
+        JSONObject expected1 = (JSONObject) expected.get(1);
+        JSONObject expected2 = (JSONObject) expected.get(0);
+        expected1.put("time", TimeProvider.nowUTCToString());
+        expected2.put("time", TimeProvider.nowUTCToString());
         Assert.assertEquals(asList(
-                new KeyValueTimestamp<>("AZB",expected.get(1).toString(), 6000),
-                new KeyValueTimestamp<>("AZB",expected.get(0).toString(), 8000)
+
+                new KeyValueTimestamp<>("AZB",expected1.toString(), 6000),
+                new KeyValueTimestamp<>("AZB",expected2.toString(), 8000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
@@ -285,10 +303,10 @@ public class StreamTest {
             inputTopic3.pipeInput(null, "{'device_id':'3','service_id':'3','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
         }
 
-        String expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json").toString();;
-
+        JSONObject expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json");;
+        expected.put("time", TimeProvider.nowUTCToString());
         Assert.assertEquals(new KeyValueTimestamp<>("AZB",
-                expected,
+                expected.toString(),
                 0), processorSupplier.theCapturedProcessor().processed.get(0));
     }
 
