@@ -17,6 +17,11 @@
 package org.infai.ses.senergy.operators;
 
 public final class Values {
+
+    private Values() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static final String TOPIC_NAME_KEY = "name";
     public static final String MAPPINGS_KEY = "mappings";
     public static final String MAPPING_DEST_KEY = "dest";

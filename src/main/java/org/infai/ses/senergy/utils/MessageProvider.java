@@ -23,6 +23,10 @@ public class MessageProvider {
 
     static Message message = new Message();
 
+    private MessageProvider() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static Message getMessage(){
         return message;
     }

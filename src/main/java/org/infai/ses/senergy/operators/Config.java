@@ -26,11 +26,14 @@ import org.json.JSONArray;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Config {
 
     private String configString = Helper.getEnv("CONFIG", "{}");
     private ConfigModel configModel;
+    private static final Logger log = Logger.getLogger(Config.class.getName());
 
     public Config(){
         streamlineConfigString();
@@ -48,11 +51,11 @@ public class Config {
     }
 
     /**
-     * @Deprecated
+     * @Deprecated (uses wrong JSON lib)
      *
      * @return
      */
-    @Deprecated
+    @Deprecated(forRemoval=true)
     public JSONArray getTopicConfig(){
         net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
         return new JSONArray(array.toString());
@@ -72,7 +75,7 @@ public class Config {
             net.minidev.json.JSONArray array = JsonPath.read(this.configString, "$.."+Values.INPUT_TOPICS+"["+ index+"]");
             return new JSONArray(array.toString());
         } catch (PathNotFoundException e) {
-            System.out.println(e.getMessage());
+            log.log(Level.SEVERE, e.getMessage());
             return new JSONArray();
         }
     }
@@ -98,7 +101,7 @@ public class Config {
         try {
             return JsonPath.read(this.configString, "$."+Values.INPUT_TOPICS+"["+ index+"]."+Values.TOPIC_NAME_KEY);
         } catch (PathNotFoundException e) {
-            System.out.println(e.getMessage());
+            log.log(Level.SEVERE, e.getMessage());
             return "";
         }
     }
@@ -126,15 +129,16 @@ public class Config {
     }
 
     private void streamlineConfigString(){
-        this.configString = this.configString.replaceAll("(?i)\""+Values.TOPIC_NAME_KEY+"\"", '"'+Values.TOPIC_NAME_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPINGS_KEY+"\"", '"'+Values.MAPPINGS_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPING_DEST_KEY+"\"", '"'+Values.MAPPING_DEST_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.MAPPING_SOURCE_KEY+"\"", '"'+Values.MAPPING_SOURCE_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_KEY+"\"", '"'+Values.FILTER_TYPE_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_VALUE_KEY+"\"", '"'+Values.FILTER_VALUE_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_OPERATOR_KEY+"\"", '"'+Values.FILTER_TYPE_OPERATOR_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.FILTER_TYPE_DEVICE_KEY+"\"", '"'+Values.FILTER_TYPE_DEVICE_KEY+'"');
-        this.configString = this.configString.replaceAll("(?i)\""+Values.INPUT_TOPICS+"\"", '"'+Values.INPUT_TOPICS+'"');
+        final String PRE = "(?i)\"";
+        this.configString = this.configString.replaceAll(PRE + Values.TOPIC_NAME_KEY+"\"", '"'+Values.TOPIC_NAME_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.MAPPINGS_KEY+"\"", '"'+Values.MAPPINGS_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.MAPPING_DEST_KEY+"\"", '"'+Values.MAPPING_DEST_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.MAPPING_SOURCE_KEY+"\"", '"'+Values.MAPPING_SOURCE_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_KEY+"\"", '"'+Values.FILTER_TYPE_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.FILTER_VALUE_KEY+"\"", '"'+Values.FILTER_VALUE_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_OPERATOR_KEY+"\"", '"'+Values.FILTER_TYPE_OPERATOR_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_DEVICE_KEY+"\"", '"'+Values.FILTER_TYPE_DEVICE_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.INPUT_TOPICS+"\"", '"'+Values.INPUT_TOPICS+'"');
     }
 }
 

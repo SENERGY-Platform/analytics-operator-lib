@@ -20,8 +20,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JSONHelper {
+
+    private static final Logger log = Logger.getLogger(JSONHelper.class.getName());
 
     public <K> K parseFile(String fileName) {
         JSONParser parser = new JSONParser();
@@ -30,7 +34,7 @@ public class JSONHelper {
             return (K) parser.parse(new FileReader(classLoader.getResource(fileName).getFile()));
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.log(Level.SEVERE,e.getMessage());
         }
         return null;
     }
@@ -48,7 +52,7 @@ public class JSONHelper {
             JSONObject obj = (JSONObject) parser.parse(jsonMessage);
             return (K) obj.get(key);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.log(Level.SEVERE,e.getMessage());
         }
         return null;
     }

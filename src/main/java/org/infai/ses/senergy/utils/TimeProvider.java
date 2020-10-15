@@ -24,6 +24,10 @@ public class TimeProvider {
     private static Clock clock = Clock.systemDefaultZone();
     private static ZoneId zoneId = ZoneId.systemDefault();
 
+    private TimeProvider() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static LocalDateTime now() {
         return LocalDateTime.now(clock);
     }

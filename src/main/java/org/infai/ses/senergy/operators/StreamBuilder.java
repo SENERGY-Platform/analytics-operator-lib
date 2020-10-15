@@ -28,10 +28,14 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StreamBuilder extends BaseBuilder {
 
     private Integer seconds = Values.WINDOW_TIME;
+
+    private static final Logger log = Logger.getLogger(StreamBuilder.class.getName());
 
     public StreamBuilder(String operatorId, String pipelineId) {
         super(operatorId, pipelineId);
@@ -46,26 +50,11 @@ public class StreamBuilder extends BaseBuilder {
      * @return KStream filterData
      */
     public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String [] filterValues) {
-
-        KStream<String, String> filterData = inputStream.filter((key, json) -> {
-            if (valuePath != null) {
-                if (Helper.checkPathExists(json, "$." + valuePath)) {
-                    String value = JsonPath.parse(json).read("$." + valuePath);
-                    //if the ids do not match, filter the element
-                    try {
-                        return Arrays.asList(filterValues).contains(value);
-                    } catch (NullPointerException e) {
-                        System.out.println("No Device ID was set to be filtered");
-                    }
-                }
-                //if the path does not exist, the element is filtered
-                return false;
-            }
-            // if no path is given, everything is processed
-            return true;
-        });
+        KStream<String, String> filterData = inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
         return filterData;
     }
+
+
 
     public KStream<String, String> joinMultipleStreams(KStream[] streams) {
         return joinMultipleStreams(streams, seconds);

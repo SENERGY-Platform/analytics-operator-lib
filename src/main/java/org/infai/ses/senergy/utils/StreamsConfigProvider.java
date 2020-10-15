@@ -30,6 +30,10 @@ public class StreamsConfigProvider {
     private static String zookeeperConnectionString = Helper.getEnv("ZK_QUORUM", "");
     private static String kafkaBootstrapString = null;
 
+    private StreamsConfigProvider() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static void setProperties(){
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, Helper.getEnv("CONFIG_APPLICATION_ID", "stream-operator"));
         if (kafkaBootstrapString != null){

@@ -19,7 +19,12 @@ package org.infai.ses.senergy.utils;
 import org.infai.ses.senergy.operators.Config;
 
 public class ConfigProvider {
+
     static Config config = new Config();
+
+    private ConfigProvider() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static Config getConfig(){
         return config;

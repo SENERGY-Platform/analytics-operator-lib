@@ -65,17 +65,18 @@ public class Message {
     }
     
     public String getMessageEntityId(){
+        final String INPUTS = "$.inputs";
         String id = "";
         for (int i = 0; i < this.config.getTopicConfig().length(); i++) {
             switch (((org.json.JSONObject)this.config.getTopicConfigById(i).get(0)).get(Values.FILTER_TYPE_KEY).toString()) {
                 case Values.FILTER_TYPE_OPERATOR_KEY:
-                    if (Helper.checkPathExists(this.jsonMessage, "$.inputs["+ i+"]." + pipelineIDPath)) {
-                        id += JsonPath.parse(this.jsonMessage).read("$.inputs["+ i+"]." + pipelineIDPath);
+                    if (Helper.checkPathExists(this.jsonMessage, INPUTS+ "["+ i+"]." + pipelineIDPath)) {
+                        id += JsonPath.parse(this.jsonMessage).read(INPUTS+ "["+ i+"]." + pipelineIDPath);
                     }
                     break;
                 case Values.FILTER_TYPE_DEVICE_KEY:
-                    if (Helper.checkPathExists(this.jsonMessage, "$.inputs["+ i+"]."+ deviceIdPath)) {
-                        id += JsonPath.parse(this.jsonMessage).read("$.inputs["+ i+"]." + deviceIdPath);
+                    if (Helper.checkPathExists(this.jsonMessage, INPUTS+ "["+ i+"]."+ deviceIdPath)) {
+                        id += JsonPath.parse(this.jsonMessage).read(INPUTS+ "["+ i+"]." + deviceIdPath);
                     }
                     break;
                 default:

@@ -21,7 +21,6 @@ import com.jayway.jsonpath.PathNotFoundException;
 import kafka.cluster.Broker;
 import kafka.zk.KafkaZkClient;
 import kafka.zookeeper.ZooKeeperClient;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.common.network.ListenerName;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.utils.Time;
@@ -29,12 +28,21 @@ import org.json.JSONObject;
 import scala.collection.JavaConversions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Helper {
 
+    private static final Logger log = Logger.getLogger(Helper.class.getName());
     private final static String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
     private final static String ZOOKEEPER_METRIC_TYPE = "zookeeper";
+
+    private Helper() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Returns a String list of kafka instances from zookeeper.
      *
@@ -134,8 +142,25 @@ public class Helper {
             JsonPath.parse(json).read(path);
             return true;
         } catch (PathNotFoundException e) {
-            //System.out.println("Path does not exist.");
+            return false;
         }
-        return false;
+    }
+
+    public static boolean filterId(String valuePath, String[] filterValues, String json) {
+        if (valuePath != null) {
+            if (Helper.checkPathExists(json, "$." + valuePath)) {
+                String value = JsonPath.parse(json).read("$." + valuePath);
+                //if the ids do not match, filter the element
+                try {
+                    return Arrays.asList(filterValues).contains(value);
+                } catch (NullPointerException e) {
+                    log.log(Level.SEVERE, "No Filter ID was set to be filtered");
+                }
+            }
+            //if the path does not exist, the element is filtered
+            return false;
+        }
+        // if no path is given, everything is processed
+        return true;
     }
 }

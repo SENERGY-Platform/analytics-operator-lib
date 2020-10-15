@@ -22,8 +22,12 @@ import org.infai.ses.senergy.utils.MessageProvider;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Input {
+
+    private static final Logger log = Logger.getLogger(Input.class.getName());
 
     private String messageString = MessageProvider.getMessage().getMessageString();
     private final Config config = ConfigProvider.getConfig();
@@ -48,7 +52,7 @@ public class Input {
 
     public String getString(){
         try {
-            return new String(this.getVal());
+            return this.getVal();
         } catch (NullPointerException e){
             return "";
         }
@@ -94,7 +98,7 @@ public class Input {
             try {
                 return (String) ret;
             } catch (ClassCastException e){
-                System.err.println("Error converting input value: " + e.getMessage());
+                log.log(Level.SEVERE, "Error converting input value: " + e.getMessage());
                 return null;
             }
         }

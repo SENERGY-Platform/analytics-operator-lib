@@ -22,7 +22,7 @@ public abstract class BaseOperator implements OperatorInterface {
 
     protected Config config;
 
-    public BaseOperator(){
+    protected BaseOperator(){
         this.config = ConfigProvider.getConfig();
     }
 
