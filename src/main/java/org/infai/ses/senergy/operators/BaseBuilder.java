@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class BaseBuilder {
@@ -58,5 +59,20 @@ public class BaseBuilder {
 
     public StreamsBuilder getBuilder() {
         return this.builder;
+    }
+
+    protected String joinStreams(String leftValue, String rightValue) {
+        List<String> values = new LinkedList<>();
+
+        if(leftValue.startsWith("[")) {
+            JSONArray array = new JSONArray(leftValue);
+            for (int j=0; j<array.length(); j++) {
+                values.add(array.getJSONObject(j).toString());
+            }
+        }else{
+            values.add(leftValue);
+        }
+        values.add(rightValue);
+        return this.formatMessage(values).toString();
     }
 }

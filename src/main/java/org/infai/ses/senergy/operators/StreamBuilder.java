@@ -24,8 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.Duration;
-import java.util.LinkedList;
-import java.util.List;
 
 public class StreamBuilder extends BaseBuilder {
 
@@ -55,20 +53,7 @@ public class StreamBuilder extends BaseBuilder {
         KStream<String, String> joinedStream = streams[0];
         for(int i = 1; i < streams.length; i++) {
             if(i == streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                    List<String> values = new LinkedList<>();
-
-                    if(leftValue.startsWith("[")) {
-                        JSONArray array = new JSONArray(leftValue);
-                        for (int j=0; j<array.length(); j++) {
-                            values.add(array.getJSONObject(j).toString());
-                        }
-                    }else{
-                        values.add(leftValue);
-                    }
-                    values.add(rightValue);
-                    return this.formatMessage(values).toString();
-                        }, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                joinedStream = joinedStream.join(streams[i], this::joinStreams, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
             else {
@@ -86,6 +71,8 @@ public class StreamBuilder extends BaseBuilder {
 
         return joinedStream;
     }
+
+
 
     public void setWindowTime(Integer seconds){
         this.seconds = seconds;

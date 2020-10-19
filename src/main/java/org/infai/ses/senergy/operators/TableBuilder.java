@@ -21,9 +21,6 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class TableBuilder extends BaseBuilder {
 
     public TableBuilder(String operatorId, String pipelineId) {
@@ -48,21 +45,7 @@ public class TableBuilder extends BaseBuilder {
         KTable<String, String> joinedStream = streams[0];
         for(int i = 1; i < streams.length; i++) {
             if(i == streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                            List<String> values = new LinkedList<>();
-
-                            if(leftValue.startsWith("[")) {
-                                JSONArray array = new JSONArray(leftValue);
-                                for (int j=0; j<array.length(); j++) {
-                                    values.add(array.getJSONObject(j).toString());
-                                }
-                            }else{
-                                values.add(leftValue);
-                            }
-                            values.add((String) rightValue);
-                            return this.formatMessage(values).toString();
-                        }
-                );
+                joinedStream = joinedStream.join(streams[i], this::joinStreams);
             }
             else {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
