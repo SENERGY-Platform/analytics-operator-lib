@@ -36,20 +36,20 @@ public class StreamBuilder extends BaseBuilder {
     /**
      * Filter by device id.
      *
-     * @param inputStream
-     * @param valuePath
-     * @param filterValues
+     * @param inputStream KStream<String, String>
+     * @param valuePath String
+     * @param filterValues String[]
      * @return KStream filterData
      */
     public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String[] filterValues) {
         return inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
     }
 
-    public KStream<String, String> joinMultipleStreams(KStream[] streams) {
+    public KStream<String, String> joinMultipleStreams(KStream<String, String>[] streams) {
         return joinMultipleStreams(streams, seconds);
     }
 
-    public KStream<String, String> joinMultipleStreams(KStream[] streams, int seconds) {
+    public KStream<String, String> joinMultipleStreams(KStream<String, String>[] streams, int seconds) {
         KStream<String, String> joinedStream = streams[0];
         for (int i = 1; i < streams.length; i++) {
             if (i == streams.length - 1) {
@@ -74,5 +74,4 @@ public class StreamBuilder extends BaseBuilder {
     public void setWindowTime(Integer seconds) {
         this.seconds = seconds;
     }
-
 }

@@ -41,7 +41,7 @@ public class TableBuilder extends BaseBuilder {
         return filterDataStream.toTable();
     }
 
-    public KTable<String, String> joinMultipleStreams(KTable[] streams) {
+    public KTable<String, String> joinMultipleStreams(KTable<String, String>[] streams) {
         KTable<String, String> joinedStream = streams[0];
         for(int i = 1; i < streams.length; i++) {
             if(i == streams.length - 1) {

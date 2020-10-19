@@ -22,14 +22,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class BaseBuilder {
 
     protected StreamsBuilder builder = new StreamsBuilder();
-    private String pipelineId;
-    private String operatorId;
+    private final String pipelineId;
+    private final String operatorId;
 
     public BaseBuilder (String operatorId, String pipelineId){
         this.operatorId = operatorId;
@@ -45,7 +46,7 @@ public class BaseBuilder {
     }
 
     public String formatMessage (String value) {
-        List<String> values = Arrays.asList(value);
+        List<String> values = Collections.singletonList(value);
         return createMessage(values).toString();
     }
 
