@@ -41,7 +41,7 @@ public class StreamBuilder extends BaseBuilder {
      * @param filterValues
      * @return KStream filterData
      */
-    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String [] filterValues) {
+    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String[] filterValues) {
         return inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
     }
 
@@ -51,30 +51,27 @@ public class StreamBuilder extends BaseBuilder {
 
     public KStream<String, String> joinMultipleStreams(KStream[] streams, int seconds) {
         KStream<String, String> joinedStream = streams[0];
-        for(int i = 1; i < streams.length; i++) {
-            if(i == streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], this::joinStreams, JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+        for (int i = 1; i < streams.length; i++) {
+            if (i == streams.length - 1) {
+                joinedStream = joinedStream.join(streams[i], this::joinStreams, JoinWindows.of(Duration.ofSeconds(seconds)),
+                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
-            }
-            else {
+            } else {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                    if (!leftValue.startsWith("[")){
-                        leftValue = "[" + leftValue + "]";
-                    }
-
-                    return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
-                    },
-                    JoinWindows.of(Duration.ofSeconds(seconds)), StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                            if (!leftValue.startsWith("[")) {
+                                leftValue = "[" + leftValue + "]";
+                            }
+                            return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
+                        },
+                        JoinWindows.of(Duration.ofSeconds(seconds)),
+                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }
         }
-
         return joinedStream;
     }
 
-
-
-    public void setWindowTime(Integer seconds){
+    public void setWindowTime(Integer seconds) {
         this.seconds = seconds;
     }
 

@@ -46,10 +46,10 @@ public class BaseBuilder {
 
     public String formatMessage (String value) {
         List<String> values = Arrays.asList(value);
-        return formatMessage(values).toString();
+        return createMessage(values).toString();
     }
 
-    public JSONObject formatMessage(List<String> values){
+    public JSONObject createMessage(List<String> values){
         JSONObject ob = createMessageWrapper();
         JSONArray inputs = new JSONArray();
         values.forEach(v -> inputs.put(new JSONObject(v)));
@@ -73,6 +73,6 @@ public class BaseBuilder {
             values.add(leftValue);
         }
         values.add(rightValue);
-        return this.formatMessage(values).toString();
+        return this.createMessage(values).toString();
     }
 }

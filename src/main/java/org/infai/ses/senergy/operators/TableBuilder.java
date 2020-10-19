@@ -49,16 +49,13 @@ public class TableBuilder extends BaseBuilder {
             }
             else {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                            if (!leftValue.startsWith("[")){
-                                leftValue = "[" + leftValue + "]";
-                            }
-
-                            return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
-                        }
-                );
+                    if (!leftValue.startsWith("[")){
+                        leftValue = "[" + leftValue + "]";
+                    }
+                    return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
+                });
             }
         }
-
         return joinedStream;
     }
 }

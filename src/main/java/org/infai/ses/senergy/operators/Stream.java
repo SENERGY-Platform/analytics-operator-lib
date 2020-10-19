@@ -31,7 +31,6 @@ import java.util.*;
 
 public class Stream {
 
-
     final Serde<String> stringSerde = Serdes.String();
     private KStream<String, String> outputData;
     private final String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
