@@ -44,16 +44,16 @@ public class TableBuilder extends BaseBuilder {
     public KTable<String, String> joinMultipleStreams(KTable<String, String>[] streams) {
         KTable<String, String> joinedStream = streams[0];
         for(int i = 1; i < streams.length; i++) {
-            if(i == streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], this::joinStreams);
-            }
-            else {
+            if(i != streams.length - 1) {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
                     if (!leftValue.startsWith("[")){
                         leftValue = "[" + leftValue + "]";
                     }
                     return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
                 });
+            }
+            else {
+                joinedStream = joinedStream.join(streams[i], this::joinLastStreams);
             }
         }
         return joinedStream;

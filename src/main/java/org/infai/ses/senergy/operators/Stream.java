@@ -43,6 +43,8 @@ public class Stream {
     private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
     private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "true"));
 
+    private static OperatorInterface operator;
+
     private final Message message = new Message();
     private Config config = ConfigProvider.getConfig();
 
@@ -67,18 +69,19 @@ public class Stream {
     /**
      * Start the streams application.
      *
-     * @param operator OperatorInterface
+     * @param runOperator OperatorInterface
      */
-    public void start(OperatorInterface operator) {
+    public void start(OperatorInterface runOperator) {
+        operator = runOperator;
         operator.configMessage(message);
         if (config.topicCount() > 1) {
             if (Boolean.TRUE.equals(kTableProcessing)) {
-                processMultipleStreamsAsTable(operator, config.getTopicConfig());
+                processMultipleStreamsAsTable(config.getTopicConfig());
             } else {
-                processMultipleStreams(operator, config.getTopicConfig());
+                processMultipleStreams(config.getTopicConfig());
             }
         } else if (config.topicCount() == 1) {
-            processSingleStream(operator, config.getInputTopicsConfigs().get(0));
+            processSingleStream(config.getInputTopicsConfigs().get(0));
         }
         streams = new KafkaStreams(streamBuilder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
         if (Boolean.TRUE.equals(resetApp)){
@@ -99,10 +102,9 @@ public class Stream {
     /**
      * Process a single stream as a record stream.
      *
-     * @param operator OperatorInterface
      * @param topicConfig JSONArray
      */
-    public void processSingleStream(OperatorInterface operator, InputTopicModel topicConfig) {
+    public void processSingleStream(InputTopicModel topicConfig) {
         KStream<String, String> inputData = streamBuilder.getBuilder().stream(topicConfig.getName());
         //Filter Stream
         KStream<String, String> filteredStream = filterStream(topicConfig, inputData);
@@ -118,18 +120,17 @@ public class Stream {
             return result;
         });
 
-        KStream<String, String> rawOutputStream = runOperatorLogic(operator, filteredStream);
-        dropEmptyMessages(rawOutputStream);
-        outputStream(operator, rawOutputStream);
+        runOperatorLogic(filteredStream);
+        dropEmptyMessages();
+        outputStream();
     }
 
     /**
      * Process a single stream as a changelog stream.
      *
-     * @param operator OperatorInterface
      * @param topicConfig JSONArray
      */
-    public void processSingleStreamAsTable (OperatorInterface operator, JSONArray topicConfig){
+    public void processSingleStreamAsTable (JSONArray topicConfig){
         JSONObject topic = new JSONObject(topicConfig.get(0).toString());
 
         KTable<String, String> inputData = streamBuilder.getBuilder().table(topic.getString(Values.TOPIC_NAME_KEY));
@@ -147,18 +148,17 @@ public class Stream {
             return result;
         });
 
-        KStream<String, String> rawOutputStream = runOperatorLogic(operator, outputStream);
-        dropEmptyMessages(rawOutputStream);
-        outputStream(operator, rawOutputStream);
+        runOperatorLogic(outputStream);
+        dropEmptyMessages();
+        outputStream();
     }
 
     /**
      * Processes multiple streams as a record stream while automatically creating only one inputStream per topic.
      *
-     * @param operator OperatorInterface
      * @param topicConfig JSONArray
      */
-    public void processMultipleStreams(OperatorInterface operator, JSONArray topicConfig) {
+    public void processMultipleStreams(JSONArray topicConfig) {
         int length = topicConfig.length();
         Map<String, KStream<String, String>> inputStreamsMap = new HashMap<>();
         KStream<String, String>[] filterData = new KStream[length];
@@ -183,19 +183,17 @@ public class Stream {
                 return result;
             });
         }
-        KStream<String, String> merged = streamBuilder.joinMultipleStreams(filterData);
-        KStream<String, String> rawOutputStream = runOperatorLogic(operator, merged);
-        dropEmptyMessages(rawOutputStream);
-        outputStream(operator, rawOutputStream);
+        runOperatorLogic(streamBuilder.joinMultipleStreams(filterData));
+        dropEmptyMessages();
+        outputStream();
     }
 
     /**
      * Processes multiple streams as a changelog stream while automatically creating only one inputStream per topic.
      *
-     * @param operator OperatorInterface
      * @param topicConfig JSONArray
      */
-    public void processMultipleStreamsAsTable(OperatorInterface operator, JSONArray topicConfig) {
+    public void processMultipleStreamsAsTable(JSONArray topicConfig) {
         int length = topicConfig.length();
         Map<String, KTable<String, String>> inputStreamsMap = new HashMap<>();
         KTable<String, String>[] filterData = new KTable[length];
@@ -221,9 +219,9 @@ public class Stream {
             }).toTable();
         }
         KTable<String, String> merged = tableBuilder.joinMultipleStreams(filterData);
-        KStream<String, String> rawOutputStream = runOperatorLogic(operator, merged.toStream());
-        dropEmptyMessages(rawOutputStream);
-        outputStream(operator, rawOutputStream);
+        runOperatorLogic(merged.toStream());
+        dropEmptyMessages();
+        outputStream();
     }
 
     public KStream<String, String> getOutputStream() {
@@ -249,12 +247,18 @@ public class Stream {
     }
 
     /**
-     * Output a stream.
+     * Sets the running operator.
      *
-     * @param operator OperatorInterface
-     * @param outputStream KStream
+     * @param runOperator OperatorInterface
      */
-    private void outputStream(OperatorInterface operator, KStream<String, String> outputStream) {
+    public void setOperator(OperatorInterface runOperator){
+        operator = runOperator;
+    }
+
+    /**
+     * Output the stream.
+     */
+    private void outputStream() {
         if (Boolean.TRUE.equals(DEBUG)) {
             outputData.print(Printed.toSysOut());
         }
@@ -263,11 +267,9 @@ public class Stream {
 
     /**
      * Drop empty analytics messages.
-     *
-     * @param rawOutputStream KStream<String, String>
      */
-    private void dropEmptyMessages(KStream<String, String> rawOutputStream) {
-        outputData = rawOutputStream.filter((key, value) -> {
+    private void dropEmptyMessages() {
+        outputData = outputData.filter((key, value) -> {
             JSONObject messageObj =  new JSONObject(value);
             JSONObject ana = new JSONObject(messageObj.get("analytics").toString());
             return ana.length() > 0;
@@ -277,18 +279,15 @@ public class Stream {
     /**
      * Run the operator logic.
      *
-     * @param operator OperatorInterface
      * @param outputStream KStream<String, String>
-     * @return rawOutputStream KStream<String, String>
      */
-    private KStream<String, String> runOperatorLogic(OperatorInterface operator, KStream<String, String> outputStream) {
-        KStream<String, String> rawOutputStream = outputStream.flatMap((key, value) -> {
+    private void runOperatorLogic(KStream<String, String> outputStream) {
+        outputData = outputStream.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             operator.run(this.message.setMessage(value));
             result.add(KeyValue.pair(this.operatorId != null ? this.operatorId : this.pipelineId, this.message.getMessageString()));
             return result;
         });
-        return rawOutputStream;
     }
 
     /**

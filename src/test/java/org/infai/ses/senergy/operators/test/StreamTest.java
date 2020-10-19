@@ -79,10 +79,10 @@ public class StreamTest {
     public void testProcessSingleStream(){
         Stream stream = new Stream();
         stream.setPipelineId("AAA");
-        TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
-        stream.processSingleStream(operator, config.getInputTopicsConfigs().get(0));
+        stream.setOperator(new TestOperator());
+        stream.processSingleStream(config.getInputTopicsConfigs().get(0));
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -111,10 +111,10 @@ public class StreamTest {
     public void testProcessSingleStreamAsTable(){
         Stream stream = new Stream();
         stream.setPipelineId("AAA");
-        TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
-        stream.processSingleStreamAsTable(operator, config.getTopicConfig());
+        stream.setOperator(new TestOperator());
+        stream.processSingleStreamAsTable(config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -144,12 +144,10 @@ public class StreamTest {
     @Test
     public void testProcessSingleStreamDeviceId(){
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
-
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
-
-        stream.processSingleStream(operator, config.getInputTopicsConfigs().get(0));
+        stream.setOperator(new TestOperator());
+        stream.processSingleStream(config.getInputTopicsConfigs().get(0));
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -178,11 +176,10 @@ public class StreamTest {
     @Test
     public void testProcessTwoStreams2DeviceId(){
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         stream.streamBuilder.setWindowTime(5);
-
-        stream.processMultipleStreams(operator, config.getTopicConfig());
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreams(config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -215,11 +212,10 @@ public class StreamTest {
     @Test
     public void testProcessTwoStreamsAsTable2DeviceId(){
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessTwoStreamsAsTable2DeviceIdExpected.json");
-
-        stream.processMultipleStreamsAsTable(operator, config.getTopicConfig());
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreamsAsTable(config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -275,15 +271,11 @@ public class StreamTest {
     @Test
     public void testComplexMessage(){
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
-
         String configString = "{\"inputTopics\":[{\"name\":\"topic1\",\"filterType\":\"DeviceId\",\"filterValue\":\"1\",\"mappings\":[{\"dest\":\"value1\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp1\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic2\",\"filterType\":\"DeviceId\",\"filterValue\":\"2\",\"mappings\":[{\"dest\":\"value2\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp2\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic3\",\"filterType\":\"DeviceId\",\"filterValue\":\"3\",\"mappings\":[{\"dest\":\"value3\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp3\",\"source\":\"value.reading.time\"}]}]}";
-
-
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
-
-        stream.processMultipleStreams(operator, config.getTopicConfig());
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreams(config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -312,8 +304,6 @@ public class StreamTest {
 
     private void testProcessMultipleStreams(int numStreams){
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
-
         String configString = "{\"inputTopics\": [";
         for(int i = 0; i <= numStreams; i++){
             configString += "{\"Name\":\"topic"+i+"\",\"FilterType\":\"DeviceId\",\"FilterValue\":\""+i+"\",\"Mappings\":[{\"Dest\":\"value"+i+"\",\"Source\":\"value.reading.value\"}]},";
@@ -324,8 +314,8 @@ public class StreamTest {
 
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
-
-        stream.processMultipleStreams(operator, config.getTopicConfig());
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreams(config.getTopicConfig());
 
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
@@ -357,8 +347,7 @@ public class StreamTest {
         Map<Integer, Integer> expectedValues  = new HashMap(1);
         expectedValues.put(10,2048);
         Stream stream = new Stream("AZB", "1");
-        TestOperator operator = new TestOperator();
-
+        stream.setOperator(new TestOperator());
         String configString = "{\"inputTopics\": [";
         for(int i = 0; i <= numStreams; i++){
             configString += "{\"Name\":\"topic"+i+"\",\"FilterType\":\"DeviceId\",\"FilterValue\":\""+i+"\",\"Mappings\":[{\"Dest\":\"value"+i+"\",\"Source\":\"value.reading.value\"}]},";
@@ -369,7 +358,7 @@ public class StreamTest {
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
 
-        stream.processMultipleStreams(operator, config.getTopicConfig());
+        stream.processMultipleStreams(config.getTopicConfig());
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);

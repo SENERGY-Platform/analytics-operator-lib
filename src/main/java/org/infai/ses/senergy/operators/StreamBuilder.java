@@ -52,11 +52,7 @@ public class StreamBuilder extends BaseBuilder {
     public KStream<String, String> joinMultipleStreams(KStream<String, String>[] streams, int seconds) {
         KStream<String, String> joinedStream = streams[0];
         for (int i = 1; i < streams.length; i++) {
-            if (i == streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], this::joinStreams, JoinWindows.of(Duration.ofSeconds(seconds)),
-                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
-                );
-            } else {
+            if (i != streams.length - 1) {
                 joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
                             if (!leftValue.startsWith("[")) {
                                 leftValue = "[" + leftValue + "]";
@@ -64,6 +60,10 @@ public class StreamBuilder extends BaseBuilder {
                             return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
                         },
                         JoinWindows.of(Duration.ofSeconds(seconds)),
+                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
+                );
+            } else {
+                joinedStream = joinedStream.join(streams[i], this::joinLastStreams, JoinWindows.of(Duration.ofSeconds(seconds)),
                         StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
                 );
             }

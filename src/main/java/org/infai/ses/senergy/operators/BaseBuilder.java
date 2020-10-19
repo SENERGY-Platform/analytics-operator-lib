@@ -62,7 +62,7 @@ public class BaseBuilder {
         return this.builder;
     }
 
-    protected String joinStreams(String leftValue, String rightValue) {
+    protected String joinLastStreams(String leftValue, String rightValue) {
         List<String> values = new LinkedList<>();
 
         if(leftValue.startsWith("[")) {
