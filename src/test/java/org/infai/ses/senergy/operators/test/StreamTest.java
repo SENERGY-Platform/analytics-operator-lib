@@ -82,7 +82,7 @@ public class StreamTest {
         TestOperator operator = new TestOperator();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
-        stream.processSingleStream(operator, config.getTopicConfig());
+        stream.processSingleStream(operator, config.getInputTopicsConfigs().get(0));
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
@@ -149,7 +149,7 @@ public class StreamTest {
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
 
-        stream.processSingleStream(operator, config.getTopicConfig());
+        stream.processSingleStream(operator, config.getInputTopicsConfigs().get(0));
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);

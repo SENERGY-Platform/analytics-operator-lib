@@ -21,6 +21,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.*;
+import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.JSONArray;
@@ -78,7 +79,7 @@ public class Stream {
                 processMultipleStreams(operator, config.getTopicConfig());
             }
         } else if (config.topicCount() == 1) {
-            processSingleStream(operator, config.getTopicConfig());
+            processSingleStream(operator, config.getInputTopicsConfigs().get(0));
         }
         streams = new KafkaStreams(streamBuilder.getBuilder().build(), StreamsConfigProvider.getStreamsConfiguration());
         if (Boolean.TRUE.equals(resetApp)){
@@ -102,27 +103,25 @@ public class Stream {
      * @param operator OperatorInterface
      * @param topicConfig JSONArray
      */
-    public void processSingleStream(OperatorInterface operator, JSONArray topicConfig) {
-        JSONObject topic = new JSONObject(topicConfig.get(0).toString());
-
-        KStream<String, String> inputData = streamBuilder.getBuilder().stream(topic.getString(Values.TOPIC_NAME_KEY));
+    public void processSingleStream(OperatorInterface operator, InputTopicModel topicConfig) {
+        KStream<String, String> inputData = streamBuilder.getBuilder().stream(topicConfig.getName());
         //Filter Stream
-        KStream<String, String> filterData = filterStream(topic, inputData);
-
+        KStream<String, String> filteredStream = filterStream(topicConfig, inputData);
 
         if (Boolean.TRUE.equals(DEBUG)) {
-            filterData.print(Printed.toSysOut());
+            filteredStream.print(Printed.toSysOut());
         }
 
         //format message
-        filterData = filterData.flatMap((key, value) -> {
+        filteredStream = filteredStream.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair(key, streamBuilder.formatMessage(value)));
             return result;
         });
 
-        //output stream
-        outputStream(operator, filterData);
+        KStream<String, String> rawOutputStream = runOperatorLogic(operator, filteredStream);
+        dropEmptyMessages(rawOutputStream);
+        outputStream(operator, rawOutputStream);
     }
 
     /**
@@ -136,22 +135,22 @@ public class Stream {
 
         KTable<String, String> inputData = streamBuilder.getBuilder().table(topic.getString(Values.TOPIC_NAME_KEY));
         //Filter Stream
-        KTable<String, String> filterData = filterStream(topic, inputData);
-
+        KTable<String, String> filteredStream = filterStream(topic, inputData);
 
         if (Boolean.TRUE.equals(DEBUG)) {
-            filterData.toStream().print(Printed.toSysOut());
+            filteredStream.toStream().print(Printed.toSysOut());
         }
 
         //format message
-        KStream<String, String> outputStream = filterData.toStream().flatMap((key, value) -> {
+        KStream<String, String> outputStream = filteredStream.toStream().flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair(key, streamBuilder.formatMessage(value)));
             return result;
         });
 
-        //output stream
-        outputStream(operator, outputStream);
+        KStream<String, String> rawOutputStream = runOperatorLogic(operator, outputStream);
+        dropEmptyMessages(rawOutputStream);
+        outputStream(operator, rawOutputStream);
     }
 
     /**
@@ -186,7 +185,9 @@ public class Stream {
             });
         }
         KStream<String, String> merged = streamBuilder.joinMultipleStreams(filterData);
-        outputStream(operator, merged);
+        KStream<String, String> rawOutputStream = runOperatorLogic(operator, merged);
+        dropEmptyMessages(rawOutputStream);
+        outputStream(operator, rawOutputStream);
     }
 
     /**
@@ -221,7 +222,31 @@ public class Stream {
             }).toTable();
         }
         KTable<String, String> merged = tableBuilder.joinMultipleStreams(filterData);
-        outputStream(operator, merged.toStream());
+        KStream<String, String> rawOutputStream = runOperatorLogic(operator, merged.toStream());
+        dropEmptyMessages(rawOutputStream);
+        outputStream(operator, rawOutputStream);
+    }
+
+    public KStream<String, String> getOutputStream() {
+        return outputData;
+    }
+
+    /**
+     * Returns the name of the output topic.
+     *
+     * @return String
+     */
+    public String getOutputStreamName() {
+        return Helper.getEnv("OUTPUT", "output-stream");
+    }
+
+    /**
+     * Sets the pipeline ID.
+     *
+     * @param pipelineId String
+     */
+    public void setPipelineId(String pipelineId) {
+        this.pipelineId = pipelineId;
     }
 
     /**
@@ -231,34 +256,52 @@ public class Stream {
      * @param outputStream KStream
      */
     private void outputStream(OperatorInterface operator, KStream<String, String> outputStream) {
-        // Execute operator logic
-        KStream<String, String> rawOutputStream = outputStream.flatMap((key,value) -> {
-            List<KeyValue<String, String>> result = new LinkedList<>();
-            operator.run(this.message.setMessage(value));
-            result.add(KeyValue.pair(this.operatorId != null ? this.operatorId : this.pipelineId, this.message.getMessageString()));
-            return result;
-        });
-        // check if output value was set or drop message
+        if (Boolean.TRUE.equals(DEBUG)) {
+            outputData.print(Printed.toSysOut());
+        }
+        outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
+    }
+
+    /**
+     * Drop empty analytics messages.
+     *
+     * @param rawOutputStream KStream<String, String>
+     */
+    private void dropEmptyMessages(KStream<String, String> rawOutputStream) {
         outputData = rawOutputStream.filter((key, value) -> {
             JSONObject messageObj =  new JSONObject(value);
             JSONObject ana = new JSONObject(messageObj.get("analytics").toString());
             return ana.length() > 0;
         });
-
-        if (Boolean.TRUE.equals(DEBUG)) {
-            outputData.print(Printed.toSysOut());
-        }
-
-        outputData.to(getOutputStreamName(), Produced.with(stringSerde, stringSerde));
     }
 
     /**
-     * Filter the input stream as a record stream by operatorId or deviceId.
+     * Run the operator logic.
+     *
+     * @param operator OperatorInterface
+     * @param outputStream KStream<String, String>
+     * @return rawOutputStream KStream<String, String>
+     */
+    private KStream<String, String> runOperatorLogic(OperatorInterface operator, KStream<String, String> outputStream) {
+        KStream<String, String> rawOutputStream = outputStream.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            operator.run(this.message.setMessage(value));
+            result.add(KeyValue.pair(this.operatorId != null ? this.operatorId : this.pipelineId, this.message.getMessageString()));
+            return result;
+        });
+        return rawOutputStream;
+    }
+
+    /**
+     * Filter the input stream as a record stream by operator ID or device ID.
+     *
+     * @Deprecated (uses old topic config)
      *
      * @param topic JSONObject
      * @param inputData KStream
      * @return KStream
      */
+    @Deprecated
     private KStream<String, String> filterStream(JSONObject topic, KStream<String, String> inputData) {
         KStream<String, String> filterData;
         String[] filterValues  = topic.getString(Values.FILTER_VALUE_KEY).split(",");
@@ -278,12 +321,40 @@ public class Stream {
     }
 
     /**
-     * Filter the input stream as a changelog stream by operatorId or deviceId.
+     * Filter the input stream as a record stream by operator ID or device ID.
+     *
+     * @param topic InputTopicModel
+     * @param inputData KStream
+     * @return KStream
+     */
+    private KStream<String, String> filterStream(InputTopicModel topic, KStream<String, String> inputData) {
+        KStream<String, String> filterData;
+        String[] filterValues  = topic.getFilterValue().split(",");
+        switch (topic.getFilterType()) {
+            case Values.FILTER_TYPE_OPERATOR_KEY:
+                KStream<String, String> pipelineFilterData = streamBuilder.filterBy(inputData, pipelineIDPath, new String[]{pipelineId});
+                filterData = streamBuilder.filterBy(pipelineFilterData, operatorIdPath, filterValues);
+                break;
+            case Values.FILTER_TYPE_DEVICE_KEY:
+                filterData = streamBuilder.filterBy(inputData, deviceIdPath, filterValues);
+                break;
+            default:
+                filterData = inputData;
+                break;
+        }
+        return filterData;
+    }
+
+    /**
+     * Filter the input stream as a changelog stream by operator ID or device ID.
+     *
+     * @Deprecated (uses old topic config)
      *
      * @param topic JSONObject
      * @param inputData KTable
      * @return KTable
      */
+    @Deprecated
     private KTable<String, String> filterStream(JSONObject topic, KTable<String, String> inputData) {
         KTable<String, String> filterData;
         String[] filterValues  = topic.getString(Values.FILTER_VALUE_KEY).split(",");
@@ -300,17 +371,5 @@ public class Stream {
                 break;
         }
         return filterData;
-    }
-
-    public KStream<String, String> getOutputStream() {
-        return outputData;
-    }
-
-    public String getOutputStreamName() {
-        return Helper.getEnv("OUTPUT", "output-stream");
-    }
-
-    public void setPipelineId(String pipelineId) {
-        this.pipelineId = pipelineId;
     }
 }
