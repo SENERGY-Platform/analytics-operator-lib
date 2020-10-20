@@ -21,7 +21,11 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.*;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.InputTopicModel;
+import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.json.JSONArray;
@@ -45,8 +49,8 @@ public class Stream {
 
     private static OperatorInterface operator;
 
-    private final Message message = new Message();
-    private Config config = ConfigProvider.getConfig();
+    private Message message = new Message();
+    private final Config config = ConfigProvider.getConfig();
 
     private KafkaStreams streams;
 
@@ -73,7 +77,7 @@ public class Stream {
      */
     public void start(OperatorInterface runOperator) {
         operator = runOperator;
-        operator.configMessage(message);
+        message = operator.configMessage(message);
         if (config.topicCount() > 1) {
             if (Boolean.TRUE.equals(kTableProcessing)) {
                 processMultipleStreamsAsTable(config.getTopicConfig());

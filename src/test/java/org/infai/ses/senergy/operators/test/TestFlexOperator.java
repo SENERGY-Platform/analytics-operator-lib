@@ -31,7 +31,8 @@ public class TestFlexOperator extends BaseOperator {
     }
 
     @Override
-    public void configMessage(Message message) {
+    public Message configMessage(Message message) {
         message.addFlexInput("value");
+        return message;
     }
 }

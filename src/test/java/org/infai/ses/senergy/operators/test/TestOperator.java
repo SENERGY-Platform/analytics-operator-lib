@@ -40,8 +40,9 @@ public class TestOperator extends BaseOperator {
     }
 
     @Override
-    public void configMessage(Message message) {
+    public Message configMessage(Message message) {
         message.addInput("value");
         message.addInput("value2");
+        return message;
     }
 }

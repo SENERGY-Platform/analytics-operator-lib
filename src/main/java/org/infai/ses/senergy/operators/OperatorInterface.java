@@ -18,5 +18,5 @@ package org.infai.ses.senergy.operators;
 
 public interface OperatorInterface {
      void run(Message message);
-     void configMessage(Message message);
+     Message configMessage(Message message);
 }

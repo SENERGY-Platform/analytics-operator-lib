@@ -21,6 +21,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.test.MockProcessorSupplier;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
 import org.infai.ses.senergy.utils.ConfigProvider;
@@ -46,14 +47,14 @@ public class StreamTest {
 
     private static final String INPUT_TOPIC_2  = "input-topic-2";
 
-    private File stateDir = new File("./state/stream");
+    private final File stateDir = new File("./state/stream");
 
     private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
 
     Properties props = new Properties();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         TimeProvider.useFixedClockAt(time);
         ConfigProvider.setConfig(new Config());
         // setup test driver
@@ -81,6 +82,7 @@ public class StreamTest {
         stream.setPipelineId("AAA");
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessSingleStreamMessages.json");
         stream.setOperator(new TestOperator());
         stream.processSingleStream(config.getInputTopicsConfigs().get(0));
 
@@ -90,10 +92,10 @@ public class StreamTest {
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
-            inputTopic.pipeInput("A", "{'pipeline_id': 'AAA', 'operator_id': '1'}");
-            inputTopic.pipeInput("A", "{'pipeline_id': 'AAA', 'operator_id': '1'}");
-            inputTopic.pipeInput("B", "{'pipeline_id': 'BBB', 'operator_id': '1'}");
-            inputTopic.pipeInput("G", "{'pipeline_id': 'AAA', 'operator_id': '2'}");
+            inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+            inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+            inputTopic.pipeInput("B", jsonMessages.get(2).toString());
+            inputTopic.pipeInput("G", jsonMessages.get(3).toString());
         }
         int index = 0;
         int timestamp = 0;
@@ -371,8 +373,6 @@ public class StreamTest {
                 topics.get(i).pipeInput(null, "{'device_id': '"+i+"', 'value':"+i+1+"}");
             }
         }
-
-        System.out.println(processorSupplier.theCapturedProcessor().processed.size());
 
         Assert.assertEquals(expectedValues.get(numStreams).intValue(), processorSupplier.theCapturedProcessor().processed.size());
     }
