@@ -16,72 +16,61 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Config;
+import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.ConfigProvider;
-import org.json.JSONArray;
-import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class MessageTest {
 
     @Test
-    public void testGetMessageEntityId() {
-        Config config = new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString());
-        ConfigProvider.setConfig(config);
-        JSONObject jsonMessage = new JSONHelper().parseFile("message/testGetMessageEntityIdMessage.json");
-        Message message = new Message(jsonMessage.toString());
-        Assert.assertEquals("134534", message.getMessageEntityId());
+    public void testInputValue(){
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testInputValueConfig.json").toString()));
+        AnalyticsMessageModel inputMessage = JSONHelper.getFromJSON("message/testInputValueMessage.json", AnalyticsMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        messageModel.putMessage("debug", inputMessage);
+        Message message = new Message();
+        message.addInput("value");
+        message.setMessage(messageModel);
+        Double value = message.getInput("value").getValue();
+        Assert.assertEquals(Double.valueOf(2.0), value);
     }
 
     @Test
-    public void testInputValue(){
-        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
-        ConfigProvider.setConfig(new Config("{ \"inputTopics\":[\n" +
-                "  {\n" +
-                "    \"Name\": \"analytics-diff\",\n" +
-                "    \"FilterType\": \"DeviceId\",\n" +
-                "    \"FilterValue\": \"1\",\n" +
-                "    \"Mappings\": [\n" +
-                "      {\n" +
-                "        \"Dest\": \"value\",\n" +
-                "        \"Source\": \"val\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "]}\n"));
+    public void testInputValueDeep(){
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString()));
+        DeviceMessageModel inputMessage = JSONHelper.getFromJSON("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        messageModel.putMessage("debug", inputMessage);
+        Message message = new Message();
         message.addInput("value");
-        Double value = Double.valueOf(message.getInput("value").getValue());
+        message.setMessage(messageModel);
+        Double value = message.getInput("value").getValue();
         Assert.assertEquals(Double.valueOf(2.0), value);
     }
 
     @Test
     public void testOutputValue(){
-        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
+        Message message = new Message();
         message.output("test", Double.valueOf(2));
-        Assert.assertEquals("{\"analytics\":{\"test\":2.0},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":\"2\"},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}", message.getMessageString());
+        Assert.assertEquals("{\"pipeline_id\":\"debug\",\"operator_id\":\"debug\",\"analytics\":{\"test\":2.0}}", Helper.getFromObject(message.getMessage().getOutputMessage()));
     }
 
     @Test
-    public void testArrayValue(){
-        ConfigProvider.setConfig(new Config("{ \"inputTopics\":[\n" +
-                "  {\n" +
-                "    \"Name\": \"analytics-diff\",\n" +
-                "    \"FilterType\": \"DeviceId\",\n" +
-                "    \"FilterValue\": \"1\",\n" +
-                "    \"Mappings\": [\n" +
-                "      {\n" +
-                "        \"Dest\": \"value\",\n" +
-                "        \"Source\": \"val\"\n" +
-                "      }\n" +
-                "    ]\n" +
-                "  }\n" +
-                "]}\n"));
-        Message message = new Message("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\",\"val\":[1, 2, 3]},{\"device_id\":\"2\",\"value\":1}],\"pipeline_id\":\"1\"}");
+    public void testInputFilterId(){
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString()));
+        DeviceMessageModel inputMessage = JSONHelper.getFromJSON("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        messageModel.putMessage("debug", inputMessage);
+        Message message = new Message();
         message.addInput("value");
-        JSONArray expected = new JSONArray().put(1).put(2).put(3);
-        Assert.assertEquals(expected.toString(), message.getInput("value").getJSONArray().toString());
+        message.setMessage(messageModel);
+        Assert.assertEquals("134534", message.getInput("value").getFilterId());
     }
 }

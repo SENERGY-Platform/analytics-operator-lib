@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import kafka.cluster.Broker;
@@ -24,6 +25,8 @@ import kafka.zookeeper.ZooKeeperClient;
 import org.apache.kafka.common.network.ListenerName;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.utils.Time;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.json.JSONObject;
 import scala.collection.JavaConversions;
 
@@ -35,9 +38,9 @@ import java.util.logging.Logger;
 
 public class Helper {
 
-    private static final Logger log = Logger.getLogger(Helper.class.getName());
     private static final String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
     private static final String ZOOKEEPER_METRIC_TYPE = "zookeeper";
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     private Helper() {
         throw new IllegalStateException("Utility class");
@@ -146,21 +149,12 @@ public class Helper {
         }
     }
 
-    public static boolean filterId(String valuePath, String[] filterValues, String json) {
-        if (valuePath != null) {
-            if (Helper.checkPathExists(json, "$." + valuePath)) {
-                String value = JsonPath.parse(json).read("$." + valuePath);
-                //if the ids do not match, filter the element
-                try {
-                    return Arrays.asList(filterValues).contains(value);
-                } catch (NullPointerException e) {
-                    log.log(Level.SEVERE, "No Filter ID was set to be filtered");
-                }
-            }
-            //if the path does not exist, the element is filtered
-            return false;
+    public static <T> String getFromObject(T object){
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        // if no path is given, everything is processed
-        return true;
     }
 }

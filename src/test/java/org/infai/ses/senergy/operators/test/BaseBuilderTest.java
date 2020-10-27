@@ -34,7 +34,7 @@ public class BaseBuilderTest {
     }
     @Test
     public void testFormatMessage(){
-        StreamBuilder builder = new StreamBuilder("1", "1");
+        StreamBuilder builder = new StreamBuilder();
         String message = builder.formatMessage("{'device_id': '1'}");
         Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]," +
                 "\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
@@ -42,7 +42,7 @@ public class BaseBuilderTest {
 
     @Test
     public void testFormatMessage2(){
-        StreamBuilder builder = new StreamBuilder("1", "2");
+        StreamBuilder builder = new StreamBuilder();
         String message = builder.formatMessage("{'analytics':{'test': 1},'inputs':[{'device_id': '1'}],'pipeline_id':'1'}");
         Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"analytics\":{\"test\":1}," +
                 "\"inputs\":[{\"device_id\":\"1\"}],\"pipeline_id\":\"1\"}],\"pipeline_id\":\"2\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);

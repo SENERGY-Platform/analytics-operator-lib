@@ -3,11 +3,11 @@
     {
       "Name": "debug",
       "FilterType": "DeviceId",
-      "FilterValue": "1,2",
+      "FilterValue": "1",
       "Mappings": [
         {
           "Dest": "value",
-          "Source": "value.reading.value"
+          "Source": "val"
         }
       ]
     }

@@ -18,12 +18,17 @@ package org.infai.ses.senergy.operators.test;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.test.OutputVerifier;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.serialization.JSONDeserializer;
+import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.simple.JSONArray;
@@ -43,14 +48,11 @@ import static org.junit.Assert.assertEquals;
 
 public class StreamTest {
 
-    private static final String INPUT_TOPIC  = "input-topic";
-
-    private static final String INPUT_TOPIC_2  = "input-topic-2";
-
+    private static final String INPUT_TOPIC = "input-topic";
+    private static final String INPUT_TOPIC_2 = "input-topic-2";
     private final File stateDir = new File("./state/stream");
-
-    private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
-
+    private final LocalDateTime time = LocalDateTime.of(2020, 01, 01, 01, 01);
+    private final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
     Properties props = new Properties();
 
     @Before
@@ -67,7 +69,7 @@ public class StreamTest {
 
     @After
     public void deleteOutputFile() {
-        if(stateDir.exists()){
+        if (stateDir.exists()) {
             try {
                 FileUtils.deleteDirectory(stateDir);
             } catch (IOException e) {
@@ -77,32 +79,29 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessSingleStream(){
+    public void testProcessSingleStream() {
         Stream stream = new Stream();
-        stream.setPipelineId("AAA");
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
         JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessSingleStreamMessages.json");
         stream.setOperator(new TestOperator());
         stream.processSingleStream(config.getInputTopicsConfigs().get(0));
-
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
-        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
-            final TestInputTopic<String, String> inputTopic =
-                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
-            inputTopic.pipeInput("A", jsonMessages.get(0).toString());
-            inputTopic.pipeInput("A", jsonMessages.get(1).toString());
-            inputTopic.pipeInput("B", jsonMessages.get(2).toString());
-            inputTopic.pipeInput("G", jsonMessages.get(3).toString());
-        }
+        final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props);
+        final TestInputTopic<String, String> inputTopic =
+                driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+        inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+        inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+        inputTopic.pipeInput("B", jsonMessages.get(2).toString());
+        inputTopic.pipeInput("G", jsonMessages.get(3).toString());
         int index = 0;
         int timestamp = 0;
-        for (Object result:processorSupplier.theCapturedProcessor().processed){
-            JSONObject value = (JSONObject)expected.get(index++);
+
+        for (Object result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            assertEquals(new KeyValueTimestamp<>("AAA",value.toString(), timestamp),
+            assertEquals(new KeyValueTimestamp<>("debug", value.toString(), timestamp),
                     result);
             timestamp += 1000;
 
@@ -110,15 +109,13 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessSingleStreamAsTable(){
+    public void testProcessSingleStreamAsTable() {
         Stream stream = new Stream();
-        stream.setPipelineId("AAA");
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
         stream.setOperator(new TestOperator());
         stream.processSingleStreamAsTable(config.getTopicConfig());
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
@@ -132,10 +129,10 @@ public class StreamTest {
 
         int index = 0;
         int timestamp = 0;
-        for (Object result:processorSupplier.theCapturedProcessor().processed){
-            JSONObject value = (JSONObject)expected.get(index++);
+        for (Object result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            assertEquals(new KeyValueTimestamp<>("AAA",value.toString(), timestamp),
+            assertEquals(new KeyValueTimestamp<>("AAA", value.toString(), timestamp),
                     result);
             timestamp += 1000;
 
@@ -144,14 +141,13 @@ public class StreamTest {
 
 
     @Test
-    public void testProcessSingleStreamDeviceId(){
-        Stream stream = new Stream("AZB", "1");
+    public void testProcessSingleStreamDeviceId() {
+        Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
         stream.setOperator(new TestOperator());
         stream.processSingleStream(config.getInputTopicsConfigs().get(0));
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
@@ -165,10 +161,10 @@ public class StreamTest {
 
         int index = 0;
         int timestamp = 0;
-        for (Object result:processorSupplier.theCapturedProcessor().processed){
-            JSONObject value = (JSONObject)expected.get(index++);
+        for (Object result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            assertEquals(new KeyValueTimestamp<>("AZB",value.toString(), timestamp),
+            assertEquals(new KeyValueTimestamp<>("AZB", value.toString(), timestamp),
                     result);
             timestamp += 1000;
 
@@ -176,14 +172,13 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessTwoStreams2DeviceId(){
-        Stream stream = new Stream("AZB", "1");
+    public void testProcessTwoStreams2DeviceId() {
+        Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         stream.streamBuilder.setWindowTime(5);
         stream.setOperator(new TestOperator());
-        stream.processMultipleStreams(config.getTopicConfig());
+        stream.processMultipleStreams(config.getInputTopicsConfigs());
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
@@ -212,14 +207,13 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessTwoStreamsAsTable2DeviceId(){
-        Stream stream = new Stream("AZB", "1");
+    public void testProcessTwoStreamsAsTable2DeviceId() {
+        Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessTwoStreamsAsTable2DeviceIdExpected.json");
         stream.setOperator(new TestOperator());
         stream.processMultipleStreamsAsTable(config.getTopicConfig());
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
@@ -243,43 +237,42 @@ public class StreamTest {
         expected2.put("time", TimeProvider.nowUTCToString());
         Assert.assertEquals(asList(
 
-                new KeyValueTimestamp<>("AZB",expected1.toString(), 6000),
-                new KeyValueTimestamp<>("AZB",expected2.toString(), 8000)
+                new KeyValueTimestamp<>("AZB", expected1.toString(), 6000),
+                new KeyValueTimestamp<>("AZB", expected2.toString(), 8000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
 
     //@Test
     @Test
-    public void test5Streams(){
+    public void test5Streams() {
         testProcessMultipleStreams(5);
     }
 
     @Test
-    public void test128Streams(){
+    public void test128Streams() {
         testProcessMultipleStreams(128);
     }
 
     @Test
-    public void test2Streams(){
+    public void test2Streams() {
         testProcessMultipleStreams(2);
     }
 
     @Test
-    public void test5StreamsWithMultipleMessages(){
+    public void test5StreamsWithMultipleMessages() {
         testProcessMultipleStreamsWithMultipleMessages(10);
     }
 
     @Test
-    public void testComplexMessage(){
-        Stream stream = new Stream("AZB", "1");
+    public void testComplexMessage() {
+        Stream stream = new Stream();
         String configString = "{\"inputTopics\":[{\"name\":\"topic1\",\"filterType\":\"DeviceId\",\"filterValue\":\"1\",\"mappings\":[{\"dest\":\"value1\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp1\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic2\",\"filterType\":\"DeviceId\",\"filterValue\":\"2\",\"mappings\":[{\"dest\":\"value2\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp2\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic3\",\"filterType\":\"DeviceId\",\"filterValue\":\"3\",\"mappings\":[{\"dest\":\"value3\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp3\",\"source\":\"value.reading.time\"}]}]}";
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
         stream.setOperator(new TestOperator());
-        stream.processMultipleStreams(config.getTopicConfig());
+        stream.processMultipleStreams(config.getInputTopicsConfigs());
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
@@ -297,47 +290,46 @@ public class StreamTest {
             inputTopic3.pipeInput(null, "{'device_id':'3','service_id':'3','value':{'reading':{'OBIS_16_7':{'unit':'kW','value':0.36},'OBIS_1_8_0':{'unit':'kWh','value':226.239},'time':'2019-07-18T12:19:04.250355Z'}}}");
         }
 
-        JSONObject expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json");;
+        JSONObject expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json");
+        ;
         expected.put("time", TimeProvider.nowUTCToString());
         Assert.assertEquals(new KeyValueTimestamp<>("AZB",
                 expected.toString(),
                 0), processorSupplier.theCapturedProcessor().processed.get(0));
     }
 
-    private void testProcessMultipleStreams(int numStreams){
-        Stream stream = new Stream("AZB", "1");
+    private void testProcessMultipleStreams(int numStreams) {
+        Stream stream = new Stream();
         String configString = "{\"inputTopics\": [";
-        for(int i = 0; i <= numStreams; i++){
-            configString += "{\"Name\":\"topic"+i+"\",\"FilterType\":\"DeviceId\",\"FilterValue\":\""+i+"\",\"Mappings\":[{\"Dest\":\"value"+i+"\",\"Source\":\"value.reading.value\"}]},";
+        for (int i = 0; i <= numStreams; i++) {
+            configString += "{\"Name\":\"topic" + i + "\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"" + i + "\",\"Mappings\":[{\"Dest\":\"value" + i + "\",\"Source\":\"value.reading.value\"}]},";
         }
-        configString = configString.substring(0, configString.length()-1); //remove last ','
+        configString = configString.substring(0, configString.length() - 1); //remove last ','
         configString += "]}";
 
 
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
         stream.setOperator(new TestOperator());
-        stream.processMultipleStreams(config.getTopicConfig());
+        stream.processMultipleStreams(config.getInputTopicsConfigs());
 
-
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             List<TestInputTopic<String, String>> topics = new ArrayList<TestInputTopic<String, String>>();
-            for(int i = 0; i <= numStreams; i++){
-                topics.add(driver.createInputTopic("topic"+i, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO));
-                topics.get(i).pipeInput(null, "{'device_id': '"+i+"', 'value':"+i+"}");
+            for (int i = 0; i <= numStreams; i++) {
+                topics.add(driver.createInputTopic("topic" + i, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO));
+                topics.get(i).pipeInput(null, "{'device_id': '" + i + "', 'value':" + i + "}");
                 topics.get(i).pipeInput(null, "{'pipeline_id': '1', 'inputs':[{'device_id': 'abc', 'value':1}], 'analytics':{}}"); //To test filtering
             }
         }
 
         String expected = "{\"analytics\":{\"test\":\"1\"},\"operator_id\":\"AZB\",\"inputs\":[";
-        for(int i = 0; i <= numStreams; i++){
-            expected += "{\"device_id\":\""+i+"\",\"value\":"+i+"},";
+        for (int i = 0; i <= numStreams; i++) {
+            expected += "{\"device_id\":\"" + i + "\",\"value\":" + i + "},";
         }
-        expected = expected.substring(0, expected.length()-1); //remove last ','
-        expected += "],\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}";
+        expected = expected.substring(0, expected.length() - 1); //remove last ','
+        expected += "],\"pipeline_id\":\"1\",\"time\":\"" + TimeProvider.nowUTCToString() + "\"}";
 
         Assert.assertEquals(asList(new KeyValueTimestamp<>("AZB",
                         expected,
@@ -345,32 +337,31 @@ public class StreamTest {
                 , processorSupplier.theCapturedProcessor().processed);
     }
 
-    private void testProcessMultipleStreamsWithMultipleMessages(int numStreams){
-        Map<Integer, Integer> expectedValues  = new HashMap(1);
-        expectedValues.put(10,2048);
-        Stream stream = new Stream("AZB", "1");
+    private void testProcessMultipleStreamsWithMultipleMessages(int numStreams) {
+        Map<Integer, Integer> expectedValues = new HashMap(1);
+        expectedValues.put(10, 2048);
+        Stream stream = new Stream();
         stream.setOperator(new TestOperator());
         String configString = "{\"inputTopics\": [";
-        for(int i = 0; i <= numStreams; i++){
-            configString += "{\"Name\":\"topic"+i+"\",\"FilterType\":\"DeviceId\",\"FilterValue\":\""+i+"\",\"Mappings\":[{\"Dest\":\"value"+i+"\",\"Source\":\"value.reading.value\"}]},";
+        for (int i = 0; i <= numStreams; i++) {
+            configString += "{\"Name\":\"topic" + i + "\",\"FilterType\":\"DeviceId\",\"FilterValue\":\"" + i + "\",\"Mappings\":[{\"Dest\":\"value" + i + "\",\"Source\":\"value.reading.value\"}]},";
         }
-        configString = configString.substring(0, configString.length()-1); //remove last ','
+        configString = configString.substring(0, configString.length() - 1); //remove last ','
         configString += "]}";
 
         Config config = new Config(configString);
         stream.streamBuilder.setWindowTime(5);
 
-        stream.processMultipleStreams(config.getTopicConfig());
+        stream.processMultipleStreams(config.getInputTopicsConfigs());
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         stream.getOutputStream().process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(stream.streamBuilder.getBuilder().build(), props)) {
             List<TestInputTopic<String, String>> topics = new ArrayList<TestInputTopic<String, String>>();
-            for(int i = 0; i <= numStreams; i++){
-                topics.add(driver.createInputTopic("topic"+i, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofMillis(500)));
-                topics.get(i).pipeInput(null, "{'device_id': '"+i+"', 'value':"+i+"}");
-                topics.get(i).pipeInput(null, "{'device_id': '"+i+"', 'value':"+i+1+"}");
+            for (int i = 0; i <= numStreams; i++) {
+                topics.add(driver.createInputTopic("topic" + i, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofMillis(500)));
+                topics.get(i).pipeInput(null, "{'device_id': '" + i + "', 'value':" + i + "}");
+                topics.get(i).pipeInput(null, "{'device_id': '" + i + "', 'value':" + i + 1 + "}");
             }
         }
 

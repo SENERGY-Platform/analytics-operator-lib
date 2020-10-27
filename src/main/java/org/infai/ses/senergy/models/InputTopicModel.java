@@ -47,4 +47,13 @@ public final class InputTopicModel {
     public List<MappingModel> getMappings(){
         return this.mappings;
     }
+
+    public String getSourceByDest(String dest){
+        for (MappingModel mapping : this. mappings){
+            if (mapping.getDest().equals(dest)){
+                return mapping.getSource();
+            }
+        }
+        return null;
+    }
 }

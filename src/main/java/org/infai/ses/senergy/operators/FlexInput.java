@@ -37,7 +37,7 @@ public class FlexInput {
         for (InputTopicModel inputTopic : this.config.getInputTopicsConfigs()){
             for (MappingModel mapping : inputTopic.getMappings()){
                 if (mapping.getDest().substring(0, mapping.getDest().lastIndexOf("_")).equals(name)){
-                    inputs.put(mapping.getDest(),new Input(mapping.getDest()));
+                    inputs.put(mapping.getDest(),new Input());
                 }
             }
         }
@@ -49,10 +49,14 @@ public class FlexInput {
     }
 
     public List<Double> getValues() {
+        /*
         ArrayList<Double> values = new ArrayList<>();
         for (Input input : this.inputs.values()) {
             values.add(input.setMessage(this.messageString).getValue());
         }
         return values;
+
+         */
+        return new ArrayList<>();
     }
 }

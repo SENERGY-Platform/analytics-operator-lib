@@ -17,56 +17,53 @@
 package org.infai.ses.senergy.operators;
 
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.StreamJoined;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.infai.ses.senergy.models.MessageModel;
 
 import java.time.Duration;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class StreamBuilder extends BaseBuilder {
 
     private Integer seconds = Values.WINDOW_TIME;
 
-    public StreamBuilder(String operatorId, String pipelineId) {
-        super(operatorId, pipelineId);
+    public <T>KStream<String, T> filterBy(KStream<String, T> inputStream, String[] filterValues) {
+        return inputStream.filter((key, value) -> {
+            Boolean test = filterId(filterValues, value);
+            return test;
+        });
     }
 
-    /**
-     * Filter by device id.
-     *
-     * @param inputStream KStream<String, String>
-     * @param valuePath String
-     * @param filterValues String[]
-     * @return KStream filterData
-     */
-    public KStream<String, String> filterBy(KStream<String, String> inputStream, String valuePath, String[] filterValues) {
-        return inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
-    }
-
-    public KStream<String, String> joinMultipleStreams(KStream<String, String>[] streams) {
+    public KStream<String, MessageModel> joinMultipleStreams(Map<String, KStream<String, Object>> streams) {
         return joinMultipleStreams(streams, seconds);
     }
 
-    public KStream<String, String> joinMultipleStreams(KStream<String, String>[] streams, int seconds) {
-        KStream<String, String> joinedStream = streams[0];
-        for (int i = 1; i < streams.length; i++) {
-            if (i != streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                            if (!leftValue.startsWith("[")) {
-                                leftValue = "[" + leftValue + "]";
-                            }
-                            return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
-                        },
-                        JoinWindows.of(Duration.ofSeconds(seconds)),
-                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
-                );
+    public KStream<String, MessageModel> joinMultipleStreams(Map<String, KStream<String, Object>> streams, int seconds) {
+        MessageModel message = new MessageModel();
+        KStream<String, MessageModel> joinedStream = null;
+        int i = 0;
+        for (Map.Entry<String,KStream<String, Object>> stream  : streams.entrySet()) {
+            if (i == 0){
+                joinedStream = stream.getValue().flatMap((key, value) -> {
+                    message.putMessage(stream.getKey(), value);
+                    List<KeyValue<String, MessageModel>> result = new LinkedList<>();
+                    result.add(KeyValue.pair(key, message));
+                    return result;
+                });
             } else {
-                joinedStream = joinedStream.join(streams[i], this::joinLastStreams, JoinWindows.of(Duration.ofSeconds(seconds)),
-                        StreamJoined.with(Serdes.String(), Serdes.String(), Serdes.String())
-                );
+                joinedStream = joinedStream.join(stream.getValue(), (leftValue, rightValue) ->
+                        {
+                            message.putMessage(stream.getKey(), rightValue);
+                            return message;
+                        }, JoinWindows.of(Duration.ofSeconds(seconds)));
             }
+            i++;
         }
         return joinedStream;
     }

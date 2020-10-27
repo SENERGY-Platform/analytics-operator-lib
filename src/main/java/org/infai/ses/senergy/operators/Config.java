@@ -21,6 +21,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import org.infai.ses.senergy.models.ConfigModel;
 import org.infai.ses.senergy.models.InputTopicModel;
+import org.infai.ses.senergy.models.MappingModel;
 import org.json.JSONArray;
 
 import java.util.HashMap;
@@ -68,6 +69,26 @@ public class Config {
      */
     public List<InputTopicModel> getInputTopicsConfigs() {
         return this.configModel.getInputTopics();
+    }
+
+    public InputTopicModel getInputTopicByName(String name) {
+        for (InputTopicModel topic : this.configModel.getInputTopics()){
+            if (topic.getName().equals(name)){
+                return topic;
+            }
+        }
+        return null;
+    }
+
+    public InputTopicModel getInputTopicByDestination(String destination) {
+        for (InputTopicModel topic : this.configModel.getInputTopics()){
+            for (MappingModel mappingModel : topic.getMappings()){
+                if (mappingModel.getDest().equals(destination)){
+                    return topic;
+                }
+            }
+        }
+        return null;
     }
 
     public JSONArray getTopicConfigById(Integer index){

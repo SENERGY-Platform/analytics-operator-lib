@@ -71,7 +71,7 @@ public class TableBuilderTest {
 
     @Test
     public void testFilterBy() {
-        TableBuilder builder = new TableBuilder("1", "1");
+        TableBuilder builder = new TableBuilder();
         final String deviceIdPath = "device_id";
         final String[] deviceIds = new String[]{"1"};
 
@@ -100,7 +100,7 @@ public class TableBuilderTest {
 
     @Test
     public void testFilterByMultipleDevices(){
-        TableBuilder builder = new TableBuilder("1", "1");
+        TableBuilder builder = new TableBuilder();
         final String deviceIdPath = "device_id";
         final String[] deviceIds = new String[] {"1", "2"};
 
@@ -134,7 +134,7 @@ public class TableBuilderTest {
         JSONArray expected = new JSONHelper().parseFile("tablebuilder/results.json");
 
 
-        TableBuilder builder = new TableBuilder("OperatorId", "PipelineId");
+        TableBuilder builder = new TableBuilder();
 
         final KTable<String, String> source1 = builder.getBuilder().table(INPUT_TOPIC);
         final KTable<String, String> source2 = builder.getBuilder().table(INPUT_TOPIC_2);

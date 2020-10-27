@@ -32,4 +32,6 @@ public final class Values {
     public static final String FILTER_TYPE_DEVICE_KEY = "DeviceId";
     public static final String INPUT_TOPICS = "inputTopics";
     public static final Integer WINDOW_TIME = 100;
+    public static final String PIPELINE_ID = Helper.getEnv("PIPELINE_ID", "debug");
+    public static final String OPERATOR_ID = Helper.getEnv("OPERATOR_ID", "debug");
 }

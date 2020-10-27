@@ -40,12 +40,12 @@ public class DeviceMessageModel {
     }
 
     @JsonProperty("service_id")
-    public String getOperatorId() {
+    public String getServiceId() {
         return serviceId;
     }
 
     @JsonProperty("service_id")
-    public void setOperatorId(String serviceId) {
+    public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
     }
 

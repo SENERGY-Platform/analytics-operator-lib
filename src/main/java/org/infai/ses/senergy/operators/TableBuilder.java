@@ -23,10 +23,6 @@ import org.json.JSONObject;
 
 public class TableBuilder extends BaseBuilder {
 
-    public TableBuilder(String operatorId, String pipelineId) {
-        super(operatorId, pipelineId);
-    }
-
     /**
      * Filter by device id.
      *
@@ -36,7 +32,7 @@ public class TableBuilder extends BaseBuilder {
      * @return KStream filterData
      */
     public KTable<String, String> filterBy(KTable<String, String> inputStream, String valuePath, String [] filterValues) {
-        KTable<String, String> filterData = inputStream.filter((key, json) -> Helper.filterId(valuePath, filterValues, json));
+        KTable<String, String> filterData = inputStream.filter((key, json) -> filterId(filterValues, json));
         KStream<String, String> filterDataStream = filterData.toStream().filter((key, value) -> value != null);
         return filterDataStream.toTable();
     }

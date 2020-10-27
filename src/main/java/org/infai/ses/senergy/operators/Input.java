@@ -16,91 +16,102 @@
 
 package org.infai.ses.senergy.operators;
 
-import com.jayway.jsonpath.JsonPath;
-import org.infai.ses.senergy.utils.ConfigProvider;
-import org.infai.ses.senergy.utils.MessageProvider;
-
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class Input {
 
-    private static final Logger log = Logger.getLogger(Input.class.getName());
+    private Object value;
+    private String source = "";
+    private String inputTopic = "";
+    private String filterId = "";
 
-    private String messageString = MessageProvider.getMessage().getMessageString();
-    private final Config config = ConfigProvider.getConfig();
-    private final Map<String, Object> topicConfig;
-
-    public Input(String name) {
-        this.topicConfig = this.config.getInputTopicByInputName(name);
+    /**
+     * Set the value of the input.
+     *
+     * @param value Object
+     */
+    protected void setValue(Object value){
+        this.value = value;
     }
 
-    public Input setMessage(String message) {
-        this.messageString = message;
-        return this;
-    }
-
+    /**
+     * Return the value of the input as Double.
+     *
+     * @return Double
+     */
     public Double getValue() {
+        if (this.value instanceof String){
+            return Double.valueOf((String) this.value);
+        } else if (this.value instanceof Integer){
+            return Double.valueOf((Integer) this.value);
+        } else if (this.value instanceof Double){
+            return (Double) this.value;
+        }
+        return null;
+    }
+
+    /**
+     * Return the value of the input as String.
+     *
+     * @return String
+     */
+    public String getString(){
         try {
-            return Double.valueOf(this.getVal());
+            return (String) this.value;
         } catch (NullPointerException e){
             return null;
         }
     }
 
-    public String getString(){
-        try {
-            return this.getVal();
-        } catch (NullPointerException e){
-            return "";
-        }
+    /**
+     * Set the filterId of the input.
+     *
+     * @param filterId String
+     */
+    protected void setFilterId(String filterId){
+        this.filterId = filterId;
     }
 
-    public org.json.JSONArray getJSONArray(){
-        try {
-            return new org.json.JSONArray(this.getVal());
-        } catch (NullPointerException e){
-            return new org.json.JSONArray();
-        }
+    /**
+     * Get the current filterId of the input.
+     *
+     * @return String
+     */
+    public String getFilterId() {
+        return filterId;
     }
 
-    private String getVal(){
-        String filterType = (String) this.topicConfig.get(Values.FILTER_TYPE_KEY);
-        String filterValueString = (String) this.topicConfig.get(Values.FILTER_VALUE_KEY);
-        String[] filterValues = filterValueString.split(",");
-        String value = null;
-        List<String> operatorIds = JsonPath.read(this.messageString, "$.inputs[*].operator_id");
-        List<String> deviceIds = JsonPath.read(this.messageString, "$.inputs[*].device_id");
-
-        for (String filterValue : filterValues) {
-            if (filterType.equals(Values.FILTER_TYPE_OPERATOR_KEY) && operatorIds.contains(filterValue)) {
-                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.operator_id == '" + filterValue + "')].analytics." + this.topicConfig.get(Values.MAPPING_SOURCE_KEY));
-                value = convertToString(helper.get(0));
-            } else
-            if (filterType.equals(Values.FILTER_TYPE_DEVICE_KEY) && deviceIds.contains(filterValue)) {
-                List<Object> helper = JsonPath.read(this.messageString, "$.inputs[?(@.device_id == '" + filterValue + "')]." + this.topicConfig.get(Values.MAPPING_SOURCE_KEY));
-                value = convertToString(helper.get(0));
-            }
-        }
-        return value;
+    /**
+     * Set the source mapping of the input.
+     *
+     * @param source String
+     */
+    protected void setSource(String source){
+        this.source = source;
     }
 
-    private String convertToString(Object ret) {
-        if (ret instanceof Double) {
-            return ret.toString();
-        } else if (ret instanceof Integer) {
-            return String.valueOf(ret);
-        } else if (ret instanceof net.minidev.json.JSONArray){
-            return ret.toString();
-        } else {
-            try {
-                return (String) ret;
-            } catch (ClassCastException e){
-                log.log(Level.SEVERE, "Error converting input value: {0}", e.getMessage());
-                return null;
-            }
-        }
+    /**
+     * Get the source of the input.
+     *
+     * @return String
+     */
+    protected String getSource(){
+        return this.source;
+    }
+
+    /**
+     * Set the inputTopic name of the input.
+     *
+     * @param inputTopic String
+     */
+    protected void setInputTopicName(String inputTopic){
+        this.inputTopic = inputTopic;
+    }
+
+    /**
+     * Get the input topic name of the input.
+     *
+     * @return String
+     */
+    protected String getInputTopicName(){
+        return this.inputTopic;
     }
 }

@@ -15,15 +15,35 @@
  */
 
 package org.infai.ses.senergy.models;
+import org.infai.ses.senergy.operators.Values;
 
-public class MessageModel {
-    private final String messageString;
+import java.util.HashMap;
+import java.util.Map;
 
-    public MessageModel(String messageString) {
-        this.messageString = messageString;
+public class MessageModel{
+
+    private Map<String, Object> inputMessages = new HashMap<>();
+    private AnalyticsMessageModel outputMessage = new AnalyticsMessageModel();
+
+    public MessageModel(){
+        this.outputMessage.setOperatorId(Values.OPERATOR_ID);
+        this.outputMessage.setPipelineId(Values.PIPELINE_ID);
+        this.outputMessage.setAnalytics(new HashMap<>());
     }
 
-    public String getMessageString(){
-        return this.messageString;
+    public <T> void putMessage( String topicName, T  value ) {
+        this.inputMessages.put( topicName, value);
+    }
+
+    public <T> T getMessage( String topicName ) {
+        return (T)this.inputMessages.get( topicName );
+    }
+
+    public Map<String, Object> getMessages(){
+        return this.inputMessages;
+    }
+
+    public AnalyticsMessageModel getOutputMessage(){
+        return this.outputMessage;
     }
 }

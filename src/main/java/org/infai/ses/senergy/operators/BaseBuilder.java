@@ -17,6 +17,8 @@
 package org.infai.ses.senergy.operators;
 
 import org.apache.kafka.streams.StreamsBuilder;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,23 +27,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BaseBuilder {
 
     protected StreamsBuilder builder = new StreamsBuilder();
-    private final String pipelineId;
-    private final String operatorId;
-
-    public BaseBuilder (String operatorId, String pipelineId){
-        this.operatorId = operatorId;
-        this.pipelineId = pipelineId;
-    }
+    private static final Logger log = Logger.getLogger(BaseBuilder.class.getName());
 
     private JSONObject createMessageWrapper(){
         return new JSONObject().
-                put("pipeline_id", pipelineId).
+                put("pipeline_id", Values.PIPELINE_ID).
                 put("time", TimeProvider.nowUTCToString()).
-                put("operator_id", operatorId).
+                put("operator_id", Values.OPERATOR_ID).
                 put("analytics", new JSONObject());
     }
 
@@ -77,5 +75,29 @@ public class BaseBuilder {
         }
         values.add(rightValue);
         return this.createMessage(values).toString();
+    }
+
+    protected static <T>boolean filterId(String[] filterValues, T message) {
+        if (filterValues.length > 0) {
+            if (message instanceof AnalyticsMessageModel){
+                try {
+                    return Values.PIPELINE_ID.equals(((AnalyticsMessageModel) message).getPipelineId()) &&
+                            Arrays.asList(filterValues).contains(((AnalyticsMessageModel) message).getOperatorId());
+                } catch (NullPointerException e) {
+                    log.log(Level.SEVERE, "No Filter ID was set to be filtered");
+                }
+            } else if (message instanceof DeviceMessageModel){
+                try {
+                    return Arrays.asList(filterValues).contains(((DeviceMessageModel) message).getDeviceId());
+                } catch (NullPointerException e) {
+                    log.log(Level.SEVERE, "No Filter ID was set to be filtered");
+                }
+            } else {
+                log.log(Level.SEVERE, "Wrong Message model");
+                return false;
+            }
+            return false;
+        }
+        return true;
     }
 }

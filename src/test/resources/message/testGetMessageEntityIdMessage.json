@@ -1,11 +1,8 @@
 {
-  "analytics": {},
-  "operator_id": "a3556",
-  "inputs": [
-    {
-      "device_id": "134534",
-      "val": "2"
+  "value": {
+    "reading": {
+      "value": 2
     }
-  ],
-  "pipeline_id": "1"
+  },
+  "device_id": "134534"
 }

@@ -16,36 +16,34 @@
 
 package org.infai.ses.senergy.operators;
 
-import com.jayway.jsonpath.JsonPath;
+import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.utils.ConfigProvider;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Message {
 
-    private String jsonMessage;
+    private MessageModel message = new MessageModel();
     private final Map<String, Input> inputs = new HashMap<>();
     private final Map<String, FlexInput> flexInputs = new HashMap<>();
     private final Config config = ConfigProvider.getConfig();
-    private final String deviceIdPath = Helper.getEnv("DEVICE_ID_PATH", "device_id");
-    private final String pipelineIDPath = Helper.getEnv("PIPELINE_ID_PATH", "pipeline_id");
 
-    public Message (){}
-
-    public Message (String jsonMessage){
-        this.jsonMessage = jsonMessage;
-    }
-
-    public Message setMessage (String message){
-        this.jsonMessage = message;
+    public Message setMessage (MessageModel message){
+        this.message = message;
+        this.parseMessage(message);
         return this;
     }
 
-    public Input addInput (String name){
-        Input input = new Input(name);
+    public MessageModel getMessage(){
+        return this.message;
+    }
+
+    public void addInput (String name){
+        Input input = new Input();
+        InputTopicModel topic = this.config.getInputTopicByDestination(name);
+        input.setSource(topic.getSourceByDest(name));
+        input.setInputTopicName(topic.getName());
         this.inputs.put(name, input);
-        return input;
     }
 
     public FlexInput addFlexInput (String name){
@@ -55,44 +53,46 @@ public class Message {
     }
 
     public Input getInput (String name){
-        return inputs.get(name).setMessage(this.jsonMessage);
+        return this.inputs.get(name);
     }
 
     public FlexInput getFlexInput (String name){
-        return flexInputs.get(name).setMessage(this.jsonMessage);
-    }
-    
-    public String getMessageEntityId(){
-        StringBuilder id = new StringBuilder();
-        for (int i = 0; i < this.config.getTopicConfig().length(); i++) {
-            switch (((org.json.JSONObject)this.config.getTopicConfigById(i).get(0)).get(Values.FILTER_TYPE_KEY).toString()) {
-                case Values.FILTER_TYPE_OPERATOR_KEY:
-                    String pipeIdPath = "$.inputs["+ i+"]." + pipelineIDPath;
-                    if (Helper.checkPathExists(this.jsonMessage, pipeIdPath)) {
-                        id.append((String) JsonPath.parse(this.jsonMessage).read(pipeIdPath));
-                    }
-                    break;
-                case Values.FILTER_TYPE_DEVICE_KEY:
-                    String deviceIdPath = "$.inputs["+ i+"]." + this.deviceIdPath;
-                    if (Helper.checkPathExists(this.jsonMessage, deviceIdPath)) {
-                        id.append((String) JsonPath.parse(this.jsonMessage).read(deviceIdPath));
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if (this.config.getTopicConfig().length() > 1 && i < this.config.getTopicConfig().length()-1){
-                id.append(",");
-            }
-        }
-        return id.toString();
+        return new FlexInput("test");
     }
 
     public void output(String name, Object value){
-        this.jsonMessage = Helper.setJSONPathValue(this.jsonMessage, "analytics."+name, value);
+        this.message.getOutputMessage().getAnalytics().put(name, value);
     }
 
+    @Deprecated
     public String getMessageString(){
-        return this.jsonMessage;
+        return "";
+    }
+
+    private void parseMessage(MessageModel message) {
+        for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
+            Input input = entry.getValue();
+            List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
+            Object msg = message.getMessage(entry.getValue().getInputTopicName());
+            if (msg instanceof AnalyticsMessageModel) {
+                input.setValue(this.parse(((AnalyticsMessageModel) msg).getAnalytics(), tree));
+                input.setFilterId(((AnalyticsMessageModel) msg).getPipelineId()+"-"+((AnalyticsMessageModel) msg).getOperatorId());
+            } else if (msg instanceof DeviceMessageModel){
+                tree.remove(0);
+                input.setValue(this.parse(((DeviceMessageModel) msg).getValue(), tree));
+                input.setFilterId(((DeviceMessageModel) msg).getDeviceId());
+            }
+        }
+    }
+
+    private Object parse (Map<String, Object> map, List<String> tree){
+        for (String t : tree){
+            if (map.get(t) instanceof  Map<?, ?>){
+                map = (Map<String, Object>) map.get(t);
+            } else {
+                return map.get(t);
+            }
+        }
+        return map;
     }
 }
