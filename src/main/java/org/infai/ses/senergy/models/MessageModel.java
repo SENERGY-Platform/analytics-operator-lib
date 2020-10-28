@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class MessageModel{
 
-    private Map<String, Object> inputMessages = new HashMap<>();
+    private Map<String, InputMessageModel> inputMessages = new HashMap<>();
     private AnalyticsMessageModel outputMessage = new AnalyticsMessageModel();
 
     public MessageModel(){
@@ -31,15 +31,15 @@ public class MessageModel{
         this.outputMessage.setAnalytics(new HashMap<>());
     }
 
-    public <T> void putMessage( String topicName, T  value ) {
+    public void putMessage( String topicName, InputMessageModel  value ) {
         this.inputMessages.put( topicName, value);
     }
 
-    public <T> T getMessage( String topicName ) {
-        return (T)this.inputMessages.get( topicName );
+    public InputMessageModel getMessage( String topicName ) {
+        return this.inputMessages.get( topicName );
     }
 
-    public Map<String, Object> getMessages(){
+    public Map<String, InputMessageModel> getMessages(){
         return this.inputMessages;
     }
 

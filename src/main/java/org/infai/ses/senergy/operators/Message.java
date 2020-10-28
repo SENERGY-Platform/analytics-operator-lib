@@ -73,15 +73,12 @@ public class Message {
         for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
             Input input = entry.getValue();
             List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
-            Object msg = message.getMessage(entry.getValue().getInputTopicName());
-            if (msg instanceof AnalyticsMessageModel) {
-                input.setValue(this.parse(((AnalyticsMessageModel) msg).getAnalytics(), tree));
-                input.setFilterId(((AnalyticsMessageModel) msg).getPipelineId()+"-"+((AnalyticsMessageModel) msg).getOperatorId());
-            } else if (msg instanceof DeviceMessageModel){
+            InputMessageModel msg = message.getMessage(entry.getValue().getInputTopicName());
+            if (tree.size() > 1) {
                 tree.remove(0);
-                input.setValue(this.parse(((DeviceMessageModel) msg).getValue(), tree));
-                input.setFilterId(((DeviceMessageModel) msg).getDeviceId());
             }
+            input.setValue(this.parse(msg.getValue(), tree));
+            input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
         }
     }
 

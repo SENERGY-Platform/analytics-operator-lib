@@ -27,6 +27,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.utils.Time;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.InputMessageModel;
 import org.json.JSONObject;
 import scala.collection.JavaConversions;
 
@@ -52,14 +53,14 @@ public class Helper {
      * @param zookeeperConnect zookeeper connection string
      * @return string list of kafka instances.
      */
-    public static String getBrokerList(String zookeeperConnect){
-        if (zookeeperConnect == null || zookeeperConnect.equals("")){
+    public static String getBrokerList(String zookeeperConnect) {
+        if (zookeeperConnect == null || zookeeperConnect.equals("")) {
             return "localhost:2181";
         }
         int sessionTimeoutMs = 10 * 1000;
         int connectionTimeoutMs = 8 * 1000;
-        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, sessionTimeoutMs,connectionTimeoutMs,1, Time.SYSTEM,ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
-        KafkaZkClient client =  new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
+        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, sessionTimeoutMs, connectionTimeoutMs, 1, Time.SYSTEM, ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
+        KafkaZkClient client = new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
         client.getAllBrokersInCluster();
         List<String> brokerList = new ArrayList<>();
         List<Broker> brokers = JavaConversions.seqAsJavaList(client.getAllBrokersInCluster());
@@ -67,7 +68,7 @@ public class Helper {
             //assuming you do not enable security
             if (broker != null) {
                 brokerList.add(broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))
-                        .host()+":"+broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
+                        .host() + ":" + broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
             }
         }
         client.close();
@@ -78,83 +79,47 @@ public class Helper {
     /**
      * Returns the value of an env var or ,if the env var is not set, the default value.
      *
-     * @param envName the name of the env var
+     * @param envName      the name of the env var
      * @param defaultValue the default return value
      * @return the value of the env var or the default value
      */
-    public static String getEnv(String envName, String defaultValue){
-        if (defaultValue.equals("")){
+    public static String getEnv(String envName, String defaultValue) {
+        if (defaultValue.equals("")) {
             defaultValue = null;
         }
         return System.getenv(envName) != null ? System.getenv(envName) : defaultValue;
     }
 
-    public static Integer getEnv(String envName, Integer defaultValue){
+    public static Integer getEnv(String envName, Integer defaultValue) {
         return System.getenv(envName) != null ? Integer.parseInt(System.getenv(envName)) : defaultValue;
     }
 
-    /**
-     * Returns the value of the path of a JSON string.
-     *
-     * @param json a json string
-     * @param path the path to be read from
-     * @return the value of the path
-     */
-    public static String getJSONPathValue(String json, String path){
-        if (checkPathExists(json, path)){
-            if (!(JsonPath.read(json, "$."+ path) instanceof String)){
-                return JsonPath.read(json, "$."+ path).toString();
-            }
-            return JsonPath.read(json, "$."+ path);
-        }
-        return "";
-    }
-
-    /**
-     * Sets the path of a JSOn string to a value. If the path does not exist, it will be created.
-     *
-     * @param json a JSON string
-     * @param path the path to be set
-     * @param value the value to be set
-     * @return the json string which was written
-     */
-    public static String setJSONPathValue(String json, String path, Object value){
-        try {
-            JsonPath.parse(json).read("$." + path);
-        } catch (PathNotFoundException e) {
-            String ps = "$";
-            for(String p: path.split("\\.")){
-                if (!checkPathExists(json, ps + "." + p)){
-                    json = JsonPath.parse(json).put(ps, p, new JSONObject()).jsonString();
-                }
-                ps = ps + "." + p;
-            }
-        }
-        return JsonPath.parse(json).set("$." + path, value).jsonString();
-    }
-
-    /**
-     * Returns true, if a path exists in a JSON string. Otherwise false.
-     *
-     * @param json a JSON string
-     * @param path the path to be tested
-     * @return the result of the check
-     */
-    public static boolean checkPathExists (String json, String path){
-        try {
-            JsonPath.parse(json).read(path);
-            return true;
-        } catch (PathNotFoundException e) {
-            return false;
-        }
-    }
-
-    public static <T> String getFromObject(T object){
+    public static <T> String getFromObject(T object) {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static InputMessageModel analyticsToInputMessageModel(AnalyticsMessageModel input, String topicName) {
+        InputMessageModel message = new InputMessageModel();
+        message.setTopic(topicName);
+        message.setFilterType(InputMessageModel.FilterType.OperatorId);
+        message.setValue(input.getAnalytics());
+        message.setFilterIdFirst(input.getOperatorId());
+        message.setFilterIdSecond(input.getPipelineId());
+        return message;
+    }
+
+    public static InputMessageModel deviceToInputMessageModel(DeviceMessageModel input, String topicName) {
+        InputMessageModel message = new InputMessageModel();
+        message.setTopic(topicName);
+        message.setFilterType(InputMessageModel.FilterType.DeviceId);
+        message.setValue(input.getValue());
+        message.setFilterIdFirst(input.getDeviceId());
+        message.setFilterIdSecond(input.getServiceId());
+        return message;
     }
 }

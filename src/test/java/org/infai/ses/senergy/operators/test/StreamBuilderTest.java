@@ -24,6 +24,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.InputMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.StreamBuilder;
@@ -63,7 +64,7 @@ public class StreamBuilderTest {
     Properties props = new Properties();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp(){
         TimeProvider.useFixedClockAt(time);
         // setup test driver
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -74,11 +75,12 @@ public class StreamBuilderTest {
 
     @Test
     public void testFilterBy() {
-        StreamBuilder builder = new StreamBuilder();
         final String[] deviceIds = new String[]{"1"};
 
-        final KStream<String, DeviceMessageModel> source1 = builder.getBuilder().stream(INPUT_TOPIC);
-        final KStream<String, DeviceMessageModel> filtered = builder.filterBy(source1, deviceIds);
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, DeviceMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds);
 
         KStream<String, String> out = filtered.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
@@ -89,7 +91,7 @@ public class StreamBuilderTest {
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
-        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             inputTopic.pipeInput("A", "{\"device_id\": \"1\"}");
@@ -106,11 +108,12 @@ public class StreamBuilderTest {
 
     @Test
     public void testFilterByMultipleDevices(){
-        StreamBuilder builder = new StreamBuilder();
         final String[] deviceIds = new String[] {"1", "2"};
 
-        final KStream<String, DeviceMessageModel> source1 = builder.getBuilder().stream(INPUT_TOPIC);
-        final KStream<String, DeviceMessageModel> filtered = builder.filterBy(source1, deviceIds);
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, DeviceMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds);
         KStream<String, String> out = filtered.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair(key, Helper.getFromObject(value)));
@@ -120,7 +123,7 @@ public class StreamBuilderTest {
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
-        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
             final TestInputTopic<String, String> inputTopic =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             inputTopic.pipeInput("A", "{\"device_id\": \"1\"}");
@@ -141,25 +144,25 @@ public class StreamBuilderTest {
         JSONArray messages = new JSONHelper().parseFile("builder/messages.json");
         JSONArray expected = new JSONHelper().parseFile("builder/results.json");
 
-        StreamBuilder builder = new StreamBuilder();
+        StreamsBuilder builder = new StreamsBuilder();
 
-        final KStream<String, DeviceMessageModel> source1 = builder.getBuilder().stream(INPUT_TOPIC);
-        final KStream<String, DeviceMessageModel> source2 = builder.getBuilder().stream(INPUT_TOPIC_2);
+        final KStream<String, DeviceMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, DeviceMessageModel> source2 = builder.stream(INPUT_TOPIC_2);
 
-        Map<String, KStream<String, Object>> streams = new LinkedHashMap<>();
+        List <KStream<String, InputMessageModel>> streams = new LinkedList<>();
 
-        streams.put(INPUT_TOPIC, (source1.flatMap((key, value) -> {
-            List<KeyValue<String, Object>> result = new LinkedList<>();
-            result.add(KeyValue.pair(key, value));
+        streams.add(source1.flatMap((key, value) -> {
+            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.deviceToInputMessageModel(value, INPUT_TOPIC)));
             return result;
-        })));
-        streams.put(INPUT_TOPIC_2, (source2.flatMap((key, value) -> {
-            List<KeyValue<String, Object>> result = new LinkedList<>();
-            result.add(KeyValue.pair(key, value));
+        }));
+        streams.add(source2.flatMap((key, value) -> {
+            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.deviceToInputMessageModel(value, INPUT_TOPIC_2)));
             return result;
-        })));
+        }));
 
-        final KStream<String, MessageModel> merged = builder.joinMultipleStreams(streams);
+        final KStream<String, MessageModel> merged = StreamBuilder.joinMultipleStreams(streams);
         KStream<String, String> out = merged.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair(key, Helper.getFromObject(value)));
@@ -169,7 +172,8 @@ public class StreamBuilderTest {
 
         final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
-        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.getBuilder().build(), props)) {
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
             final TestInputTopic<String, String> inputTopic1 =
                     driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
             final TestInputTopic<String, String> inputTopic2 =
@@ -183,7 +187,7 @@ public class StreamBuilderTest {
         int index = 0;
         for (KeyValueTimestamp<Object, Object> result:processorSupplier.theCapturedProcessor().processed){
             JSONObject value = (JSONObject) expected.get(index++);
-            JSONAssert.assertEquals(value.toString(),(String) result.value(),   JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
         }
     }
 

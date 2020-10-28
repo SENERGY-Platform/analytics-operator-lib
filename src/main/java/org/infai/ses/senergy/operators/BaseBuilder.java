@@ -16,66 +16,16 @@
 
 package org.infai.ses.senergy.operators;
 
-import org.apache.kafka.streams.StreamsBuilder;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
-import org.infai.ses.senergy.utils.TimeProvider;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BaseBuilder {
 
-    protected StreamsBuilder builder = new StreamsBuilder();
     private static final Logger log = Logger.getLogger(BaseBuilder.class.getName());
-
-    private JSONObject createMessageWrapper(){
-        return new JSONObject().
-                put("pipeline_id", Values.PIPELINE_ID).
-                put("time", TimeProvider.nowUTCToString()).
-                put("operator_id", Values.OPERATOR_ID).
-                put("analytics", new JSONObject());
-    }
-
-    public String formatMessage (String value) {
-        List<String> values = Collections.singletonList(value);
-        return createMessage(values).toString();
-    }
-
-    public JSONObject createMessage(List<String> values){
-        JSONObject ob = createMessageWrapper();
-        JSONArray inputs = new JSONArray();
-        values.forEach(v -> {
-            inputs.put(new JSONObject(v));
-        });
-        ob.put("inputs", inputs);
-        return ob;
-    }
-
-    public StreamsBuilder getBuilder() {
-        return this.builder;
-    }
-
-    protected String joinLastStreams(String leftValue, String rightValue) {
-        List<String> values = new LinkedList<>();
-
-        if(leftValue.startsWith("[")) {
-            JSONArray array = new JSONArray(leftValue);
-            for (int j=0; j<array.length(); j++) {
-                values.add(array.getJSONObject(j).toString());
-            }
-        }else{
-            values.add(leftValue);
-        }
-        values.add(rightValue);
-        return this.createMessage(values).toString();
-    }
 
     protected static <T>boolean filterId(String[] filterValues, T message) {
         if (filterValues.length > 0) {

@@ -2,7 +2,7 @@
   "inputTopics": [
     {
       "Name": "debug",
-      "FilterType": "OperatorId",
+      "FilterType": "DeviceId",
       "FilterValue": "1",
       "Mappings": [
         {

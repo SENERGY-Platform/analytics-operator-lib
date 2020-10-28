@@ -1,43 +1,26 @@
-[{
-  "analytics": {
-    "test": "1"
-  },
-  "operator_id": "AZB",
-  "inputs": [
-    {
-      "device_id": "1",
-      "pipeline_id": "1"
-    }
-  ],
-  "pipeline_id":"1",
-  "time": "2020-01-01T00:01:00Z"
-},
+[
   {
+    "pipeline_id": "debug",
+    "operator_id": "debug",
     "analytics": {
       "test": "1"
     },
-    "operator_id": "AZB",
-    "inputs": [
-      {
-        "device_id": "1",
-        "pipeline_id": "1"
-      }
-    ],
-    "pipeline_id":"1",
     "time": "2020-01-01T00:01:00Z"
   },
   {
+    "pipeline_id": "debug",
+    "operator_id": "debug",
     "analytics": {
       "test": "1"
     },
-    "operator_id": "AZB",
-    "inputs": [
-      {
-        "device_id": "1",
-        "pipeline_id": "2"
-      }
-    ],
-    "pipeline_id":"1",
+    "time": "2020-01-01T00:01:00Z"
+  },
+  {
+    "pipeline_id": "debug",
+    "operator_id": "debug",
+    "analytics": {
+      "test": "1"
+    },
     "time": "2020-01-01T00:01:00Z"
   }
 ]

@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.infai.ses.senergy.utils.TimeProvider;
 
 import java.util.Map;
 
@@ -24,10 +25,15 @@ public class AnalyticsMessageModel {
 
     @JsonProperty("pipeline_id")
     private String pipelineId;
+
     @JsonProperty("operator_id")
     private String operatorId;
+
     @JsonProperty("analytics")
     private Map<String, Object> analytics;
+
+    @JsonProperty("time")
+    private String time = TimeProvider.nowUTCToString();
 
     @JsonProperty("pipeline_id")
     public String getPipelineId() {

@@ -29,22 +29,7 @@ public class BaseBuilderTest {
     private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         TimeProvider.useFixedClockAt(time);
-    }
-    @Test
-    public void testFormatMessage(){
-        StreamBuilder builder = new StreamBuilder();
-        String message = builder.formatMessage("{'device_id': '1'}");
-        Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"device_id\":\"1\"}]," +
-                "\"pipeline_id\":\"1\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
-    }
-
-    @Test
-    public void testFormatMessage2(){
-        StreamBuilder builder = new StreamBuilder();
-        String message = builder.formatMessage("{'analytics':{'test': 1},'inputs':[{'device_id': '1'}],'pipeline_id':'1'}");
-        Assert.assertEquals("{\"analytics\":{},\"operator_id\":\"1\",\"inputs\":[{\"analytics\":{\"test\":1}," +
-                "\"inputs\":[{\"device_id\":\"1\"}],\"pipeline_id\":\"1\"}],\"pipeline_id\":\"2\",\"time\":\""+ TimeProvider.nowUTCToString() +"\"}",message);
     }
 }

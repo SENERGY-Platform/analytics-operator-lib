@@ -16,41 +16,60 @@
 
 package org.infai.ses.senergy.operators;
 
-import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.infai.ses.senergy.models.InputMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
+import java.util.List;
 
 public class TableBuilder extends BaseBuilder {
 
+    private TableBuilder() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
-     * Filter by device id.
+     * Filter by filter values.
      *
-     * @param inputStream KTable
-     * @param valuePath String
+     * @param inputStream KTable<String, T>
      * @param filterValues String []
      * @return KStream filterData
      */
-    public KTable<String, String> filterBy(KTable<String, String> inputStream, String valuePath, String [] filterValues) {
-        KTable<String, String> filterData = inputStream.filter((key, json) -> filterId(filterValues, json));
-        KStream<String, String> filterDataStream = filterData.toStream().filter((key, value) -> value != null);
-        return filterDataStream.toTable();
+    public static <T>KTable<String, T> filterBy(KTable<String, T> inputStream, String [] filterValues) {
+        KTable<String, T> filterData = inputStream.filter((key, value) -> filterId(filterValues, value));
+        filterData = filterNullValues(filterData);
+        return filterData;
     }
 
-    public KTable<String, String> joinMultipleStreams(KTable<String, String>[] streams) {
-        KTable<String, String> joinedStream = streams[0];
-        for(int i = 1; i < streams.length; i++) {
-            if(i != streams.length - 1) {
-                joinedStream = joinedStream.join(streams[i], (leftValue, rightValue) -> {
-                    if (!leftValue.startsWith("[")){
-                        leftValue = "[" + leftValue + "]";
-                    }
-                    return new JSONArray(leftValue).put(new JSONObject(rightValue)).toString();
+    public static <T>KTable<String, T> filterNullValues (KTable<String, T> inputStream){
+        return inputStream.toStream().filter((key, value) -> {
+            return value != null;
+        }).toTable();
+    }
+
+    /**
+     * Join a list of Ktables.
+     *
+     * @param streams List<KTable<String, InputMessageModel>>
+     * @return KTable<String, MessageModel>
+     */
+    public static KTable<String, MessageModel> joinMultipleStreams(List<KTable<String, InputMessageModel>> streams) {
+        MessageModel message = new MessageModel();
+        KTable<String, MessageModel> joinedStream = null;
+        int i = 0;
+        for (KTable<String, InputMessageModel> stream  : streams) {
+            if (i == 0){
+                joinedStream = stream.mapValues((value) -> {
+                    message.putMessage(value.getTopic(), value);
+                    return message;
                 });
+            } else {
+                joinedStream = joinedStream.join(stream, (leftValue, rightValue) -> {
+                            message.putMessage(rightValue.getTopic(), rightValue);
+                            return message;
+                        }
+                );
             }
-            else {
-                joinedStream = joinedStream.join(streams[i], this::joinLastStreams);
-            }
+            i++;
         }
         return joinedStream;
     }

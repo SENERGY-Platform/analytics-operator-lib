@@ -2,27 +2,31 @@
   {
     "outputMessage": {
       "pipeline_id": "debug",
-      "analytics": {},
-      "operator_id": "debug"
+      "operator_id": "debug",
+      "analytics": {}
     },
     "messages": {
       "input-topic-2": {
-        "device_id": "2",
-        "service_id": null,
+        "filterIdFirst": "2",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic-2"
       },
       "input-topic": {
-        "device_id": "1",
-        "service_id": null,
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic"
       }
     }
   },
@@ -34,22 +38,26 @@
     },
     "messages": {
       "input-topic-2": {
-        "device_id": "2",
-        "service_id": null,
+        "filterIdFirst": "2",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 10.5
           }
-        }
+        },
+        "topic": "input-topic-2"
       },
       "input-topic": {
-        "device_id": "1",
-        "service_id": null,
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic"
       }
     }
   }

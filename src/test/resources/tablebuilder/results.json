@@ -1,74 +1,95 @@
 [
   {
-    "analytics": {},
-    "operator_id": "OperatorId",
-    "inputs": [
-      {
-        "device_id": "1",
+    "outputMessage": {
+      "pipeline_id": "debug",
+      "operator_id": "debug",
+      "analytics": {}
+    },
+    "messages": {
+      "input-topic-2": {
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic-2"
       },
-      {
-        "device_id": "1",
+      "input-topic": {
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic"
       }
-    ],
-    "pipeline_id": "PipelineId",
-    "time": "2020-01-01T00:01:00Z"
+    }
   },
   {
-    "analytics": {},
-    "operator_id": "OperatorId",
-    "inputs": [
-      {
-        "device_id": "1",
+    "outputMessage": {
+      "pipeline_id": "debug",
+      "operator_id": "debug",
+      "analytics": {}
+    },
+    "messages": {
+      "input-topic-2": {
+        "filterIdFirst": "2",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic-2"
       },
-      {
-        "device_id": "2",
+      "input-topic": {
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic"
       }
-    ],
-    "pipeline_id": "PipelineId",
-    "time": "2020-01-01T00:01:00Z"
+    }
   },
   {
-    "analytics": {},
-    "operator_id": "OperatorId",
-    "inputs": [
-      {
-        "device_id": "1",
+    "outputMessage": {
+      "pipeline_id": "debug",
+      "operator_id": "debug",
+      "analytics": {}
+    },
+    "messages": {
+      "input-topic-2": {
+        "filterIdFirst": "3",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic-2"
       },
-      {
-        "device_id": "3",
+      "input-topic": {
+        "filterIdFirst": "1",
+        "filterIdSecond": null,
+        "filterType": "DeviceId",
         "value": {
           "reading": {
             "value": 5.5
           }
-        }
+        },
+        "topic": "input-topic"
       }
-    ],
-    "pipeline_id": "PipelineId",
-    "time": "2020-01-01T00:01:00Z"
+    }
   }
 ]
