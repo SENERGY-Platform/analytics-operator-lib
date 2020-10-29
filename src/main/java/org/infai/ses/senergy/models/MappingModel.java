@@ -18,8 +18,11 @@ package org.infai.ses.senergy.models;
 
 public final class MappingModel {
 
-    private final String source;
-    private final String dest;
+    private String source = null;
+    private String dest = null;
+
+    public MappingModel(){
+    }
 
     public MappingModel(String source, String dest){
         this.source = source;

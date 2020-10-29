@@ -52,17 +52,6 @@ public class Config {
     }
 
     /**
-     * @Deprecated (uses wrong JSON lib)
-     *
-     * @return JSONArray
-     */
-    @Deprecated
-    public JSONArray getTopicConfig(){
-        net.minidev.json.JSONArray array = JsonPath.read(configString, "$."+Values.INPUT_TOPICS+"[*]");
-        return new JSONArray(array.toString());
-    }
-
-    /**
      * Returns a list of inputtopic models.
      *
      * @return list of inputtopic models
@@ -80,6 +69,12 @@ public class Config {
         return null;
     }
 
+    /**
+     * Get the input topic from a given destination.
+     *
+     * @param destination String
+     * @return InputTopicModel
+     */
     public InputTopicModel getInputTopicByDestination(String destination) {
         for (InputTopicModel topic : this.configModel.getInputTopics()){
             for (MappingModel mappingModel : topic.getMappings()){
@@ -92,45 +87,33 @@ public class Config {
     }
 
     public Integer topicCount(){
-        return getTopicConfig().length();
+        return this.getInputTopicsConfigs().size();
     }
 
-    @Deprecated
+    /**
+     * Returns a config value.
+     *
+     * @param value String
+     * @param defaultValue String
+     * @return String
+     */
     public String getConfigValue (String value, String defaultValue) {
-        String rvalue = "";
-        try {
-            rvalue = JsonPath.read(configString, "$.config."+value);
-        } catch (PathNotFoundException e) {
+        if (this.configModel.getOperatorConfig().get(value) != null && !this.configModel.getOperatorConfig().get(value).equals("")){
+            return this.configModel.getOperatorConfig().get(value);
+        } else {
             return defaultValue;
         }
-        if (rvalue.length() == 0) {
-            return defaultValue;
-        }
-        return rvalue;
     }
 
 
     /**
      * Returns the the input topic configuration which corresponds to the dest name given.
      *
-     * @param inputName
-     * @return
+     * @param inputName String
+     * @return InputTopicModel
      */
-    @Deprecated
-    public Map<String, Object> getInputTopicByInputName(String inputName){
-        Map<String, Object> topic = new HashMap<>();
-        List<Map<String, Object>> topics = JsonPath.read(this.configString,"$."+Values.INPUT_TOPICS+".*");
-        for(Map<String, Object> t : topics){
-            List<Map<String, Object>> mappings;
-                mappings = (List<Map<String, Object>>) t.get(Values.MAPPINGS_KEY);
-            for (Map<String, Object> m : mappings){
-                if (m.get(Values.MAPPING_DEST_KEY).equals(inputName)){
-                    t.put(Values.MAPPING_SOURCE_KEY, m.get(Values.MAPPING_SOURCE_KEY));
-                    topic = t;
-                }
-            }
-        }
-        return  topic;
+    public InputTopicModel getInputTopicByInputName(String inputName){
+        return this.getInputTopicByDestination(inputName);
     }
 
     private void streamlineConfigString(){

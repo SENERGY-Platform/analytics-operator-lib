@@ -16,7 +16,6 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
@@ -26,14 +25,12 @@ import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.ConfigProvider;
-import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
-import java.util.Properties;
 
 public class MessageTest {
 

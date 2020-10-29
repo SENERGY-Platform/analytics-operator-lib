@@ -16,13 +16,16 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.operators.Config;
-import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 
-import java.util.Map;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+
 
 public class ConfigTest {
 
@@ -30,21 +33,22 @@ public class ConfigTest {
 
     @Test
     public void testGetTopicConfig(){
-        JSONArray array =  config.getTopicConfig();
-        Assert.assertEquals("[{\"mappings\":[{\"source\":\"value.temperature.level\",\"dest\":\"value\"}],\"filterValue\":\"filterValue\",\"name\":\"test\",\"filterType\":\"DeviceId\"}]",
-                array.toString());
+        List<InputTopicModel> conf =  config.getInputTopicsConfigs();
+        InputTopicModel expected = JSONHelper.getObjectFromJSONString("{\"mappings\":[{\"source\":\"value.temperature.level\",\"dest\":\"value\"}],\"filterValue\":\"filterValue\",\"name\":\"test\",\"filterType\":\"DeviceId\"}", InputTopicModel.class);
+        assertThat(expected.getFilterType()).isEqualTo(conf.get(0).getFilterType());
+        assertThat(expected.getFilterValue()).isEqualTo(conf.get(0).getFilterValue());
     }
 
     @Test
     public void testTopicOfInput(){
-        Map<String, Object> conf =  config.getInputTopicByInputName("value");
-        Assert.assertEquals("test", conf.get("name"));
+        InputTopicModel conf =  config.getInputTopicByInputName("value");
+        Assert.assertEquals("test", conf.getName());
     }
 
     @Test
     public void testTopicOfInputSmall(){
-        Map<String, Object> conf =  config.getInputTopicByInputName("value");
-        Assert.assertEquals("test", conf.get("name"));
+        InputTopicModel conf =  config.getInputTopicByInputName("value");
+        Assert.assertEquals("test", conf.getName());
     }
 
     @Test

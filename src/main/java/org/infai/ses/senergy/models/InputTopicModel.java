@@ -20,10 +20,13 @@ import java.util.List;
 
 public final class InputTopicModel {
 
-    private final String name;
-    private final String filterType;
-    private final String filterValue;
-    private final List<MappingModel> mappings;
+    private String name = null;
+    private String filterType = null;
+    private String filterValue = null;
+    private List<MappingModel> mappings = null;
+
+    public InputTopicModel() {
+    }
 
     public InputTopicModel(String name, String filterType, String filterValue, List<MappingModel> mappings) {
         this.name = name;

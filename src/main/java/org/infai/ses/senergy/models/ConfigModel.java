@@ -16,13 +16,18 @@
 
 package org.infai.ses.senergy.models;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public final class ConfigModel {
 
-    private final List<InputTopicModel> inputTopics;
-    private final Map<String, String> config;
+    private List<InputTopicModel> inputTopics = new LinkedList<>();
+    private Map<String, String> config = new LinkedHashMap<>();
+
+    public ConfigModel(){
+    }
 
     public ConfigModel(List<InputTopicModel> inputTopics, Map<String, String> config){
         this.inputTopics = inputTopics;
