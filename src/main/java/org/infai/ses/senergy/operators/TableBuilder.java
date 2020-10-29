@@ -21,7 +21,7 @@ import org.infai.ses.senergy.models.InputMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
 import java.util.List;
 
-public class TableBuilder extends BaseBuilder {
+public class TableBuilder {
 
     private TableBuilder() {
         throw new IllegalStateException("Utility class");
@@ -35,15 +35,13 @@ public class TableBuilder extends BaseBuilder {
      * @return KStream filterData
      */
     public static <T>KTable<String, T> filterBy(KTable<String, T> inputStream, String [] filterValues) {
-        KTable<String, T> filterData = inputStream.filter((key, value) -> filterId(filterValues, value));
+        KTable<String, T> filterData = inputStream.filter((key, value) -> BaseBuilder.filterId(filterValues, value));
         filterData = filterNullValues(filterData);
         return filterData;
     }
 
     public static <T>KTable<String, T> filterNullValues (KTable<String, T> inputStream){
-        return inputStream.toStream().filter((key, value) -> {
-            return value != null;
-        }).toTable();
+        return inputStream.toStream().filter((key, value) -> value != null).toTable();
     }
 
     /**
@@ -58,7 +56,7 @@ public class TableBuilder extends BaseBuilder {
         int i = 0;
         for (KTable<String, InputMessageModel> stream  : streams) {
             if (i == 0){
-                joinedStream = stream.mapValues((value) -> {
+                joinedStream = stream.mapValues(value -> {
                     message.putMessage(value.getTopic(), value);
                     return message;
                 });

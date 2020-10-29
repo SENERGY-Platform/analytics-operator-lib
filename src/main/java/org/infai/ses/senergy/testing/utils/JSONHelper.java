@@ -73,22 +73,22 @@ public class JSONHelper {
         }
     }
 
-    public static <T> T getObjectFromJSONPath(String Path, Class<T> tClass){
+    public static <T> T getObjectFromJSONPath(String path, Class<T> tClass){
         try {
-            return objectMapper.readValue(new File(PATH_PREFIX+Path), tClass);
+            return objectMapper.readValue(new File(PATH_PREFIX+path), tClass);
         } catch (Exception e) {
             log.log(Level.SEVERE,e.getMessage());
             return null;
         }
     }
 
-    public <T> List<T> getObjectArrayFromJSONPath(String Path){
+    public <T> List<T> getObjectArrayFromJSONPath(String path){
         try {
-            return objectMapper.readValue(new File(PATH_PREFIX+Path), new TypeReference<>() {
+            return objectMapper.readValue(new File(PATH_PREFIX+path), new TypeReference<>() {
             });
         } catch (Exception e) {
             log.log(Level.SEVERE,e.getMessage());
-            return null;
+            return new LinkedList<>();
         }
     }
 }

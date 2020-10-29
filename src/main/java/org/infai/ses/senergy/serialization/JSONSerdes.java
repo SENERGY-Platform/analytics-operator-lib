@@ -25,7 +25,11 @@ import org.infai.ses.senergy.models.MessageModel;
 
 public final class JSONSerdes {
 
-    static public final class DeviceMessageSerde
+    private JSONSerdes() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static final class DeviceMessageSerde
             extends Serdes.WrapperSerde<DeviceMessageModel> {
         public DeviceMessageSerde() {
             super(new JSONSerializer<>(),
@@ -37,7 +41,7 @@ public final class JSONSerdes {
         return new JSONSerdes.DeviceMessageSerde();
     }
 
-    static public final class AnalyticsMessageSerde
+    public static final class AnalyticsMessageSerde
             extends Serdes.WrapperSerde<AnalyticsMessageModel> {
         public AnalyticsMessageSerde() {
             super(new JSONSerializer<>(),
@@ -49,7 +53,7 @@ public final class JSONSerdes {
         return new JSONSerdes.AnalyticsMessageSerde();
     }
 
-    static public final class InputMessageSerde
+    public static final class InputMessageSerde
             extends Serdes.WrapperSerde<InputMessageModel> {
         public InputMessageSerde() {
             super(new JSONSerializer<>(),
@@ -61,7 +65,7 @@ public final class JSONSerdes {
         return new JSONSerdes.InputMessageSerde();
     }
 
-    static public final class MessageSerde
+    public static final class MessageSerde
             extends Serdes.WrapperSerde<MessageModel> {
         public MessageSerde() {
             super(new JSONSerializer<>(),

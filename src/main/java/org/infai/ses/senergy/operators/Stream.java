@@ -251,7 +251,7 @@ public class Stream {
             KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                result.add(KeyValue.pair(streamLineKey ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
+                result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
                 return result;
             });
         } else {
@@ -259,7 +259,7 @@ public class Stream {
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                result.add(KeyValue.pair(streamLineKey ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
+                result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
                 return result;
             });
         }
@@ -285,10 +285,10 @@ public class Stream {
 
     private KStream<String, MessageModel> toMessageModel(KStream<String, InputMessageModel> stream) {
         return stream.flatMap((key, value) -> {
-            MessageModel message = new MessageModel();
-            message.putMessage(value.getTopic(), value);
+            MessageModel messageModel = new MessageModel();
+            messageModel.putMessage(value.getTopic(), value);
             List<KeyValue<String, MessageModel>> result = new LinkedList<>();
-            result.add(KeyValue.pair(key, message));
+            result.add(KeyValue.pair(key, messageModel));
             return result;
         });
     }

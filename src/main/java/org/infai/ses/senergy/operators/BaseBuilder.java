@@ -23,9 +23,13 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class BaseBuilder {
+public class BaseBuilder {
 
     private static final Logger log = Logger.getLogger(BaseBuilder.class.getName());
+
+    private BaseBuilder() {
+        throw new IllegalStateException("Utility class");
+    }
 
     protected static <T>boolean filterId(String[] filterValues, T message) {
         if (filterValues.length > 0) {

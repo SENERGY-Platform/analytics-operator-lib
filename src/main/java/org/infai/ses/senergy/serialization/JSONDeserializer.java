@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class JSONDeserializer<T> implements Deserializer<T> {
 
-    private static final Logger log = Logger.getLogger(Config.class.getName());
+    private static final Logger log = Logger.getLogger(JSONDeserializer.class.getName());
     private final ObjectMapper objectMapper = new ObjectMapper();
     private Class<T> tClass;
 

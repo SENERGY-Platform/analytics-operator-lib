@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class JSONSerializer<T> implements Serializer<T> {
 
-    private static final Logger log = Logger.getLogger(Config.class.getName());
+    private static final Logger log = Logger.getLogger(JSONSerializer.class.getName());
 
     @Override
     public byte[] serialize(String s, Object o) {

@@ -21,7 +21,6 @@ import org.infai.ses.senergy.models.ConfigModel;
 import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.models.MappingModel;
 import java.util.*;
-import java.util.logging.Logger;
 
 public class Config {
 
