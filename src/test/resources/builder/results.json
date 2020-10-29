@@ -9,7 +9,7 @@
       "input-topic-2": {
         "filterIdFirst": "2",
         "filterIdSecond": null,
-        "filterType": "DeviceId",
+        "filterType": "DEVICE_ID",
         "value": {
           "reading": {
             "value": 5.5
@@ -20,7 +20,7 @@
       "input-topic": {
         "filterIdFirst": "1",
         "filterIdSecond": null,
-        "filterType": "DeviceId",
+        "filterType": "DEVICE_ID",
         "value": {
           "reading": {
             "value": 5.5
@@ -40,7 +40,7 @@
       "input-topic-2": {
         "filterIdFirst": "2",
         "filterIdSecond": null,
-        "filterType": "DeviceId",
+        "filterType": "DEVICE_ID",
         "value": {
           "reading": {
             "value": 10.5
@@ -51,7 +51,7 @@
       "input-topic": {
         "filterIdFirst": "1",
         "filterIdSecond": null,
-        "filterType": "DeviceId",
+        "filterType": "DEVICE_ID",
         "value": {
           "reading": {
             "value": 5.5
