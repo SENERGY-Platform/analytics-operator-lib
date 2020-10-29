@@ -68,7 +68,7 @@ public class JSONHelper {
         try {
             return objectMapper.readValue(jsonString, tClass);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE,e.getMessage());
             return null;
         }
     }
@@ -77,7 +77,7 @@ public class JSONHelper {
         try {
             return objectMapper.readValue(new File(PATH_PREFIX+Path), tClass);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE,e.getMessage());
             return null;
         }
     }
@@ -87,7 +87,7 @@ public class JSONHelper {
             return objectMapper.readValue(new File(PATH_PREFIX+Path), new TypeReference<>() {
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE,e.getMessage());
             return null;
         }
     }

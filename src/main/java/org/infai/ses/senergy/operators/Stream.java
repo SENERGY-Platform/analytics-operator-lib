@@ -34,7 +34,7 @@ public class Stream {
     private static final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
     private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
     private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "true"));
-    private static OperatorInterface operator;
+    private OperatorInterface operator;
     private Message message = new Message();
     private final Config config = ConfigProvider.getConfig();
     private KafkaStreams streams;
@@ -246,25 +246,23 @@ public class Stream {
      * @return KStream<String, InputMessageModel>
      */
     private KStream<String, InputMessageModel> parseInputStream(InputTopicModel topicConfig, Boolean streamLineKey) {
-        KStream<String, InputMessageModel> messagesStream = null;
         if (topicConfig.getFilterType().equals("OperatorId")) {
             KStream<String, AnalyticsMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
             KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            messagesStream = filteredStream.flatMap((key, value) -> {
+            return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(streamLineKey ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
                 return result;
             });
-        } else if (topicConfig.getFilterType().equals("DeviceId")) {
+        } else {
             KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            messagesStream = filteredStream.flatMap((key, value) -> {
+            return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(streamLineKey ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
                 return result;
             });
         }
-        return messagesStream;
     }
 
     /**
@@ -274,17 +272,15 @@ public class Stream {
      * @return KStream<String, InputMessageModel>
      */
     private KTable<String, InputMessageModel> parseInputStreamAsTable(InputTopicModel topicConfig) {
-        KTable<String, InputMessageModel> messagesStream = null;
         if (topicConfig.getFilterType().equals("OperatorId")) {
             KTable<String, AnalyticsMessageModel> inputData = this.builder.table(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
             KTable<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            messagesStream = filteredStream.mapValues(value -> Helper.analyticsToInputMessageModel(value, topicConfig.getName()));
-        } else if (topicConfig.getFilterType().equals("DeviceId")) {
+            return filteredStream.mapValues(value -> Helper.analyticsToInputMessageModel(value, topicConfig.getName()));
+        } else {
             KTable<String, DeviceMessageModel> inputData = this.builder.table(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KTable<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            messagesStream = filteredStream.mapValues(value -> Helper.deviceToInputMessageModel(value, topicConfig.getName()));
+            return filteredStream.mapValues(value -> Helper.deviceToInputMessageModel(value, topicConfig.getName()));
         }
-        return messagesStream;
     }
 
     private KStream<String, MessageModel> toMessageModel(KStream<String, InputMessageModel> stream) {

@@ -17,8 +17,6 @@
 package org.infai.ses.senergy.operators;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import kafka.cluster.Broker;
 import kafka.zk.KafkaZkClient;
 import kafka.zookeeper.ZooKeeperClient;
@@ -28,11 +26,9 @@ import org.apache.kafka.common.utils.Time;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.InputMessageModel;
-import org.json.JSONObject;
 import scala.collection.JavaConversions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +38,7 @@ public class Helper {
     private static final String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
     private static final String ZOOKEEPER_METRIC_TYPE = "zookeeper";
     private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger log = Logger.getLogger(Helper.class.getName());
 
     private Helper() {
         throw new IllegalStateException("Utility class");
@@ -98,7 +95,7 @@ public class Helper {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, e.getMessage());
             return null;
         }
     }
@@ -106,7 +103,7 @@ public class Helper {
     public static InputMessageModel analyticsToInputMessageModel(AnalyticsMessageModel input, String topicName) {
         InputMessageModel message = new InputMessageModel();
         message.setTopic(topicName);
-        message.setFilterType(InputMessageModel.FilterType.OperatorId);
+        message.setFilterType(InputMessageModel.FilterType.OPERATOR_ID);
         message.setValue(input.getAnalytics());
         message.setFilterIdFirst(input.getOperatorId());
         message.setFilterIdSecond(input.getPipelineId());
@@ -116,7 +113,7 @@ public class Helper {
     public static InputMessageModel deviceToInputMessageModel(DeviceMessageModel input, String topicName) {
         InputMessageModel message = new InputMessageModel();
         message.setTopic(topicName);
-        message.setFilterType(InputMessageModel.FilterType.DeviceId);
+        message.setFilterType(InputMessageModel.FilterType.DEVICE_ID);
         message.setValue(input.getValue());
         message.setFilterIdFirst(input.getDeviceId());
         message.setFilterIdSecond(input.getServiceId());

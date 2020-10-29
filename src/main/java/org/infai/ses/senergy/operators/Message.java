@@ -25,22 +25,22 @@ import java.util.logging.Logger;
 
 public class Message {
 
-    private static final Logger log = Logger.getLogger(Config.class.getName());
+    private static final Logger log = Logger.getLogger(Message.class.getName());
 
-    private MessageModel message = new MessageModel();
+    private MessageModel messageModel = new MessageModel();
     private final Map<String, Input> inputs = new HashMap<>();
     private final Map<String, FlexInput> flexInputs = new HashMap<>();
     private final Config config = ConfigProvider.getConfig();
 
     public Message setMessage (MessageModel message){
-        this.message = message;
+        this.messageModel = message;
         this.parseMessageForInputs();
         this.parseMessageForFlexInputs();
         return this;
     }
 
     public MessageModel getMessage(){
-        return this.message;
+        return this.messageModel;
     }
 
     public void addInput (String name){
@@ -51,25 +51,25 @@ public class Message {
             input.setInputTopicName(topic.getName());
             this.inputs.put(name, input);
         } else {
-            log.log(Level.INFO, "Missing config for input: " + name);
+            log.log(Level.INFO, "Missing config for input: %s", name);
         }
     }
 
     public void addFlexInput (String name){
         FlexInput flexInput = new FlexInput();
         List<InputTopicModel> topics = this.config.getInputTopicsByDestination(name);
-        if (topics.size() > 0){
-            List<Input> inputs = new LinkedList<>();
+        if (!topics.isEmpty()){
+            List<Input> inputsList = new LinkedList<>();
             for (InputTopicModel topic :  topics){
                 Input input  = new Input();
                 input.setSource(topic.getMappings().get(0).getSource());
                 input.setInputTopicName(topic.getName());
-                inputs.add(input);
+                inputsList.add(input);
             }
-            flexInput.setInputs(inputs);
+            flexInput.setInputs(inputsList);
             this.flexInputs.put(name, flexInput);
         }else {
-            log.log(Level.INFO, "Missing config for flex-input: " + name);
+            log.log(Level.INFO, "Missing config for flex-input: %s", name);
         }
     }
 
@@ -82,14 +82,14 @@ public class Message {
     }
 
     public void output(String name, Object value){
-        this.message.getOutputMessage().getAnalytics().put(name, value);
+        this.messageModel.getOutputMessage().getAnalytics().put(name, value);
     }
 
     private void parseMessageForInputs() {
         for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
             Input input = entry.getValue();
             List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
-            InputMessageModel msg = this.message.getMessage(entry.getValue().getInputTopicName());
+            InputMessageModel msg = this.messageModel.getMessage(entry.getValue().getInputTopicName());
             if (tree.size() > 1) {
                 tree.remove(0);
             }
@@ -99,7 +99,7 @@ public class Message {
             } else {
                 input.setValue(null);
                 input.setFilterId(null);
-                log.log(Level.INFO, "No value for input: " + input.getSource());
+                log.log(Level.INFO, "No value for input: %s", input.getSource());
             }
         }
     }
@@ -109,7 +109,7 @@ public class Message {
             FlexInput flexInput = entry.getValue();
             for (Input input : flexInput.getInputs()){
                 List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
-                InputMessageModel msg = this.message.getMessage(input.getInputTopicName());
+                InputMessageModel msg = this.messageModel.getMessage(input.getInputTopicName());
                 if (tree.size() > 1) {
                     tree.remove(0);
                 }
@@ -119,7 +119,7 @@ public class Message {
                 } else {
                     input.setValue(null);
                     input.setFilterId(null);
-                    log.log(Level.INFO, "No value for input: " + input.getSource());
+                    log.log(Level.INFO, "No value for input: %s", input.getSource());
                 }
             }
         }

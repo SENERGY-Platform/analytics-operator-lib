@@ -18,11 +18,14 @@ package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.exceptions.NoValueException;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FlexInput {
+
+    private static final Logger log = Logger.getLogger(FlexInput.class.getName());
 
     private List<Input> inputs = new LinkedList<>();
 
@@ -32,7 +35,7 @@ public class FlexInput {
             try {
                 list.add(input.getValue());
             } catch (NoValueException e) {
-                e.printStackTrace();
+                log.log(Level.SEVERE, e.getMessage());
             }
         }
         return list;

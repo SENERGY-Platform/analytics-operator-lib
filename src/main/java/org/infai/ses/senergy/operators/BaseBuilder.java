@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class BaseBuilder {
+public abstract class BaseBuilder {
 
     private static final Logger log = Logger.getLogger(BaseBuilder.class.getName());
 

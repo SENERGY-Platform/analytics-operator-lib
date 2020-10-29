@@ -17,22 +17,16 @@
 package org.infai.ses.senergy.operators;
 
 import com.google.gson.Gson;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import org.infai.ses.senergy.models.ConfigModel;
 import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.models.MappingModel;
-import org.json.JSONArray;
-
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Config {
 
     private String configString = Helper.getEnv("CONFIG", "{}");
     private ConfigModel configModel;
-    private static final Logger log = Logger.getLogger(Config.class.getName());
 
     public Config(){
         streamlineConfigString();
