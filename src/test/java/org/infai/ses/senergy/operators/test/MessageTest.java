@@ -71,7 +71,7 @@ public class MessageTest {
     public void testOutputValue(){
         Message message = new Message();
         message.output("test", Double.valueOf(2));
-        Assert.assertEquals("{\"pipeline_id\":\"debug\",\"operator_id\":\"debug\",\"analytics\":{\"test\":2.0},\"time\":\"2020-01-01T00:01:00Z\"}", Helper.getFromObject(message.getMessage().getOutputMessage()));
+        Assert.assertEquals("{\"pipeline_id\":\"debug\",\"operator_id\":\"debug\",\"analytics\":{\"test\":2.0},\"time\":\""+TimeProvider.nowUTCToString()+"\"}", Helper.getFromObject(message.getMessage().getOutputMessage()));
     }
 
     @Test

@@ -96,6 +96,7 @@ public class StreamTest {
         assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
         for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
             JSONObject value = (JSONObject) expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
             JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
         }
     }
@@ -123,6 +124,7 @@ public class StreamTest {
         int index = 0;
         for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
             JSONObject value = (JSONObject) expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
             JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
         }
     }
@@ -150,6 +152,7 @@ public class StreamTest {
         int index = 0;
         for (KeyValueTimestamp result : processorSupplier.theCapturedProcessor().processed) {
             JSONObject value = (JSONObject) expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
             JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
         }
     }
