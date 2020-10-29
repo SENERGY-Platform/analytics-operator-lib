@@ -23,16 +23,35 @@ public class TestFlexOperator extends BaseOperator {
 
     @Override
     public void run(Message message) {
-        Double result = 0.0;
-        for (Double value : message.getFlexInput("value").getValues()){
-            result += value;
-        };
-        message.output("test", result);
+        if (config.getConfigValue("test", "1").equals("1")){
+            Double result = 0.0;
+            for (Double value : message.getFlexInput("value").getValues()){
+                result += value;
+            };
+            message.output("test", result);
+        } else if (config.getConfigValue("test", "1").equals("2")){
+            Double result = 0.0;
+            Double result2 = 0.0;
+            for (Double value : message.getFlexInput("value").getValues()){
+                result += value;
+            };
+            for (Double value : message.getFlexInput("value2").getValues()){
+                result2 -= value;
+            };
+            message.output("test", result);
+            message.output("test2", result2);
+        }
+
     }
 
     @Override
     public Message configMessage(Message message) {
-        message.addFlexInput("value");
+        if (config.getConfigValue("test", "1").equals("1")){
+            message.addFlexInput("value");
+        }else if (config.getConfigValue("test", "1").equals("2")) {
+            message.addFlexInput("value");
+            message.addFlexInput("value2");
+        }
         return message;
     }
 }
