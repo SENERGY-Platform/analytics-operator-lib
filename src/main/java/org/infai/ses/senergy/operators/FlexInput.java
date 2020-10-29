@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class FlexInput {
 
-    private String messageString = MessageProvider.getMessage().getMessageString();
+    private String messageString = "";
     private final Config config = ConfigProvider.getConfig();
     private Map<String, Input> inputs = new HashMap<>();
 

@@ -1,16 +1,15 @@
-{
-  "inputs": [
-    {
-      "analytics": {
-        "value": 1
-      },
-      "operator_id": "op1"
+[
+  {
+    "analytics": {
+      "value": 1
     },
-    {
-      "analytics": {
-        "value": 2
-      },
-      "operator_id": "op2"
-    }
-  ]
-}
+    "operator_id": "op1"
+  },
+  {
+    "analytics": {
+      "value": 2
+    },
+    "operator_id": "op2"
+  }
+]
+

@@ -49,12 +49,12 @@ public class ConfigTest {
 
     @Test
     public void testGetTopicName(){
-        Assert.assertEquals("test",config.getTopicName(0));
+        Assert.assertEquals("test",config.getInputTopicsConfigs().get(0).getName());
     }
 
     @Test
     public void testGetTopicNameSmall(){
-        Assert.assertEquals("test",config.getTopicName(0));
+        Assert.assertEquals("test",config.getInputTopicsConfigs().get(0).getName());
     }
 
     @Test

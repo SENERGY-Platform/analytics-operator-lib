@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.Message;
 
@@ -25,14 +26,25 @@ public class TestOperator extends BaseOperator {
     @Override
     public void run(Message message) {
         if (getConfig().getConfigValue("input", "false").equals("true")){
-            message.getInput("value").getValue();
+            try {
+                message.getInput("value").getValue();
+            } catch (NoValueException e){
 
+            }
         }
         if (getConfig().getConfigValue("test", "testVal").equals("test")){
             message.output("test", "2");
         } else if (getConfig().getConfigValue("inputs", "1").equals("2")) {
-            message.output("val", message.getInput("value").getValue().toString());
-            message.output("val2", message.getInput("value2").getValue().toString());
+            try {
+                message.output("val", message.getInput("value").getValue().toString());
+            } catch (NoValueException e){
+
+            }
+            try {
+                message.output("val2", message.getInput("value2").getValue().toString());
+            } catch (NoValueException e){
+
+            }
         }
         else {
             message.output("test", "1");

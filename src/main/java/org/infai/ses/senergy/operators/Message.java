@@ -20,8 +20,12 @@ import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.utils.ConfigProvider;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Message {
+
+    private static final Logger log = Logger.getLogger(Config.class.getName());
 
     private MessageModel message = new MessageModel();
     private final Map<String, Input> inputs = new HashMap<>();
@@ -30,7 +34,7 @@ public class Message {
 
     public Message setMessage (MessageModel message){
         this.message = message;
-        this.parseMessage(message);
+        this.parseMessage();
         return this;
     }
 
@@ -41,9 +45,13 @@ public class Message {
     public void addInput (String name){
         Input input = new Input();
         InputTopicModel topic = this.config.getInputTopicByDestination(name);
-        input.setSource(topic.getSourceByDest(name));
-        input.setInputTopicName(topic.getName());
-        this.inputs.put(name, input);
+        if (topic != null){
+            input.setSource(topic.getSourceByDest(name));
+            input.setInputTopicName(topic.getName());
+            this.inputs.put(name, input);
+        } else {
+            log.log(Level.INFO, "Missing config for input: " + name);
+        }
     }
 
     public FlexInput addFlexInput (String name){
@@ -64,21 +72,22 @@ public class Message {
         this.message.getOutputMessage().getAnalytics().put(name, value);
     }
 
-    @Deprecated
-    public String getMessageString(){
-        return "";
-    }
-
-    private void parseMessage(MessageModel message) {
+    private void parseMessage() {
         for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
             Input input = entry.getValue();
             List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
-            InputMessageModel msg = message.getMessage(entry.getValue().getInputTopicName());
+            InputMessageModel msg = this.message.getMessage(entry.getValue().getInputTopicName());
             if (tree.size() > 1) {
                 tree.remove(0);
             }
-            input.setValue(this.parse(msg.getValue(), tree));
-            input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
+            if (msg != null) {
+                input.setValue(this.parse(msg.getValue(), tree));
+                input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
+            } else {
+                input.setValue(null);
+                input.setFilterId(null);
+                log.log(Level.INFO, "No value for input: " + input.getSource());
+            }
         }
     }
 

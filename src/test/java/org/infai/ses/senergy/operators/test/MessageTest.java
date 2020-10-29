@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.operators.test;
 
 import org.apache.kafka.test.MockProcessorSupplier;
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
@@ -44,9 +45,9 @@ public class MessageTest {
     }
 
     @Test
-    public void testInputValue(){
+    public void testInputValue() throws NoValueException {
         ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testInputValueConfig.json").toString()));
-        AnalyticsMessageModel inputMessage = JSONHelper.getFromJSON("message/testInputValueMessage.json", AnalyticsMessageModel.class);
+        AnalyticsMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testInputValueMessage.json", AnalyticsMessageModel.class);
         MessageModel messageModel = new MessageModel();
         messageModel.putMessage("debug", Helper.analyticsToInputMessageModel(inputMessage, "test"));
         Message message = new Message();
@@ -57,9 +58,9 @@ public class MessageTest {
     }
 
     @Test
-    public void testInputValueDeep(){
+    public void testInputValueDeep() throws NoValueException {
         ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString()));
-        DeviceMessageModel inputMessage = JSONHelper.getFromJSON("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
+        DeviceMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
         MessageModel messageModel = new MessageModel();
         messageModel.putMessage("debug", Helper.deviceToInputMessageModel(inputMessage, "test"));
         Message message = new Message();
@@ -79,7 +80,7 @@ public class MessageTest {
     @Test
     public void testInputFilterId(){
         ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString()));
-        DeviceMessageModel inputMessage = JSONHelper.getFromJSON("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
+        DeviceMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);
         MessageModel messageModel = new MessageModel();
         messageModel.putMessage("debug", Helper.deviceToInputMessageModel(inputMessage, "test"));
         Message message = new Message();

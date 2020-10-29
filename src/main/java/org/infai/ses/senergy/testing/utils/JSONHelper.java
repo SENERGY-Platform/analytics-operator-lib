@@ -16,18 +16,21 @@
 
 package org.infai.ses.senergy.testing.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JSONHelper {
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = Logger.getLogger(JSONHelper.class.getName());
     private static final String PATH_PREFIX = "src/test/resources/";
 
@@ -61,7 +64,7 @@ public class JSONHelper {
         return null;
     }
 
-    public static <T> T getFromJSONString(String jsonString, Class<T> tClass){
+    public static <T> T getObjectFromJSONString(String jsonString, Class<T> tClass){
         try {
             return objectMapper.readValue(jsonString, tClass);
         } catch (Exception e) {
@@ -70,9 +73,19 @@ public class JSONHelper {
         }
     }
 
-    public static <T> T getFromJSON(String Path, Class<T> tClass){
+    public static <T> T getObjectFromJSONPath(String Path, Class<T> tClass){
         try {
             return objectMapper.readValue(new File(PATH_PREFIX+Path), tClass);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public <T> List<T> getObjectArrayFromJSONPath(String Path){
+        try {
+            return objectMapper.readValue(new File(PATH_PREFIX+Path), new TypeReference<>() {
+            });
         } catch (Exception e) {
             e.printStackTrace();
             return null;

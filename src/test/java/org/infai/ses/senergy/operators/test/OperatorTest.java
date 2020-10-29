@@ -16,82 +16,85 @@
 
 package org.infai.ses.senergy.operators.test;
 
-import org.infai.ses.senergy.operators.StreamBuilder;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.utils.ConfigProvider;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class OperatorTest {
 
-    static TestOperator testOperator;
-    protected JSONArray messages = new JSONHelper().parseFile("operator/messages.json");
-    static String configString = new JSONHelper().parseFile("operator/config-1.json").toString();
+    private TestOperator testOperator;
+    private JSONArray messages = new JSONHelper().parseFile("operator/messages.json");
+    private final String configString = new JSONHelper().parseFile("operator/config-1.json").toString();
 
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    /*
     @Test
     public void testTwoFilterValues(){
-        ConfigProvider.setConfig(new Config(configString));
-        StreamBuilder builder = new StreamBuilder();
+        Config config = new Config(configString);
+        String topicName = config.getInputTopicsConfigs().get(0).getName();
+        ConfigProvider.setConfig(config);
         Message message = new Message();
+        MessageModel model =  new MessageModel();
         testOperator = new TestOperator();
         testOperator.configMessage(message);
-        Map <String, String> map = new HashMap<>();
-        map.put("test", "1");
         for(Object msg : messages){
-            message.setMessage(builder.formatMessage(msg.toString()));
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
             testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
-            Assert.assertEquals(msg, JSONHelper.<JSONArray>getValue("inputs", message.getMessageString()).get(0));
+            Assert.assertEquals( "1", message.getMessage().getOutputMessage().getAnalytics().get("test"));
         }
 
     }
 
     @Test
     public void testTwoFilterValuesWithMessagesWithTwoValues(){
-        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("operator/config-2.json").toString()));
-        StreamBuilder builder = new StreamBuilder();
+        Config config = new Config(new JSONHelper().parseFile("operator/config-2.json").toString());
+        messages = new JSONHelper().parseFile("operator/messages-2.json");
+        String topicName = config.getInputTopicsConfigs().get(0).getName();
+        ConfigProvider.setConfig(config);
         Message message = new Message();
+        MessageModel model =  new MessageModel();
         testOperator = new TestOperator();
         testOperator.configMessage(message);
-        Map <String, String> map = new HashMap<>();
-        map.put("val", "5.5");
-        map.put("val2", "3.5");
-        messages = new JSONHelper().parseFile("operator/messages-2.json");
         for(Object msg : messages){
-            message.setMessage(builder.formatMessage(msg.toString()));
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
             testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
-            Assert.assertEquals(msg, JSONHelper.<JSONArray>getValue("inputs", message.getMessageString()).get(0));
+            Assert.assertEquals( "5.5", message.getMessage().getOutputMessage().getAnalytics().get("val"));
+            Assert.assertEquals( "3.5", message.getMessage().getOutputMessage().getAnalytics().get("val2"));
         }
 
     }
 
     @Test
     public void testReadingValuesFromTwoInputs() {
-        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("operator/config-3.json").toString()));
+        Config config = new Config(new JSONHelper().parseFile("operator/config-3.json").toString());
+        JSONArray messages = new JSONHelper().parseFile("operator/messages-3.json");
+        String topicName = config.getInputTopicsConfigs().get(0).getName();
+        ConfigProvider.setConfig(config);
         Message message = new Message();
+        MessageModel model =  new MessageModel();
         testOperator = new TestOperator();
-        Map <String, String> map = new HashMap<>();
-        map.put("val", "1.0");
-        map.put("val2", "2.0");
-        String msgInputs = new JSONHelper().parseFile("operator/messages-3.json").toString();
-        message.setMessage(msgInputs);
         testOperator.configMessage(message);
-        testOperator.run(message);
-        Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
-    }*/
+        String [] expected = new String[]{"1.0", "2.0"};
+        int index = 0;
+        for (Object msg: messages) {
+            AnalyticsMessageModel analyticsMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), AnalyticsMessageModel.class);
+            assert analyticsMessageModel != null;
+            model.putMessage(topicName, Helper.analyticsToInputMessageModel(analyticsMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+            Assert.assertEquals( expected[index++], message.getMessage().getOutputMessage().getAnalytics().get("val"));
+        }
+    }
 }

@@ -91,20 +91,11 @@ public class Config {
         return null;
     }
 
-    public JSONArray getTopicConfigById(Integer index){
-        try {
-            net.minidev.json.JSONArray array = JsonPath.read(this.configString, "$.."+Values.INPUT_TOPICS+"["+ index+"]");
-            return new JSONArray(array.toString());
-        } catch (PathNotFoundException e) {
-            log.log(Level.SEVERE, e.getMessage());
-            return new JSONArray();
-        }
-    }
-
     public Integer topicCount(){
         return getTopicConfig().length();
     }
 
+    @Deprecated
     public String getConfigValue (String value, String defaultValue) {
         String rvalue = "";
         try {
@@ -118,14 +109,6 @@ public class Config {
         return rvalue;
     }
 
-    public String getTopicName(Integer index){
-        try {
-            return JsonPath.read(this.configString, "$."+Values.INPUT_TOPICS+"["+ index+"]."+Values.TOPIC_NAME_KEY);
-        } catch (PathNotFoundException e) {
-            log.log(Level.SEVERE, e.getMessage());
-            return "";
-        }
-    }
 
     /**
      * Returns the the input topic configuration which corresponds to the dest name given.
@@ -133,6 +116,7 @@ public class Config {
      * @param inputName
      * @return
      */
+    @Deprecated
     public Map<String, Object> getInputTopicByInputName(String inputName){
         Map<String, Object> topic = new HashMap<>();
         List<Map<String, Object>> topics = JsonPath.read(this.configString,"$."+Values.INPUT_TOPICS+".*");

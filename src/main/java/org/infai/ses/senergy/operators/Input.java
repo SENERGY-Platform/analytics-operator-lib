@@ -16,6 +16,8 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.infai.ses.senergy.exceptions.NoValueException;
+
 public class Input {
 
     private Object value;
@@ -37,13 +39,17 @@ public class Input {
      *
      * @return Double
      */
-    public Double getValue() {
-        if (this.value instanceof String){
-            return Double.valueOf((String) this.value);
-        } else if (this.value instanceof Integer){
-            return Double.valueOf((Integer) this.value);
-        } else if (this.value instanceof Double){
-            return (Double) this.value;
+    public Double getValue() throws NoValueException {
+        if (this.value != null){
+            if (this.value instanceof String){
+                return Double.valueOf((String) this.value);
+            } else if (this.value instanceof Integer){
+                return Double.valueOf((Integer) this.value);
+            } else if (this.value instanceof Double){
+                return (Double) this.value;
+            }
+        } else {
+            throw new NoValueException("No input value is set for: " + this.source);
         }
         return null;
     }
