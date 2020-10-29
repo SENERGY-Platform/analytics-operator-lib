@@ -28,6 +28,13 @@ public final class InputTopicModel {
     public InputTopicModel() {
     }
 
+    public InputTopicModel(InputTopicModel another){
+        this.name = another.name;
+        this.filterType = another.filterType;
+        this.filterValue = another.filterValue;
+        this.mappings = another.mappings;
+    }
+
     public InputTopicModel(String name, String filterType, String filterValue, List<MappingModel> mappings) {
         this.name = name;
         this.filterType = filterType;
@@ -49,6 +56,10 @@ public final class InputTopicModel {
 
     public List<MappingModel> getMappings(){
         return this.mappings;
+    }
+
+    public void setMappings(List<MappingModel> mappings){
+        this.mappings = mappings;
     }
 
     public String getSourceByDest(String dest){

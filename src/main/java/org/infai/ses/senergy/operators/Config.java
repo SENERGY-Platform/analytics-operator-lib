@@ -24,9 +24,7 @@ import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.models.MappingModel;
 import org.json.JSONArray;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +82,28 @@ public class Config {
             }
         }
         return null;
+    }
+
+    /**
+     * Get the input topics from a given destination.
+     *
+     * @param destination String
+     * @return InputTopicModel
+     */
+    public List<InputTopicModel> getInputTopicsByDestination(String destination) {
+        List<InputTopicModel> topics = new LinkedList<>();
+        for (InputTopicModel topic : this.configModel.getInputTopics()){
+            for (MappingModel mappingModel : topic.getMappings()){
+                if (mappingModel.getDest().substring(0, mappingModel.getDest().lastIndexOf("_")).equals(destination)){
+                    List<MappingModel> mappings = new LinkedList<>();
+                    InputTopicModel newTopicModel = new InputTopicModel(topic);
+                    mappings.add(mappingModel);
+                    newTopicModel.setMappings(mappings);
+                    topics.add(newTopicModel);
+                }
+            }
+        }
+        return topics;
     }
 
     public Integer topicCount(){

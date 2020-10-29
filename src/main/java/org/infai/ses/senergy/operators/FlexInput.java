@@ -16,47 +16,33 @@
 
 package org.infai.ses.senergy.operators;
 
-import org.infai.ses.senergy.models.InputTopicModel;
-import org.infai.ses.senergy.models.MappingModel;
-import org.infai.ses.senergy.utils.ConfigProvider;
-import org.infai.ses.senergy.utils.MessageProvider;
+import org.infai.ses.senergy.exceptions.NoValueException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class FlexInput {
 
-    private String messageString = "";
-    private final Config config = ConfigProvider.getConfig();
-    private Map<String, Input> inputs = new HashMap<>();
-
-    public FlexInput(String name) {
-        // Check in inputtopic list if flex input was given
-        for (InputTopicModel inputTopic : this.config.getInputTopicsConfigs()){
-            for (MappingModel mapping : inputTopic.getMappings()){
-                if (mapping.getDest().substring(0, mapping.getDest().lastIndexOf("_")).equals(name)){
-                    inputs.put(mapping.getDest(),new Input());
-                }
-            }
-        }
-    }
-
-    public FlexInput setMessage(String message) {
-        this.messageString = message;
-        return this;
-    }
+    private List<Input> inputs = new LinkedList<>();
 
     public List<Double> getValues() {
-        /*
-        ArrayList<Double> values = new ArrayList<>();
-        for (Input input : this.inputs.values()) {
-            values.add(input.setMessage(this.messageString).getValue());
+        List<Double> list = new LinkedList<>();
+        for (Input input: this.inputs){
+            try {
+                list.add(input.getValue());
+            } catch (NoValueException e) {
+                e.printStackTrace();
+            }
         }
-        return values;
+        return list;
+    }
 
-         */
-        return new ArrayList<>();
+    protected void setInputs(List<Input> inputs){
+        this.inputs = inputs;
+    }
+
+    protected List<Input> getInputs(){
+        return this.inputs;
     }
 }

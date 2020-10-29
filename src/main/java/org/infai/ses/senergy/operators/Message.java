@@ -34,7 +34,8 @@ public class Message {
 
     public Message setMessage (MessageModel message){
         this.message = message;
-        this.parseMessage();
+        this.parseMessageForInputs();
+        this.parseMessageForFlexInputs();
         return this;
     }
 
@@ -54,10 +55,22 @@ public class Message {
         }
     }
 
-    public FlexInput addFlexInput (String name){
-        FlexInput flexInput = new FlexInput(name);
-        this.flexInputs.put(name, flexInput);
-        return flexInput;
+    public void addFlexInput (String name){
+        FlexInput flexInput = new FlexInput();
+        List<InputTopicModel> topics = this.config.getInputTopicsByDestination(name);
+        if (topics.size() > 0){
+            List<Input> inputs = new LinkedList<>();
+            for (InputTopicModel topic :  topics){
+                Input input  = new Input();
+                input.setSource(topic.getMappings().get(0).getSource());
+                input.setInputTopicName(topic.getName());
+                inputs.add(input);
+            }
+            flexInput.setInputs(inputs);
+            this.flexInputs.put(name, flexInput);
+        }else {
+            log.log(Level.INFO, "Missing config for flex-input: " + name);
+        }
     }
 
     public Input getInput (String name){
@@ -65,14 +78,14 @@ public class Message {
     }
 
     public FlexInput getFlexInput (String name){
-        return new FlexInput("test");
+        return this.flexInputs.get(name);
     }
 
     public void output(String name, Object value){
         this.message.getOutputMessage().getAnalytics().put(name, value);
     }
 
-    private void parseMessage() {
+    private void parseMessageForInputs() {
         for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
             Input input = entry.getValue();
             List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
@@ -87,6 +100,27 @@ public class Message {
                 input.setValue(null);
                 input.setFilterId(null);
                 log.log(Level.INFO, "No value for input: " + input.getSource());
+            }
+        }
+    }
+
+    private void parseMessageForFlexInputs() {
+        for (Map.Entry<String, FlexInput> entry  : this.flexInputs.entrySet()){
+            FlexInput flexInput = entry.getValue();
+            for (Input input : flexInput.getInputs()){
+                List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
+                InputMessageModel msg = this.message.getMessage(input.getInputTopicName());
+                if (tree.size() > 1) {
+                    tree.remove(0);
+                }
+                if (msg != null) {
+                    input.setValue(this.parse(msg.getValue(), tree));
+                    input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
+                } else {
+                    input.setValue(null);
+                    input.setFilterId(null);
+                    log.log(Level.INFO, "No value for input: " + input.getSource());
+                }
             }
         }
     }

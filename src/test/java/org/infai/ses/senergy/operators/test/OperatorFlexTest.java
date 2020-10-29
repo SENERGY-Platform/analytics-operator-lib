@@ -16,6 +16,9 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
@@ -41,22 +44,24 @@ public class OperatorFlexTest {
     public void setUp() throws Exception {
     }
 
-    /*
+
     @Test
     public void testTwoFilterValues(){
-        ConfigProvider.setConfig(new Config(configString));
-        StreamBuilder builder = new StreamBuilder();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
         Message message = new Message();
+        MessageModel model =  new MessageModel();
         testOperator = new TestFlexOperator();
         testOperator.configMessage(message);
-        Map <String, Double> map = new HashMap<>();
-        map.put("test", 11.0);
+        int index = 0;
         for(Object msg : messages){
-            message.setMessage(builder.formatMessage(msg.toString()));
-            testOperator.run(message);
-            Assert.assertEquals(new JSONObject(map), JSONHelper.<JSONObject>getValue("analytics", message.getMessageString()));
+            String topicName = config.getInputTopicsConfigs().get(index++).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
         }
-
+        message.setMessage(model);
+        testOperator.run(message);
+        Assert.assertEquals( 11.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
     }
-    */
 }
