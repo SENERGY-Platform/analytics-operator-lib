@@ -7,7 +7,7 @@
       "Mappings": [
         {
           "Dest": "value",
-          "Source": "val"
+          "Source": "value.sensor.ENERGY.Power"
         }
       ]
     }

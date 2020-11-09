@@ -55,6 +55,19 @@ public class MessageTest {
     }
 
     @Test
+    public void testInputValueDevice() throws NoValueException {
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testDeviceInputValueConfig.json").toString()));
+        DeviceMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testDeviceInputValueMessage.json", DeviceMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        messageModel.putMessage("debug", Helper.deviceToInputMessageModel(inputMessage, "test"));
+        Message message = new Message();
+        message.addInput("value");
+        message.setMessage(messageModel);
+        Double value = message.getInput("value").getValue();
+        Assert.assertEquals(Double.valueOf(2.0), value);
+    }
+
+    @Test
     public void testInputValueDeep() throws NoValueException {
         ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testGetMessageEntityIdConfig.json").toString()));
         DeviceMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testGetMessageEntityIdMessage.json", DeviceMessageModel.class);

@@ -1,4 +1,10 @@
 {
-  "val": "2",
+  "value": {
+    "sensor": {
+      "ENERGY": {
+        "Power": 2
+      }
+    }
+  },
   "device_id": "1"
 }
