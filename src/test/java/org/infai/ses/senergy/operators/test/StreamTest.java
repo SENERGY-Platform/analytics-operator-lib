@@ -26,6 +26,7 @@ import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.*;
@@ -75,7 +76,7 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessSingleStream() {
+    public void testProcessSingleStream() throws JSONException {
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
@@ -102,7 +103,7 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessSingleStreamAsTable() {
+    public void testProcessSingleStreamAsTable() throws JSONException {
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamExpected.json");
@@ -131,7 +132,7 @@ public class StreamTest {
 
 
     @Test
-    public void testProcessSingleStreamDeviceId() {
+    public void testProcessSingleStreamDeviceId() throws JSONException {
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamDeviceIdExpected.json");
@@ -158,7 +159,7 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessTwoStreams2DeviceId() {
+    public void testProcessTwoStreams2DeviceId() throws JSONException {
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         JSONObject expected = new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdExpected.json");
@@ -191,7 +192,7 @@ public class StreamTest {
     }
 
     @Test
-    public void testProcessTwoStreamsAsTable2DeviceId() {
+    public void testProcessTwoStreamsAsTable2DeviceId() throws JSONException {
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2DeviceIdConfig.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/testProcessTwoStreamsAsTable2DeviceIdExpected.json");
@@ -254,7 +255,7 @@ public class StreamTest {
     }
 
     @Test
-    public void testComplexMessage() {
+    public void testComplexMessage() throws JSONException {
         Stream stream = new Stream();
         JSONArray jsonMessages = new JSONHelper().parseFile("stream/testComplexMessageMessages.json");
         String configString = "{\"inputTopics\":[{\"name\":\"topic1\",\"filterType\":\"DeviceId\",\"filterValue\":\"1\",\"mappings\":[{\"dest\":\"value1\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp1\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic2\",\"filterType\":\"DeviceId\",\"filterValue\":\"2\",\"mappings\":[{\"dest\":\"value2\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp2\",\"source\":\"value.reading.time\"}]},{\"name\":\"topic3\",\"filterType\":\"DeviceId\",\"filterValue\":\"3\",\"mappings\":[{\"dest\":\"value3\",\"source\":\"value.reading.OBIS_1_8_0.value\"},{\"dest\":\"timestamp3\",\"source\":\"value.reading.time\"}]}]}";

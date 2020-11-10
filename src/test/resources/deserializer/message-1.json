@@ -1,0 +1,28 @@
+{
+  "analytics": {
+    "timestamp": "1604993723",
+    "value": 233.3296
+  },
+  "operator_id": "b5ac827b-0197-441d-a4ea-4965e37c80b6",
+  "inputs": [
+    {
+      "device_id": "urn:infai:ses:device:6bd07b75-d7cc-4a1a-88db-ac93f61aa7b3",
+      "service_id": "urn:infai:ses:service:4b43b7ca-ff85-4e81-b3b4-c77951a72281",
+      "value": {
+        "root": {
+          "egy_irms_max_b": 0.62,
+          "egy_irms_max_a": 0,
+          "egy_vrms_min_a": 229.81,
+          "egy_var_c": -29.11,
+          "egy_va_a": 0,
+          "egy_var_b": -40,
+          "egy_va_b": 141.82,
+          "egy_var_a": 3.63,
+          "egy_va_c": 50.9,
+          "egy_kwh_a": 15.1623,
+          "egy_kwh_b": 218.1673
+        }
+      }
+    }
+  ]
+}

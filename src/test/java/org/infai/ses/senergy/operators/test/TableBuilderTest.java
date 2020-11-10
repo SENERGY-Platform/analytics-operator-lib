@@ -33,6 +33,7 @@ import org.infai.ses.senergy.operators.TableBuilder;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -148,7 +149,7 @@ public class TableBuilderTest {
 
 
     @Test
-    public void testJoinStreams(){
+    public void testJoinStreams() throws JSONException {
         JSONArray messages = new JSONHelper().parseFile("tablebuilder/messages.json");
         JSONArray expected = new JSONHelper().parseFile("tablebuilder/results.json");
 

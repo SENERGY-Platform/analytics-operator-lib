@@ -31,6 +31,7 @@ import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.infai.ses.senergy.utils.TimeProvider;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -140,7 +141,7 @@ public class StreamBuilderTest {
     }
 
     @Test
-    public void testJoinStreams(){
+    public void testJoinStreams() throws JSONException {
         JSONArray messages = new JSONHelper().parseFile("builder/messages.json");
         JSONArray expected = new JSONHelper().parseFile("builder/results.json");
 
