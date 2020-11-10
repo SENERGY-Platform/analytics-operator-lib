@@ -31,6 +31,10 @@ import java.util.List;
 
 public class StreamBuilder{
 
+    private StreamBuilder() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static Integer seconds = Values.WINDOW_TIME;
 
     public static  <T>KStream<String, T> filterBy(KStream<String, T> inputStream, String[] filterValues) {

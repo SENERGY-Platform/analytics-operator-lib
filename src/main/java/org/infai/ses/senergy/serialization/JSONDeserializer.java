@@ -19,7 +19,6 @@ package org.infai.ses.senergy.serialization;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Deserializer;
-import org.infai.ses.senergy.operators.Config;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +26,7 @@ import java.util.logging.Logger;
 public class JSONDeserializer<T> implements Deserializer<T> {
 
     private static final Logger log = Logger.getLogger(JSONDeserializer.class.getName());
-    private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);;
+    private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private Class<T> tClass;
 
     public JSONDeserializer(Class<T> tClass) {

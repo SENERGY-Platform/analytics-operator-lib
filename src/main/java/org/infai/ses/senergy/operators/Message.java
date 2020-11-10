@@ -51,7 +51,7 @@ public class Message {
             input.setInputTopicName(topic.getName());
             this.inputs.put(name, input);
         } else {
-            log.log(Level.INFO, "Missing config for input: %s", name);
+            log.log(Level.INFO, "Missing config for input: {0}.", name);
         }
     }
 
@@ -69,7 +69,7 @@ public class Message {
             flexInput.setInputs(inputsList);
             this.flexInputs.put(name, flexInput);
         }else {
-            log.log(Level.INFO, "Missing config for flex-input: %s", name);
+            log.log(Level.INFO, "Missing config for flex-input: {0}.", name);
         }
     }
 
@@ -99,7 +99,7 @@ public class Message {
             } else {
                 input.setValue(null);
                 input.setFilterId(null);
-                log.log(Level.INFO, "No value for input: %s", input.getSource());
+                log.log(Level.INFO, "No value for input: {0}.", input.getSource());
             }
         }
     }
@@ -119,7 +119,7 @@ public class Message {
                 } else {
                     input.setValue(null);
                     input.setFilterId(null);
-                    log.log(Level.INFO, "No value for input: %s", input.getSource());
+                    log.log(Level.INFO, "No value for input: {0}.", input.getSource());
                 }
             }
         }
