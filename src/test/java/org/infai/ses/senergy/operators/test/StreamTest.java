@@ -21,9 +21,9 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.utils.ApplicationState;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONException;
@@ -41,7 +41,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 public class StreamTest {
@@ -65,7 +64,7 @@ public class StreamTest {
     }
 
     @After
-    public void deleteOutputFile() {
+    public void afterTest() {
         if (stateDir.exists()) {
             try {
                 FileUtils.deleteDirectory(stateDir);
@@ -73,6 +72,7 @@ public class StreamTest {
                 System.out.println("Could not delete state dir.");
             }
         }
+        ApplicationState.resetOffsets();
     }
 
     @Test

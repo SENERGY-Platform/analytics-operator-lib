@@ -249,6 +249,7 @@ public class Stream {
         if (topicConfig.getFilterType().equals("OperatorId")) {
             KStream<String, AnalyticsMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
             KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
+            filteredStream.process(OffsetCheck::new);
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
@@ -257,6 +258,7 @@ public class Stream {
         } else {
             KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
+            filteredStream.process(OffsetCheck::new);
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
