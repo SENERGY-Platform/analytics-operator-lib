@@ -51,6 +51,6 @@ public class OffsetCheck implements Processor {
 
     @Override
     public void close() {
-
+        // Do nothing
     }
 }

@@ -18,7 +18,6 @@ package org.infai.ses.senergy.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serializer;
-import org.infai.ses.senergy.operators.Config;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
