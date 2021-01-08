@@ -233,6 +233,42 @@ public class StreamTest {
         }
     }
 
+    @Test
+    public void testProcessTwoStreamsAsTableSameTopic() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/twoStreamsAsTableSameTopic/config.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/twoStreamsAsTableSameTopic/expected.json");
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/twoStreamsAsTableSameTopic/messages.json");
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreamsAsTable(config.getInputTopicsConfigs());
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            inputTopic1.pipeInput(null, jsonMessages.get(0).toString());
+            inputTopic1.pipeInput(null, jsonMessages.get(1).toString());
+            inputTopic1.pipeInput(null, jsonMessages.get(2).toString());
+            inputTopic1.pipeInput(null, jsonMessages.get(3).toString());
+            inputTopic1.pipeInput(null, jsonMessages.get(4).toString());
+        }
+        JSONObject expected1 = (JSONObject) expected.get(1);
+        JSONObject expected2 = (JSONObject) expected.get(0);
+        expected1.put("time", TimeProvider.nowUTCToString());
+        expected2.put("time", TimeProvider.nowUTCToString());
+
+        int index = 0;
+        long[] timestamps = {0, 0};
+        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
+        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index);
+            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp());
+            assertEquals("debug", result.key());
+        }
+    }
+
     //@Test
     @Test
     public void test5Streams() {

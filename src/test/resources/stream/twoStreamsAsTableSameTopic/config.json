@@ -1,0 +1,26 @@
+{
+  "inputTopics": [
+    {
+      "Name": "input-topic",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value1",
+          "Source": "value.reading.value"
+        }
+      ]
+    },
+    {
+      "Name": "input-topic",
+      "FilterType": "DeviceId",
+      "FilterValue": "2",
+      "Mappings": [
+        {
+          "Dest": "value2",
+          "Source": "value.reading.value"
+        }
+      ]
+    }
+  ]
+}

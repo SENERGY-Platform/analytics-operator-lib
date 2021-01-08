@@ -95,7 +95,7 @@ public class Stream {
      * @param topicConfig InputTopicModel
      */
     public void processSingleStreamAsTable(InputTopicModel topicConfig) {
-        KTable<String, InputMessageModel> messagesStream = parseInputStreamAsTable(topicConfig);
+        KTable<String, InputMessageModel> messagesStream = parseInputStream(topicConfig, false).toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage()));
         if (Boolean.TRUE.equals(DEBUG)) {
             messagesStream.toStream().print(Printed.toSysOut());
         }
@@ -109,15 +109,12 @@ public class Stream {
      * @param topicConfigs List<InputTopicModel>
      */
     public void processMultipleStreams(List<InputTopicModel> topicConfigs) {
-        List<KStream<String, InputMessageModel>> inputStreams = new LinkedList<>();
-        for (InputTopicModel topicConfig : topicConfigs) {
-            KStream<String, InputMessageModel> filteredInputStream = parseInputStream(topicConfig, true);
-            inputStreams.add(filteredInputStream);
-            if (Boolean.TRUE.equals(DEBUG)) {
-                filteredInputStream.print(Printed.toSysOut());
+        List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
+        if (Boolean.TRUE.equals(DEBUG)) {
+            for (KStream<String, InputMessageModel> inputStream : inputStreams) {
+                inputStream.print(Printed.toSysOut());
             }
         }
-
         KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(StreamBuilder.joinMultipleStreams(inputStreams, windowTime));
         outputStream(afterOperatorStream);
     }
@@ -128,16 +125,16 @@ public class Stream {
      * @param topicConfigs List<InputTopicModel>
      */
     public void processMultipleStreamsAsTable(List<InputTopicModel> topicConfigs) {
-        List<KTable<String, InputMessageModel>> inputStreams = new LinkedList<>();
-        for (InputTopicModel topicConfig : topicConfigs) {
-            KTable<String, InputMessageModel> filteredInputStream = parseInputStream(topicConfig, true).toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage()));
-            inputStreams.add(filteredInputStream);
+        List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
+        List<KTable<String, InputMessageModel>> inputTables = new LinkedList<>();
+        for (KStream<String, InputMessageModel> inputStream : inputStreams) {
             if (Boolean.TRUE.equals(DEBUG)) {
-                filteredInputStream.toStream().print(Printed.toSysOut());
+                inputStream.print(Printed.toSysOut());
             }
+            inputStream.print(Printed.toSysOut());
+            inputTables.add(inputStream.toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage())));
         }
-
-        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(TableBuilder.joinMultipleStreams(inputStreams).toStream());
+        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(TableBuilder.joinMultipleStreams(inputTables).toStream());
         outputStream(afterOperatorStream);
     }
 
@@ -226,20 +223,6 @@ public class Stream {
     }
 
     /**
-     * Filter the input stream as a changelog stream by operator ID or device ID.
-     *
-     * @param topic     InputTopicModel
-     * @param inputData KStream<String, T>
-     * @return KStream<String, T>
-     */
-    private <T> KTable<String, T> filterStream(InputTopicModel topic, KTable<String, T> inputData) {
-        KTable<String, T> filterData;
-        String[] filterValues = topic.getFilterValue().split(",");
-        filterData = TableBuilder.filterBy(inputData, filterValues);
-        return filterData;
-    }
-
-    /**
      * Get a record stream by topic config.
      *
      * @param topicConfig InputTopicModel
@@ -267,22 +250,50 @@ public class Stream {
         }
     }
 
-    /**
-     * Get a changelog stream by topic config.
-     *
-     * @param topicConfig InputTopicModel
-     * @return KStream<String, InputMessageModel>
-     */
-    private KTable<String, InputMessageModel> parseInputStreamAsTable(InputTopicModel topicConfig) {
-        if (topicConfig.getFilterType().equals("OperatorId")) {
-            KTable<String, AnalyticsMessageModel> inputData = this.builder.table(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
-            KTable<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            return filteredStream.mapValues(value -> Helper.analyticsToInputMessageModel(value, topicConfig.getName()));
-        } else {
-            KTable<String, DeviceMessageModel> inputData = this.builder.table(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
-            KTable<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            return filteredStream.mapValues(value -> Helper.deviceToInputMessageModel(value, topicConfig.getName()));
+    private List<KStream<String, InputMessageModel>> parseStreams (List<InputTopicModel> topicConfigs, Boolean streamLineKey) {
+        List<KStream<String, InputMessageModel>> inputStreams = new LinkedList<>();
+        Map<String, KStream<String, AnalyticsMessageModel>> analyticsInputMap = new HashMap<>();
+        Map<String, KStream<String, DeviceMessageModel>> devicesInputMap = new HashMap<>();
+        for (InputTopicModel topicConfig : topicConfigs) {
+            KStream<String, InputMessageModel> parsedInputStream;
+            if (topicConfig.getFilterType().equals("OperatorId")) {
+                KStream<String, AnalyticsMessageModel> inputData;
+                if (!analyticsInputMap.containsKey(topicConfig.getName())) {
+                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
+                    inputData.process(OffsetCheck::new);
+                    analyticsInputMap.put(topicConfig.getName(), inputData);
+                } else {
+                    inputData = analyticsInputMap.get(topicConfig.getName()).branch(
+                            (key, value) -> true
+                    )[0];
+                }
+                KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
+                parsedInputStream =  filteredStream.flatMap((key, value) -> {
+                    List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+                    result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
+                    return result;
+                });
+            } else {
+                KStream<String, DeviceMessageModel> inputData;
+                if (!devicesInputMap.containsKey(topicConfig.getName())) {
+                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
+                    inputData.process(OffsetCheck::new);
+                    devicesInputMap.put(topicConfig.getName(), inputData);
+                } else {
+                    inputData = devicesInputMap.get(topicConfig.getName()).branch(
+                            (key, value) -> true
+                    )[0];
+                }
+                KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
+                parsedInputStream =  filteredStream.flatMap((key, value) -> {
+                    List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+                    result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
+                    return result;
+                });
+            }
+            inputStreams.add(parsedInputStream);
         }
+        return inputStreams;
     }
 
     private KStream<String, MessageModel> toMessageModel(KStream<String, InputMessageModel> stream) {
