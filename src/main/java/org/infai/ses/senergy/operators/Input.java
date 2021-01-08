@@ -61,9 +61,12 @@ public class Input {
      */
     public String getString(){
         try {
+            if (this.value instanceof Integer) {
+                return this.value.toString();
+            } else
             return (String) this.value;
-        } catch (NullPointerException e){
-            return null;
+        } catch (NullPointerException | ClassCastException e){
+            return "";
         }
     }
 
