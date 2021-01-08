@@ -131,7 +131,6 @@ public class Stream {
             if (Boolean.TRUE.equals(DEBUG)) {
                 inputStream.print(Printed.toSysOut());
             }
-            inputStream.print(Printed.toSysOut());
             inputTables.add(inputStream.toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage())));
         }
         KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(TableBuilder.joinMultipleStreams(inputTables).toStream());
