@@ -18,12 +18,17 @@ package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.exceptions.NoValueException;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Input {
 
     private Object value;
     private String source = "";
     private String inputTopic = "";
     private String filterId = "";
+
+    private static final Logger log = Logger.getLogger(Input.class.getName());
 
     /**
      * Set the value of the input.
@@ -66,6 +71,7 @@ public class Input {
             } else
             return (String) this.value;
         } catch (NullPointerException | ClassCastException e){
+            log.log(Level.WARNING, e.getMessage());
             return "";
         }
     }
