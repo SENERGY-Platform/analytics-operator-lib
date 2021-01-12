@@ -42,7 +42,7 @@ public class OffsetCheck implements Processor {
                 ApplicationState.setOffset(name, this.context.offset());
             } else {
                 log.log(Level.SEVERE, "Offset is smaller than current offset: {0} < {1}.", new Object[]{this.context.offset(), currentOffset});
-                System.exit(1);
+                ApplicationState.setErrorStatus(1);
             }
         } else  {
             ApplicationState.setOffset(name, this.context.offset());

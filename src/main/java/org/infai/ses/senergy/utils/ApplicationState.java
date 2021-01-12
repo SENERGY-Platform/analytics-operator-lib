@@ -22,9 +22,11 @@ import java.util.Map;
 public class ApplicationState {
 
     private static Map<String, Long> offsets;
+    private static Integer errorStatus;
 
     static {
         offsets = new HashMap<>();
+        errorStatus = 0;
     }
 
     private ApplicationState() {
@@ -41,5 +43,13 @@ public class ApplicationState {
 
     public static void resetOffsets(){
         offsets.clear();
+    }
+
+    public static void setErrorStatus(Integer status){
+        errorStatus = status;
+    }
+
+    public static Integer getErrorStatus(){
+        return errorStatus;
     }
 }

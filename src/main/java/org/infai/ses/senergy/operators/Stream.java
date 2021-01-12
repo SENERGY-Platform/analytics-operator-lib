@@ -23,6 +23,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.serialization.JSONSerdes;
+import org.infai.ses.senergy.utils.ApplicationState;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 
@@ -232,6 +233,7 @@ public class Stream {
             KStream<String, AnalyticsMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
             KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
             filteredStream.process(OffsetCheck::new);
+            this.checkApplicationStatus();
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
@@ -241,6 +243,7 @@ public class Stream {
             KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
             filteredStream.process(OffsetCheck::new);
+            this.checkApplicationStatus();
             return filteredStream.flatMap((key, value) -> {
                 List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
                 result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
@@ -260,6 +263,7 @@ public class Stream {
                 if (!analyticsInputMap.containsKey(topicConfig.getName())) {
                     inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
                     inputData.process(OffsetCheck::new);
+                    this.checkApplicationStatus();
                     analyticsInputMap.put(topicConfig.getName(), inputData);
                 } else {
                     inputData = analyticsInputMap.get(topicConfig.getName()).branch(
@@ -277,6 +281,7 @@ public class Stream {
                 if (!devicesInputMap.containsKey(topicConfig.getName())) {
                     inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
                     inputData.process(OffsetCheck::new);
+                    this.checkApplicationStatus();
                     devicesInputMap.put(topicConfig.getName(), inputData);
                 } else {
                     inputData = devicesInputMap.get(topicConfig.getName()).branch(
@@ -303,5 +308,11 @@ public class Stream {
             result.add(KeyValue.pair(key, messageModel));
             return result;
         });
+    }
+
+    private void checkApplicationStatus(){
+        if (ApplicationState.getErrorStatus() != 0){
+            this.streams.close();
+        }
     }
 }
