@@ -65,4 +65,9 @@ public class AnalyticsMessageModel {
         this.analytics = analytics;
     }
 
+    @JsonProperty("time")
+    public void setTime(String time){
+        this.time = time;
+    }
+
 }

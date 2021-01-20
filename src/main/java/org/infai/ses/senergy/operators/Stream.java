@@ -26,6 +26,7 @@ import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ApplicationState;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
+import org.infai.ses.senergy.utils.TimeProvider;
 
 import java.util.*;
 
@@ -202,6 +203,7 @@ public class Stream {
     private KStream<String, MessageModel> runOperatorLogic(KStream<String, MessageModel> inputStream) {
         return inputStream.flatMap((key, value) -> {
             List<KeyValue<String, MessageModel>> result = new LinkedList<>();
+            value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
             operator.run(this.message.setMessage(value));
             result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, this.message.getMessage()));
             return result;
