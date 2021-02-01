@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.testing.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -26,6 +27,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -85,10 +88,14 @@ public class JSONHelper {
         }
     }
 
-    public <T> List<T> getObjectArrayFromJSONPath(String path) {
+    public static  <T> List<T> getObjectArrayFromJSONPath(String path, Class<T> tClass) {
         try {
-            return objectMapper.readValue(new File(PATH_PREFIX + path), new TypeReference<>() {
-            });
+            JsonNode tree = objectMapper.readTree(new File(PATH_PREFIX + path));
+            ArrayList list = new ArrayList<T>();
+            for (JsonNode node : tree){
+                list.add(objectMapper.treeToValue(node, tClass));
+            }
+            return list;
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage());
             return new LinkedList<>();

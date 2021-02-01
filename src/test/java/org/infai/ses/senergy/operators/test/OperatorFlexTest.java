@@ -62,6 +62,6 @@ public class OperatorFlexTest {
         }
         message.setMessage(model);
         testOperator.run(message);
-        Assert.assertEquals( 11.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+        Assert.assertEquals( 21.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
     }
 }

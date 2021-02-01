@@ -1,0 +1,32 @@
+[
+  {
+    "value": {
+      "sensor": {
+        "ENERGY": {
+          "Power": 1
+        }
+      }
+    },
+    "device_id": "1"
+  },
+  {
+    "value": {
+      "sensor": {
+        "POWER": {
+          "Power": 2
+        }
+      }
+    },
+    "device_id": "2"
+  },
+  {
+    "value": {
+      "sensor": {
+        "ENERGY": {
+          "Power": 3
+        }
+      }
+    },
+    "device_id": "1"
+  }
+]

@@ -87,7 +87,7 @@ public class Config {
         List<InputTopicModel> topics = new LinkedList<>();
         for (InputTopicModel topic : this.configModel.getInputTopics()){
             for (MappingModel mappingModel : topic.getMappings()){
-                if (mappingModel.getDest().substring(0, mappingModel.getDest().lastIndexOf("_")).equals(destination)){
+                if (mappingModel.getDest().equals(destination)){
                     List<MappingModel> mappings = new LinkedList<>();
                     InputTopicModel newTopicModel = new InputTopicModel(topic);
                     mappings.add(mappingModel);

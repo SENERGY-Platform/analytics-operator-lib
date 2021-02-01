@@ -1,27 +1,24 @@
 {
-  "config": {
-    "test": "1"
-  },
   "inputTopics": [
     {
-      "Name": "test",
+      "Name": "debug",
       "FilterType": "DeviceId",
-      "FilterValue": "1,2",
+      "FilterValue": "1",
       "Mappings": [
         {
           "Dest": "value",
-          "Source": "value.reading.value"
+          "Source": "value.sensor.ENERGY.Power"
         }
       ]
     },
     {
-      "Name": "test2",
+      "Name": "debug-2",
       "FilterType": "DeviceId",
-      "FilterValue": "3,4",
+      "FilterValue": "2",
       "Mappings": [
         {
           "Dest": "value",
-          "Source": "value.reading.value"
+          "Source": "value.sensor.POWER.Power"
         }
       ]
     }

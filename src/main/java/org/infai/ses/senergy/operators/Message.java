@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.utils.ConfigProvider;
 
@@ -64,6 +65,7 @@ public class Message {
                 Input input  = new Input();
                 input.setSource(topic.getMappings().get(0).getSource());
                 input.setInputTopicName(topic.getName());
+                input.setCurrent(false);
                 inputsList.add(input);
             }
             flexInput.setInputs(inputsList);
@@ -108,13 +110,23 @@ public class Message {
         for (Map.Entry<String, FlexInput> entry  : this.flexInputs.entrySet()){
             FlexInput flexInput = entry.getValue();
             for (Input input : flexInput.getInputs()){
+                input.setCurrent(false);
                 List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
                 InputMessageModel msg = this.messageModel.getMessage(input.getInputTopicName());
                 if (tree.size() > 1) {
                     tree.remove(0);
                 }
                 if (msg != null) {
-                    input.setValue(this.parse(msg.getValue(), tree));
+                    Object val = this.parse(msg.getValue(), tree);
+                    String testString = String.valueOf(val);
+                    try {
+                        if (!input.getString().equals(testString)){
+                            input.setCurrent(true);
+                        }
+                    } catch (NoValueException e) {
+                        input.setCurrent(true);
+                    }
+                    input.setValue(val);
                     input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
                 } else {
                     input.setValue(null);

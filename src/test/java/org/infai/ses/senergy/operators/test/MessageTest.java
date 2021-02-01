@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MessageTest {
 
@@ -78,6 +79,25 @@ public class MessageTest {
         message.setMessage(messageModel);
         Double value = message.getInput("value").getValue();
         Assert.assertEquals(Double.valueOf(2.0), value);
+    }
+
+    @Test
+    public void testTwoMappingsOneInput() throws NoValueException {
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/twoMappingsOneInput/config.json").toString()));
+        List<DeviceMessageModel> inputMessages = JSONHelper.getObjectArrayFromJSONPath("message/twoMappingsOneInput/messages.json", DeviceMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        Message message = new Message();
+        message.addFlexInput("value");
+
+        messageModel.putMessage("debug", Helper.deviceToInputMessageModel(inputMessages.get(0), "debug"));
+        messageModel.putMessage("debug-2", Helper.deviceToInputMessageModel(inputMessages.get(1), "debug-2"));
+        message.setMessage(messageModel);
+        Double value = message.getFlexInput("value").getValue();
+        Assert.assertEquals(Double.valueOf(2.0), value);
+        messageModel.putMessage("debug", Helper.deviceToInputMessageModel(inputMessages.get(2), "debug"));
+        message.setMessage(messageModel);
+        value = message.getFlexInput("value").getValue();
+        Assert.assertEquals(Double.valueOf(3.0), value);
     }
 
     @Test

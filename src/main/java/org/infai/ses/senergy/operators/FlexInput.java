@@ -27,6 +27,8 @@ public class FlexInput {
 
     private static final Logger log = Logger.getLogger(FlexInput.class.getName());
 
+    private Object value;
+
     private List<Input> inputs = new LinkedList<>();
 
     public List<Double> getValues() {
@@ -39,6 +41,48 @@ public class FlexInput {
             }
         }
         return list;
+    }
+
+    /**
+     * Return the current value of the flexInput as Double.
+     *
+     * @return Double
+     */
+    public Double getValue() throws NoValueException {
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.value= input.getValue();
+            }
+        }
+        return (Double) this.value;
+    }
+
+    /**
+     * Return the current value of the flexInput as String.
+     *
+     * @return String
+     */
+    public String getString() throws NoValueException {
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.value= input.getString();
+            }
+        }
+        return (String) this.value;
+    }
+
+    /**
+     * Return the current value of the flexInput as Integer.
+     *
+     * @return Integer
+     */
+    public Integer getValueAsInt() throws NoValueException {
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.value= input.getValueAsInt();
+            }
+        }
+        return (Integer) this.value;
     }
 
     protected void setInputs(List<Input> inputs){
