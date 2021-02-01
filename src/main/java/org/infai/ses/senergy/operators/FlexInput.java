@@ -28,6 +28,7 @@ public class FlexInput {
     private static final Logger log = Logger.getLogger(FlexInput.class.getName());
 
     private Object value;
+    private String currentFilterId;
 
     private List<Input> inputs = new LinkedList<>();
 
@@ -52,6 +53,7 @@ public class FlexInput {
         for (Input input: this.inputs){
             if (input.getCurrent()){
                 this.value= input.getValue();
+                this.currentFilterId = input.getFilterId();
             }
         }
         return (Double) this.value;
@@ -66,6 +68,7 @@ public class FlexInput {
         for (Input input: this.inputs){
             if (input.getCurrent()){
                 this.value= input.getString();
+                this.currentFilterId = input.getFilterId();
             }
         }
         return (String) this.value;
@@ -80,9 +83,19 @@ public class FlexInput {
         for (Input input: this.inputs){
             if (input.getCurrent()){
                 this.value= input.getValueAsInt();
+                this.currentFilterId = input.getFilterId();
             }
         }
         return (Integer) this.value;
+    }
+
+    /**
+     * Returns the filter id of the current value.
+     *
+     * @return String
+     */
+    public String getCurrentFilterId(){
+        return this.currentFilterId;
     }
 
     protected void setInputs(List<Input> inputs){
