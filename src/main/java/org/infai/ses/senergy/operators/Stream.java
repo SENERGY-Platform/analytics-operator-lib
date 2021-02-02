@@ -140,6 +140,30 @@ public class Stream {
     }
 
     /**
+     * Merge multiple streams and process them as one.
+     *
+     * @param topicConfigs List<InputTopicModel>
+     */
+    public void mergeMultipleStreams(List<InputTopicModel> topicConfigs){
+        List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
+        if (Boolean.TRUE.equals(DEBUG)) {
+            for (KStream<String, InputMessageModel> inputStream : inputStreams) {
+                inputStream.print(Printed.toSysOut());
+            }
+        }
+        KStream<String, InputMessageModel> merged = null;
+        for (KStream<String, InputMessageModel> inputStream : inputStreams) {
+            if (merged != null){
+                merged = merged.merge(inputStream);
+            } else {
+                merged = inputStream;
+            }
+        }
+        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(merged));
+        outputStream(afterOperatorStream);
+    }
+
+    /**
      * Returns the output stream.
      *
      * @return KStream<String, String>

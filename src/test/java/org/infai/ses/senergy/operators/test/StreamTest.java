@@ -269,6 +269,31 @@ public class StreamTest {
         }
     }
 
+    @Test
+    public void testProcessTwoStreamsMerge() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/twoStreamsMerge/config.json").toString());
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/twoStreamsMerge/messages.json");
+        stream.setOperator(new TestOperator());
+        stream.mergeMultipleStreams(config.getInputTopicsConfigs());
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(500000L));
+            final TestInputTopic<String, String> inputTopic2 =
+                    driver.createInputTopic(INPUT_TOPIC_2, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(500000L));
+            inputTopic1.pipeInput(null, jsonMessages.get(0).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(1).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(2).toString());
+            inputTopic1.pipeInput(null, jsonMessages.get(3).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(4).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(5).toString());
+        }
+        assertEquals(4, processorSupplier.theCapturedProcessor().processed.size());
+    }
+
     //@Test
     @Test
     public void test5Streams() {

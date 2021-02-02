@@ -1,0 +1,46 @@
+[
+  {
+    "pipeline_id": "1",
+    "inputs": [
+      {
+        "device_id": "3",
+        "value": 1
+      }
+    ],
+    "analytics": {}
+  },
+  {
+    "pipeline_id": "1",
+    "inputs": [
+      {
+        "device_id": "4",
+        "value": 1
+      }
+    ],
+    "analytics": {}
+  },
+  {
+    "device_id": "2",
+    "value": {
+      "value":"3"
+    }
+  },
+  {
+    "device_id": "1",
+    "value":{
+      "value":"2"
+    }
+  },
+  {
+    "device_id": "2",
+    "value":{
+      "value":"2"
+    }
+  },
+  {
+    "device_id": "2",
+    "value":{
+      "value":"2"
+    }
+  }
+]

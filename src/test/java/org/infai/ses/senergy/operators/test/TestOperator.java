@@ -32,6 +32,14 @@ public class TestOperator extends BaseOperator {
 
             }
         }
+        if (getConfig().getConfigValue("value", "false").equals("true")){
+            try {
+                Double value = message.getInput("value").getValue();
+                message.output("value", value);
+            } catch (NoValueException e){
+
+            }
+        }
         if (getConfig().getConfigValue("test", "testVal").equals("test")){
             message.output("test", "2");
         } else if (getConfig().getConfigValue("inputs", "1").equals("2")) {

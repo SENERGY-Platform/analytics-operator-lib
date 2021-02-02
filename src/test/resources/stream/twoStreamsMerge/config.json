@@ -1,0 +1,29 @@
+{
+  "config": {
+    "value": "true"
+  },
+  "inputTopics": [
+    {
+      "Name": "input-topic",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value.value"
+        }
+      ]
+    },
+    {
+      "Name": "input-topic-2",
+      "FilterType": "DeviceId",
+      "FilterValue": "2",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value.value"
+        }
+      ]
+    }
+  ]
+}
