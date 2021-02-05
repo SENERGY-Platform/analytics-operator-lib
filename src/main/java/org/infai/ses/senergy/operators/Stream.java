@@ -260,21 +260,13 @@ public class Stream {
             KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
             filteredStream.process(OffsetCheck::new);
             this.checkApplicationStatus();
-            return filteredStream.flatMap((key, value) -> {
-                List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
-                return result;
-            });
+            return analyticsStreamToInputStream(streamLineKey, topicConfig,filteredStream);
         } else {
             KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
             filteredStream.process(OffsetCheck::new);
             this.checkApplicationStatus();
-            return filteredStream.flatMap((key, value) -> {
-                List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
-                return result;
-            });
+            return deviceStreamToInputStream(streamLineKey, topicConfig, filteredStream);
         }
     }
 
@@ -297,11 +289,7 @@ public class Stream {
                     )[0];
                 }
                 KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-                parsedInputStream =  filteredStream.flatMap((key, value) -> {
-                    List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                    result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
-                    return result;
-                });
+                parsedInputStream = analyticsStreamToInputStream(streamLineKey, topicConfig, filteredStream);
             } else {
                 KStream<String, DeviceMessageModel> inputData;
                 if (!devicesInputMap.containsKey(topicConfig.getName())) {
@@ -315,15 +303,31 @@ public class Stream {
                     )[0];
                 }
                 KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-                parsedInputStream =  filteredStream.flatMap((key, value) -> {
-                    List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-                    result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
-                    return result;
-                });
+                parsedInputStream = deviceStreamToInputStream(streamLineKey, topicConfig, filteredStream);
             }
             inputStreams.add(parsedInputStream);
         }
         return inputStreams;
+    }
+
+    private KStream<String, InputMessageModel> deviceStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, DeviceMessageModel> filteredStream) {
+        KStream<String, InputMessageModel> parsedInputStream;
+        parsedInputStream =  filteredStream.flatMap((key, value) -> {
+            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
+            return result;
+        });
+        return parsedInputStream;
+    }
+
+    private KStream<String, InputMessageModel> analyticsStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, AnalyticsMessageModel> filteredStream) {
+        KStream<String, InputMessageModel> parsedInputStream;
+        parsedInputStream =  filteredStream.flatMap((key, value) -> {
+            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
+            return result;
+        });
+        return parsedInputStream;
     }
 
     private KStream<String, MessageModel> toMessageModel(KStream<String, InputMessageModel> stream) {
