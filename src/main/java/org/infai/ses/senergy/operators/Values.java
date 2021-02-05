@@ -28,6 +28,7 @@ public final class Values {
     public static final String MAPPING_SOURCE_KEY = "source";
     public static final String FILTER_TYPE_KEY = "filterType";
     public static final String FILTER_VALUE_KEY = "filterValue";
+    public static final String FILTER_VALUE_2_KEY = "filterValue2";
     public static final String FILTER_TYPE_OPERATOR_KEY = "OperatorId";
     public static final String FILTER_TYPE_DEVICE_KEY = "DeviceId";
     public static final String INPUT_TOPICS = "inputTopics";

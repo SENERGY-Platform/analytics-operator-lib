@@ -137,6 +137,7 @@ public class Config {
         this.configString = this.configString.replaceAll(PRE +Values.MAPPING_SOURCE_KEY+"\"", '"'+Values.MAPPING_SOURCE_KEY+'"');
         this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_KEY+"\"", '"'+Values.FILTER_TYPE_KEY+'"');
         this.configString = this.configString.replaceAll(PRE +Values.FILTER_VALUE_KEY+"\"", '"'+Values.FILTER_VALUE_KEY+'"');
+        this.configString = this.configString.replaceAll(PRE +Values.FILTER_VALUE_2_KEY+"\"", '"'+Values.FILTER_VALUE_2_KEY+'"');
         this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_OPERATOR_KEY+"\"", '"'+Values.FILTER_TYPE_OPERATOR_KEY+'"');
         this.configString = this.configString.replaceAll(PRE +Values.FILTER_TYPE_DEVICE_KEY+"\"", '"'+Values.FILTER_TYPE_DEVICE_KEY+'"');
         this.configString = this.configString.replaceAll(PRE +Values.INPUT_TOPICS+"\"", '"'+Values.INPUT_TOPICS+'"');
