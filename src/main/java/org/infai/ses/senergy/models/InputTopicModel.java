@@ -23,6 +23,7 @@ public final class InputTopicModel {
     private String name = null;
     private String filterType = null;
     private String filterValue = null;
+    private String filterValue2 = null;
     private List<MappingModel> mappings = null;
 
     public InputTopicModel() {
@@ -32,6 +33,7 @@ public final class InputTopicModel {
         this.name = another.name;
         this.filterType = another.filterType;
         this.filterValue = another.filterValue;
+        this.filterValue2 = another.filterValue2;
         this.mappings = another.mappings;
     }
 
@@ -52,6 +54,10 @@ public final class InputTopicModel {
 
     public String getFilterValue(){
         return this.filterValue;
+    }
+
+    public String getFilterValue2(){
+        return this.filterValue2;
     }
 
     public List<MappingModel> getMappings(){

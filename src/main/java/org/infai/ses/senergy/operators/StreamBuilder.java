@@ -37,8 +37,8 @@ public class StreamBuilder{
 
     private static Integer seconds = Values.WINDOW_TIME;
 
-    public static  <T>KStream<String, T> filterBy(KStream<String, T> inputStream, String[] filterValues) {
-        return inputStream.filter((key, value) -> BaseBuilder.filterId(filterValues, value));
+    public static  <T>KStream<String, T> filterBy(KStream<String, T> inputStream, String[] filterValues, String[] filterValues2) {
+        return inputStream.filter((key, value) -> BaseBuilder.filterId(filterValues, filterValues2, value));
     }
 
     public static KStream<String, MessageModel> joinMultipleStreams(List <KStream<String, InputMessageModel>> streams) {

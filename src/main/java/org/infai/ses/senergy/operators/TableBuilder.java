@@ -34,8 +34,8 @@ public class TableBuilder {
      * @param filterValues String []
      * @return KStream filterData
      */
-    public static <T>KTable<String, T> filterBy(KTable<String, T> inputStream, String [] filterValues) {
-        KTable<String, T> filterData = inputStream.filter((key, value) -> BaseBuilder.filterId(filterValues, value));
+    public static <T>KTable<String, T> filterBy(KTable<String, T> inputStream, String [] filterValues, String [] filterValues2) {
+        KTable<String, T> filterData = inputStream.filter((key, value) -> BaseBuilder.filterId(filterValues, filterValues2, value));
         filterData = filterNullValues(filterData);
         return filterData;
     }

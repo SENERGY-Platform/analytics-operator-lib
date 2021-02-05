@@ -31,11 +31,11 @@ public class BaseBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    protected static <T>boolean filterId(String[] filterValues, T message) {
+    protected static <T>boolean filterId(String[] filterValues, String[]filterValues2, T message) {
         if (filterValues.length > 0) {
             if (message instanceof AnalyticsMessageModel){
                 try {
-                    return Values.PIPELINE_ID.equals(((AnalyticsMessageModel) message).getPipelineId()) &&
+                    return Arrays.asList(filterValues2).contains(((AnalyticsMessageModel) message).getPipelineId()) &&
                             Arrays.asList(filterValues).contains(((AnalyticsMessageModel) message).getOperatorId());
                 } catch (NullPointerException e) {
                     log.log(Level.SEVERE, "No Filter ID was set to be filtered");

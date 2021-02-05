@@ -85,7 +85,7 @@ public class TableBuilderTest {
         StreamsBuilder builder = new StreamsBuilder();
 
         final KTable<String, DeviceMessageModel> source1 = builder.table(INPUT_TOPIC);
-        final KTable<String, DeviceMessageModel> filtered = TableBuilder.filterBy(source1, deviceIds);
+        final KTable<String, DeviceMessageModel> filtered = TableBuilder.filterBy(source1, deviceIds, null);
 
         KStream<String, String> out = filtered.toStream().flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
@@ -119,7 +119,7 @@ public class TableBuilderTest {
         StreamsBuilder builder = new StreamsBuilder();
 
         final KTable<String, DeviceMessageModel> source1 = builder.table(INPUT_TOPIC);
-        final KTable<String, DeviceMessageModel> filtered = TableBuilder.filterBy(source1, deviceIds);
+        final KTable<String, DeviceMessageModel> filtered = TableBuilder.filterBy(source1, deviceIds, null);
 
         KStream<String, String> out = filtered.toStream().flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();

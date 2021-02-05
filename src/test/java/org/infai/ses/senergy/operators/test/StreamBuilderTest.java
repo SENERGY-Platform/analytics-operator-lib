@@ -23,6 +23,7 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.test.MockProcessorSupplier;
+import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.InputMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
@@ -75,13 +76,13 @@ public class StreamBuilderTest {
     }
 
     @Test
-    public void testFilterBy() {
+    public void testFilterByDeviceId() {
         final String[] deviceIds = new String[]{"1"};
 
         StreamsBuilder builder = new StreamsBuilder();
 
         final KStream<String, DeviceMessageModel> source1 = builder.stream(INPUT_TOPIC);
-        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds);
+        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds, null);
 
         KStream<String, String> out = filtered.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
@@ -108,13 +109,87 @@ public class StreamBuilderTest {
     }
 
     @Test
+    public void testFilterByOperatorId() {
+        final String[] operatorIds = new String[]{"1"};
+        final String[] pipelineIds = new String[]{"debug"};
+
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, AnalyticsMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, AnalyticsMessageModel> filtered = StreamBuilder.filterBy(source1, operatorIds, pipelineIds);
+
+
+        KStream<String, String> out = filtered.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.getFromObject(value)));
+            return result;
+        });
+        out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        out.process(processorSupplier);
+        props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerdes.AnalyticsMessage().getClass().getName());
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug\"}");
+            inputTopic.pipeInput("B", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug2\"}");
+            inputTopic.pipeInput("D", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug\"}");
+        }
+
+        Assert.assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 0),
+                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 2000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
+    }
+
+    @Test
+    public void testFilterByOperatorIdDifferentPipelineId() {
+        final String[] operatorIds = new String[]{"1"};
+        final String[] pipelineIds = new String[]{"debug", "debug2"};
+
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, AnalyticsMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, AnalyticsMessageModel> filtered = StreamBuilder.filterBy(source1, operatorIds, pipelineIds);
+
+
+        KStream<String, String> out = filtered.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.getFromObject(value)));
+            return result;
+        });
+        out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        out.process(processorSupplier);
+        props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerdes.AnalyticsMessage().getClass().getName());
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug\"}");
+            inputTopic.pipeInput("B", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug2\"}");
+            inputTopic.pipeInput("D", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug\"}");
+            inputTopic.pipeInput("B", "{\"operator_id\": \"1\", \"pipeline_id\": \"debug3\"}");
+        }
+
+        Assert.assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 0),
+                new KeyValueTimestamp<>("B", "{\"pipeline_id\":\"debug2\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 1000),
+                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 2000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
+    }
+
+    @Test
     public void testFilterByMultipleDevices(){
         final String[] deviceIds = new String[] {"1", "2"};
 
         StreamsBuilder builder = new StreamsBuilder();
 
         final KStream<String, DeviceMessageModel> source1 = builder.stream(INPUT_TOPIC);
-        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds);
+        final KStream<String, DeviceMessageModel> filtered = StreamBuilder.filterBy(source1, deviceIds, null);
         KStream<String, String> out = filtered.flatMap((key, value) -> {
             List<KeyValue<String, String>> result = new LinkedList<>();
             result.add(KeyValue.pair(key, Helper.getFromObject(value)));

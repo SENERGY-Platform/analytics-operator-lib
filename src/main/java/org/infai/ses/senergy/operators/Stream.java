@@ -244,7 +244,13 @@ public class Stream {
     private <T> KStream<String, T> filterStream(InputTopicModel topic, KStream<String, T> inputData) {
         KStream<String, T> filterData;
         String[] filterValues = topic.getFilterValue().split(",");
-        filterData = StreamBuilder.filterBy(inputData, filterValues);
+        String[] filterValues2;
+        if (topic.getFilterValue2() != null){
+            filterValues2 = topic.getFilterValue2().split(",");
+        } else {
+            filterValues2 = new String[]{Values.PIPELINE_ID};
+        }
+        filterData = StreamBuilder.filterBy(inputData, filterValues, filterValues2);
         return filterData;
     }
 
