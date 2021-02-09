@@ -35,8 +35,10 @@ public class BaseBuilder {
         if (filterValues.length > 0) {
             if (message instanceof AnalyticsMessageModel){
                 try {
-                    return Arrays.asList(filterValues2).contains(((AnalyticsMessageModel) message).getPipelineId()) &&
-                            Arrays.asList(filterValues).contains(((AnalyticsMessageModel) message).getOperatorId());
+                    return (Arrays.asList(filterValues2).contains(((AnalyticsMessageModel) message).getPipelineId()) &&
+                            Arrays.asList(filterValues).contains(((AnalyticsMessageModel) message).getOperatorId())) ||
+                            Arrays.asList(filterValues).contains(((AnalyticsMessageModel) message).getOperatorId() +":"+
+                                    ((AnalyticsMessageModel) message).getPipelineId());
                 } catch (NullPointerException e) {
                     log.log(Level.SEVERE, "No Filter ID was set to be filtered");
                 }
