@@ -67,7 +67,7 @@ public class Input {
      *
      * @return T
      */
-    private  <T>T getValue(Class<T> tClass) throws NoValueException {
+    public  <T>T getValue(Class<T> tClass) throws NoValueException {
         if (this.value != null){
             if (tClass.equals(String.class)){
                 if (this.value instanceof String){
@@ -108,7 +108,9 @@ public class Input {
                 }else {
                     throw new NoValueException("Cannot convert type to return value: " + this.value.getClass().getName() + " to " + tClass.getName());
                 }
-            }  else {
+            }  else if (tClass.isInstance(this.value)){
+                    return (T) this.value;
+            } else {
                 throw new NoValueException("Cannot use type to return value: " + tClass.getName());
             }
 

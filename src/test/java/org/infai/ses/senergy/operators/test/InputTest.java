@@ -30,10 +30,12 @@ public class InputTest {
         Assert.assertEquals( "1.0", input.getString());
         Assert.assertEquals( (Double)1.0, input.getValue());
         Assert.assertEquals( (Integer) 1, input.getValueAsInt());
+        Assert.assertEquals( (Double) 1.0, input.getValue(Double.class));
         input.setValue(1);
         Assert.assertEquals( "1", input.getString());
         Assert.assertEquals( (Double)1.0, input.getValue());
         Assert.assertEquals( (Integer) 1, input.getValueAsInt());
+        Assert.assertEquals( (Integer) 1, input.getValue(Integer.class));
     }
 
     @Test(expected=NoValueException.class)
@@ -48,5 +50,13 @@ public class InputTest {
         Input input = new Input();
         input.setValue("test");
         input.getValueAsInt();
+    }
+
+    @Test(expected=NoValueException.class)
+    public void testGetValueErrorClass() throws NoValueException {
+        Input input = new Input();
+        input.setValue("test");
+        Input v = input.getValue(Input.class);
+        v.getValue();
     }
 }

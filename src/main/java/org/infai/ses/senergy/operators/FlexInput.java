@@ -75,6 +75,21 @@ public class FlexInput {
     }
 
     /**
+     * Return the current value of the flexInput as casted type.
+     *
+     * @return T
+     */
+    public  <T>T getValue(Class<T> tClass) throws NoValueException {
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.value = input.getValue(tClass);
+                this.currentFilterId = input.getFilterId();
+            }
+        }
+        return (T) this.value;
+    }
+
+    /**
      * Return the current value of the flexInput as Integer.
      *
      * @return Integer
