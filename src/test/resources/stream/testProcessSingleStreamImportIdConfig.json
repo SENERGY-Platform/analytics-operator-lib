@@ -1,0 +1,15 @@
+{
+  "inputTopics": [
+    {
+      "Name": "input-topic",
+      "FilterType": "ImportId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value.reading.value"
+        }
+      ]
+    }
+  ]
+}

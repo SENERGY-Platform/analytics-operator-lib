@@ -116,6 +116,6 @@ public class MessageTest {
         Message message = new Message();
         message.addInput("value");
         message.setMessage(messageModel);
-        Assert.assertEquals("134534-null", message.getInput("value").getFilterId());
+        Assert.assertEquals("134534", message.getInput("value").getFilterId());
     }
 }

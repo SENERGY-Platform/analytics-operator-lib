@@ -18,10 +18,7 @@ package org.infai.ses.senergy.serialization;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.infai.ses.senergy.models.AnalyticsMessageModel;
-import org.infai.ses.senergy.models.DeviceMessageModel;
-import org.infai.ses.senergy.models.InputMessageModel;
-import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.models.*;
 
 public final class JSONSerdes {
 
@@ -75,5 +72,17 @@ public final class JSONSerdes {
 
     public static Serde<MessageModel> Message() {
         return new JSONSerdes.MessageSerde();
+    }
+
+    public static final class ImportMessageSerde
+            extends Serdes.WrapperSerde<ImportMessageModel> {
+        public ImportMessageSerde() {
+            super(new JSONSerializer<>(),
+                    new JSONDeserializer<>(ImportMessageModel.class));
+        }
+    }
+
+    public static Serde<ImportMessageModel> ImportMessage() {
+        return new JSONSerdes.ImportMessageSerde();
     }
 }

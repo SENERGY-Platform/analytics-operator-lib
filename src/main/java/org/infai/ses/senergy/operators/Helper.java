@@ -25,6 +25,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.utils.Time;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.ImportMessageModel;
 import org.infai.ses.senergy.models.InputMessageModel;
 import scala.collection.JavaConversions;
 
@@ -117,6 +118,15 @@ public class Helper {
         message.setValue(input.getValue());
         message.setFilterIdFirst(input.getDeviceId());
         message.setFilterIdSecond(input.getServiceId());
+        return message;
+    }
+
+    public static InputMessageModel importToInputMessageModel(ImportMessageModel input, String topicName) {
+        InputMessageModel message = new InputMessageModel();
+        message.setTopic(topicName);
+        message.setFilterType(InputMessageModel.FilterType.IMPORT_ID);
+        message.setValue(input.getValue());
+        message.setFilterIdFirst(input.getImportId());
         return message;
     }
 }

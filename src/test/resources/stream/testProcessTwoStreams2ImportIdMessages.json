@@ -1,0 +1,40 @@
+[
+  {
+    "pipeline_id": "1",
+    "inputs": [
+      {
+        "import_id": "3",
+        "value": 1
+      }
+    ],
+    "analytics": {}
+  },
+  {
+    "pipeline_id": "1",
+    "inputs": [
+      {
+        "import_id": "4",
+        "value": 1
+      }
+    ],
+    "analytics": {}
+  },
+  {
+    "import_id": "2",
+    "value": {
+      "value":"3"
+    }
+  },
+  {
+    "import_id": "1",
+    "value":{
+      "value":"2"
+    }
+  },
+  {
+    "import_id": "2",
+    "value":{
+      "value":"2"
+    }
+  }
+]

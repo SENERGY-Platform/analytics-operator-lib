@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.operators.test;
 
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
+import org.infai.ses.senergy.models.ImportMessageModel;
 import org.infai.ses.senergy.serialization.JSONDeserializer;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
 import org.junit.Assert;
@@ -30,5 +31,12 @@ public class DeserializerTest {
         JSONDeserializer deserializer = new JSONDeserializer(AnalyticsMessageModel.class);
         AnalyticsMessageModel model = (AnalyticsMessageModel) deserializer.deserialize("", JSONHelper.readFileAsBytes("deserializer/message-1.json"));
         Assert.assertEquals("b5ac827b-0197-441d-a4ea-4965e37c80b6",model.getOperatorId());
+    }
+
+    @Test
+    public void testDeserializeImport(){
+        JSONDeserializer deserializer = new JSONDeserializer(ImportMessageModel.class);
+        ImportMessageModel model = (ImportMessageModel) deserializer.deserialize("", JSONHelper.readFileAsBytes("deserializer/message-2.json"));
+        Assert.assertEquals("urn:infai:ses:import:35233154-6c3b-a0b7-d0f7-c088215ba924", model.getImportId());
     }
 }

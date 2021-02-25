@@ -24,7 +24,7 @@ public class InputMessageModel {
 
     public enum FilterType
     {
-        OPERATOR_ID, DEVICE_ID
+        OPERATOR_ID, DEVICE_ID, IMPORT_ID
     }
 
     @JsonProperty("filterIdFirst")

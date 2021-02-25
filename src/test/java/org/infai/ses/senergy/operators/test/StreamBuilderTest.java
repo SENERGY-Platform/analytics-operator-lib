@@ -23,10 +23,7 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.test.MockProcessorSupplier;
-import org.infai.ses.senergy.models.AnalyticsMessageModel;
-import org.infai.ses.senergy.models.DeviceMessageModel;
-import org.infai.ses.senergy.models.InputMessageModel;
-import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.serialization.JSONSerdes;
@@ -302,6 +299,74 @@ public class StreamBuilderTest {
             JSONObject value = (JSONObject) expected.get(index++);
             JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
         }
+    }
+
+    @Test
+    public void testFilterByImportId() {
+        final String[] importIds = new String[]{"1"};
+
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, ImportMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, ImportMessageModel> filtered = StreamBuilder.filterBy(source1, importIds, null);
+
+        KStream<String, String> out = filtered.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.getFromObject(value)));
+            return result;
+        });
+        out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        out.process(processorSupplier);
+        props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerdes.ImportMessage().getClass().getName());
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{\"import_id\": \"1\"}");
+            inputTopic.pipeInput("B", "{\"import_id\": \"2\"}");
+            inputTopic.pipeInput("D", "{\"import_id\": \"1\"}");
+        }
+
+        Assert.assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{\"import_id\":\"1\",\"value\":null,\"time\":null}", 0),
+                new KeyValueTimestamp<>("D", "{\"import_id\":\"1\",\"value\":null,\"time\":null}", 2000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
+    }
+
+    @Test
+    public void testFilterByMultipleImports(){
+        final String[] importIds = new String[] {"1", "2"};
+
+        StreamsBuilder builder = new StreamsBuilder();
+
+        final KStream<String, ImportMessageModel> source1 = builder.stream(INPUT_TOPIC);
+        final KStream<String, ImportMessageModel> filtered = StreamBuilder.filterBy(source1, importIds, null);
+        KStream<String, String> out = filtered.flatMap((key, value) -> {
+            List<KeyValue<String, String>> result = new LinkedList<>();
+            result.add(KeyValue.pair(key, Helper.getFromObject(value)));
+            return result;
+        });
+        out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+
+        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+        out.process(processorSupplier);
+        props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerdes.ImportMessage().getClass().getName());
+        try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{\"import_id\": \"1\"}");
+            inputTopic.pipeInput("B", "{\"import_id\": \"2\"}");
+            inputTopic.pipeInput("B", "{\"import_id\": \"3\"}");
+            inputTopic.pipeInput("D", "{\"import_id\": \"1\"}");
+        }
+        Assert.assertEquals(asList(
+                new KeyValueTimestamp<>("A", "{\"import_id\":\"1\",\"value\":null,\"time\":null}", 0),
+                new KeyValueTimestamp<>("B", "{\"import_id\":\"2\",\"value\":null,\"time\":null}", 1000),
+                new KeyValueTimestamp<>("D", "{\"import_id\":\"1\",\"value\":null,\"time\":null}", 3000)
+                ),
+                processorSupplier.theCapturedProcessor().processed);
     }
 
     @After

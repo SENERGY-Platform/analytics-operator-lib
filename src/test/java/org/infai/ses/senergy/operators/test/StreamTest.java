@@ -417,4 +417,106 @@ public class StreamTest {
 
         Assert.assertEquals(expectedValues.get(numStreams).intValue(), processorSupplier.theCapturedProcessor().processed.size());
     }
+
+    @Test
+    public void testProcessSingleStreamImportId() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamImportIdConfig.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/testProcessSingleStreamImportIdExpected.json");
+        stream.setOperator(new TestOperator());
+        stream.processSingleStream(config.getInputTopicsConfigs().get(0));
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", "{\"import_id\": \"1\"}");
+            inputTopic.pipeInput("B", "{\"import_id\": \"1\"}");
+            inputTopic.pipeInput("C", "{\"import_id\": \"1\"}");
+            inputTopic.pipeInput("D", "{\"import_id\": \"2\"}");
+        }
+
+        int index = 0;
+        for (KeyValueTimestamp result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index++);
+            value.put("time", TimeProvider.nowUTCToString());
+            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+        }
+    }
+
+    @Test
+    public void testProcessTwoStreams2ImportId() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2ImportIdConfig.json").toString());
+        JSONObject expected = new JSONHelper().parseFile("stream/testProcessTwoStreams2ImportIdExpected.json");
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessTwoStreams2ImportIdMessages.json");
+        stream.setWindowTime(5);
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreams(config.getInputTopicsConfigs());
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            final TestInputTopic<String, String> inputTopic2 =
+                    driver.createInputTopic(INPUT_TOPIC_2, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            inputTopic1.pipeInput(null, jsonMessages.get(0).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(1).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(2).toString());
+            inputTopic1.advanceTime(Duration.ofSeconds(6));
+            inputTopic2.advanceTime(Duration.ofSeconds(6));
+            inputTopic1.pipeInput(null, jsonMessages.get(3).toString());
+            inputTopic1.advanceTime(Duration.ofSeconds(2));
+            inputTopic2.advanceTime(Duration.ofSeconds(2));
+            inputTopic2.pipeInput(null, jsonMessages.get(4).toString());
+        }
+
+        expected.put("time", TimeProvider.nowUTCToString());
+        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.theCapturedProcessor().processed.get(0).value(), JSONCompareMode.LENIENT);
+        assertEquals(8000, processorSupplier.theCapturedProcessor().processed.get(0).timestamp());
+    }
+
+    @Test
+    public void testProcessTwoStreamsAsTable2ImportId() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessTwoStreams2ImportIdConfig.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/testProcessTwoStreamsAsTable2ImportIdExpected.json");
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessTwoStreams2ImportIdMessages.json");
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreamsAsTable(config.getInputTopicsConfigs());
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            final TestInputTopic<String, String> inputTopic2 =
+                    driver.createInputTopic(INPUT_TOPIC_2, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            inputTopic1.pipeInput(null, jsonMessages.get(0).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(1).toString());
+            inputTopic2.pipeInput(null, jsonMessages.get(2).toString());
+            inputTopic1.advanceTime(Duration.ofSeconds(6));
+            inputTopic2.advanceTime(Duration.ofSeconds(6));
+            inputTopic1.pipeInput(null, jsonMessages.get(3).toString());
+            inputTopic1.advanceTime(Duration.ofSeconds(2));
+            inputTopic2.advanceTime(Duration.ofSeconds(2));
+            inputTopic2.pipeInput(null, jsonMessages.get(4).toString());
+        }
+        JSONObject expected1 = (JSONObject) expected.get(1);
+        JSONObject expected2 = (JSONObject) expected.get(0);
+        expected1.put("time", TimeProvider.nowUTCToString());
+        expected2.put("time", TimeProvider.nowUTCToString());
+
+        int index = 0;
+        long[] timestamps = {6000, 8000};
+        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
+        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index);
+            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp());
+            assertEquals("debug", result.key());
+        }
+    }
 }

@@ -18,6 +18,7 @@ package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.ImportMessageModel;
 
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -45,6 +46,12 @@ public class BaseBuilder {
             } else if (message instanceof DeviceMessageModel){
                 try {
                     return Arrays.asList(filterValues).contains(((DeviceMessageModel) message).getDeviceId());
+                } catch (NullPointerException e) {
+                    log.log(Level.SEVERE, "No Filter ID was set to be filtered");
+                }
+            } else if (message instanceof ImportMessageModel){
+                try {
+                    return Arrays.asList(filterValues).contains(((ImportMessageModel) message).getImportId());
                 } catch (NullPointerException e) {
                     log.log(Level.SEVERE, "No Filter ID was set to be filtered");
                 }

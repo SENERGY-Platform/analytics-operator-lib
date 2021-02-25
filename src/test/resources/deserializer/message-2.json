@@ -1,0 +1,21 @@
+{
+  "import_id": "urn:infai:ses:import:35233154-6c3b-a0b7-d0f7-c088215ba924",
+  "time": "2021-02-15T23:12:15Z",
+  "value": {
+    "warnCellId": "114713000",
+    "regionName": "Stadt Leipzig",
+    "type": 6,
+    "state": "Sachsen",
+    "level": 3,
+    "description": "Aufgrund von gefrierendem Regen oder Sprühregen muss örtlich mit Glatteis gerechnet werden.",
+    "event": "GLATTEIS",
+    "headline": "Amtliche WARNUNG vor GLATTEIS",
+    "instruction": "ACHTUNG! Hinweis auf mögliche Gefahren: Es treten starke Behinderungen im Straßen- und Schienenverkehr auf. Vermeiden Sie Autofahrten! ",
+    "stateShort": "SN",
+    "altitudeStart": 0,
+    "altitudeEnd": 3000,
+    "urgency": "Warnung",
+    "end": "2021-02-16T10:00:00Z",
+    "start": "2021-02-15T20:00:00Z"
+  }
+}

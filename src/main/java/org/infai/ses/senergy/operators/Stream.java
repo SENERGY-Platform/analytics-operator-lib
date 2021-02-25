@@ -267,6 +267,12 @@ public class Stream {
             filteredStream.process(OffsetCheck::new);
             this.checkApplicationStatus();
             return analyticsStreamToInputStream(streamLineKey, topicConfig,filteredStream);
+        } else if (topicConfig.getFilterType().equals("ImportId")) {
+            KStream<String, ImportMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage()));
+            KStream<String, ImportMessageModel> filteredStream = filterStream(topicConfig, inputData);
+            filteredStream.process(OffsetCheck::new);
+            this.checkApplicationStatus();
+            return importStreamToInputStream(streamLineKey, topicConfig,filteredStream);
         } else {
             KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
             KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
@@ -280,6 +286,7 @@ public class Stream {
         List<KStream<String, InputMessageModel>> inputStreams = new LinkedList<>();
         Map<String, KStream<String, AnalyticsMessageModel>> analyticsInputMap = new HashMap<>();
         Map<String, KStream<String, DeviceMessageModel>> devicesInputMap = new HashMap<>();
+        Map<String, KStream<String, ImportMessageModel>> importInputMap = new HashMap<>();
         for (InputTopicModel topicConfig : topicConfigs) {
             KStream<String, InputMessageModel> parsedInputStream;
             if (topicConfig.getFilterType().equals("OperatorId")) {
@@ -296,6 +303,20 @@ public class Stream {
                 }
                 KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
                 parsedInputStream = analyticsStreamToInputStream(streamLineKey, topicConfig, filteredStream);
+            } else if (topicConfig.getFilterType().equals("ImportId")) {
+                KStream<String, ImportMessageModel> inputData;
+                if (!analyticsInputMap.containsKey(topicConfig.getName())) {
+                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage()));
+                    inputData.process(OffsetCheck::new);
+                    this.checkApplicationStatus();
+                    importInputMap.put(topicConfig.getName(), inputData);
+                } else {
+                    inputData = importInputMap.get(topicConfig.getName()).branch(
+                            (key, value) -> true
+                    )[0];
+                }
+                KStream<String, ImportMessageModel> filteredStream = filterStream(topicConfig, inputData);
+                parsedInputStream = importStreamToInputStream(streamLineKey, topicConfig, filteredStream);
             } else {
                 KStream<String, DeviceMessageModel> inputData;
                 if (!devicesInputMap.containsKey(topicConfig.getName())) {
@@ -331,6 +352,16 @@ public class Stream {
         parsedInputStream =  filteredStream.flatMap((key, value) -> {
             List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
             result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
+            return result;
+        });
+        return parsedInputStream;
+    }
+
+    private KStream<String, InputMessageModel> importStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, ImportMessageModel> filteredStream) {
+        KStream<String, InputMessageModel> parsedInputStream;
+        parsedInputStream =  filteredStream.flatMap((key, value) -> {
+            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
+            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.importToInputMessageModel(value, topicConfig.getName())));
             return result;
         });
         return parsedInputStream;

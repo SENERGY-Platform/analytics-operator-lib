@@ -97,7 +97,11 @@ public class Message {
             }
             if (msg != null) {
                 input.setValue(this.parse(msg.getValue(), tree));
-                input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
+                String filter = msg.getFilterIdFirst();
+                if (msg.getFilterIdSecond() != null) {
+                    filter += "-" + msg.getFilterIdSecond();
+                }
+                input.setFilterId(filter);
             } else {
                 input.setValue(null);
                 input.setFilterId(null);
@@ -127,7 +131,11 @@ public class Message {
                         input.setCurrent(true);
                     }
                     input.setValue(val);
-                    input.setFilterId(msg.getFilterIdFirst()+"-"+msg.getFilterIdSecond());
+                    String filter = msg.getFilterIdFirst();
+                    if (msg.getFilterIdSecond() != null) {
+                        filter += "-" + msg.getFilterIdSecond();
+                    }
+                    input.setFilterId(filter);
                 } else {
                     input.setValue(null);
                     input.setFilterId(null);
