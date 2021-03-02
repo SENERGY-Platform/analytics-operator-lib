@@ -229,7 +229,10 @@ public class Stream {
             List<KeyValue<String, MessageModel>> result = new LinkedList<>();
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
             operator.run(this.message.setMessage(value));
-            result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, this.message.getMessage()));
+            MessageModel message = this.message.getMessage();
+            if (message.getOutputMessage().getAnalytics().size() > 0) {
+                result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
+            }
             return result;
         });
     }
