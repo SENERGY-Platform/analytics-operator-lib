@@ -16,41 +16,63 @@
 
 package org.infai.ses.senergy.operators.test;
 
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.operators.BaseOperator;
+import org.infai.ses.senergy.operators.FlexInput;
 import org.infai.ses.senergy.operators.Message;
 
 public class TestFlexOperator extends BaseOperator {
 
     @Override
     public void run(Message message) {
-        if (config.getConfigValue("test", "1").equals("1")){
-            Double result = 0.0;
-            for (Double value : message.getFlexInput("value").getValues()){
-                result += value;
-            };
-            message.output("test", result);
-        } else if (config.getConfigValue("test", "1").equals("2")){
-            Double result = 0.0;
-            Double result2 = 0.0;
-            for (Double value : message.getFlexInput("value").getValues()){
-                result += value;
-            };
-            for (Double value : message.getFlexInput("value2").getValues()){
-                result2 -= value;
-            };
-            message.output("test", result);
-            message.output("test2", result2);
+        switch (config.getConfigValue("test", "1")) {
+            case "1": {
+                Double result = 0.0;
+                for (Double value : message.getFlexInput("value").getValues()) {
+                    result += value;
+                }
+                message.output("test", result);
+                break;
+            }
+            case "2": {
+                Double result = 0.0;
+                Double result2 = 0.0;
+                for (Double value : message.getFlexInput("value").getValues()) {
+                    result += value;
+                }
+                for (Double value : message.getFlexInput("value2").getValues()) {
+                    result2 -= value;
+                }
+                message.output("test", result);
+                message.output("test2", result2);
+                break;
+            }
+            case "3":
+                // outputs current filterId
+                FlexInput input = message.getFlexInput("value");
+                try {
+                    input.getValue();
+                } catch (NoValueException e) {
+                    return;
+                }
+                String f = input.getCurrentFilterId();
+                message.output("test", f);
+                break;
         }
 
     }
 
     @Override
     public Message configMessage(Message message) {
-        if (config.getConfigValue("test", "1").equals("1")){
-            message.addFlexInput("value");
-        }else if (config.getConfigValue("test", "1").equals("2")) {
-            message.addFlexInput("value");
-            message.addFlexInput("value2");
+        switch (config.getConfigValue("test", "1")) {
+            case "1":
+            case "3":
+                message.addFlexInput("value");
+                break;
+            case "2":
+                message.addFlexInput("value");
+                message.addFlexInput("value2");
+                break;
         }
         return message;
     }

@@ -28,6 +28,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -36,17 +37,11 @@ import java.util.Map;
 public class OperatorFlexTest {
 
     static TestFlexOperator testOperator;
-    protected JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-1.json");
-    static String configString = new JSONHelper().parseFile("operatorFlex/config-1.json").toString();
-
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
 
     @Test
-    public void testTwoFilterValues(){
+    public void testOneFilterValue(){
+        JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-1.json");
+        String configString = new JSONHelper().parseFile("operatorFlex/config-1.json").toString();
         Config config = new Config(configString);
         ConfigProvider.setConfig(config);
         Message message = new Message();
@@ -63,5 +58,38 @@ public class OperatorFlexTest {
         message.setMessage(model);
         testOperator.run(message);
         Assert.assertEquals( 21.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+    }
+
+    @Test
+    @Ignore
+    public void testCurrentFilterValuesWithUnchangingValues(){
+        testCurrentFilterValues("operatorFlex/messages-2.json");
+    }
+
+    @Test
+    public void testCurrentFilterValuesWithChangingValues(){
+        testCurrentFilterValues("operatorFlex/messages-3.json");
+    }
+
+    private void testCurrentFilterValues(String messageFile) {
+        JSONArray messages = new JSONHelper().parseFile(messageFile);
+        String configString = new JSONHelper().parseFile("operatorFlex/config-2.json").toString();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
+        testOperator = new TestFlexOperator();
+        int index = 0;
+        Message message = new Message();
+        MessageModel model = new MessageModel();
+        testOperator.configMessage(message);
+        for(Object msg : messages){
+            String topicName = config.getInputTopicsConfigs().get(index % 2).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+            Assert.assertEquals("" + (index % 2), message.getMessage().getOutputMessage().getAnalytics().get("test"));
+            index++;
+        }
     }
 }

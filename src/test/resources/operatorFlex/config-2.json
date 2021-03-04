@@ -1,35 +1,27 @@
 {
   "config": {
-    "test": "1"
+    "test": "3"
   },
   "inputTopics": [
     {
       "Name": "test",
       "FilterType": "DeviceId",
-      "FilterValue": "1,2",
+      "FilterValue": "0",
       "Mappings": [
         {
-          "Dest": "value_1",
+          "Dest": "value",
           "Source": "value.reading.value"
-        },
-        {
-          "Dest": "value_2",
-          "Source": "value.reading2.value"
         }
       ]
     },
     {
       "Name": "test2",
       "FilterType": "DeviceId",
-      "FilterValue": "3,4",
+      "FilterValue": "1",
       "Mappings": [
         {
-          "Dest": "value_1",
+          "Dest": "value",
           "Source": "value.reading.value"
-        },
-        {
-          "Dest": "value_2",
-          "Source": "value.reading2.value"
         }
       ]
     }

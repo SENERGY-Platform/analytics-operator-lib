@@ -3,7 +3,7 @@
     "device_id": "0",
     "value": {
       "reading": {
-        "value": 0
+        "value": 1
       }
     }
   },
@@ -11,7 +11,7 @@
     "device_id": "1",
     "value": {
       "reading": {
-        "value": 0
+        "value": 2
       }
     }
   },
@@ -19,7 +19,7 @@
     "device_id": "0",
     "value": {
       "reading": {
-        "value": 0
+        "value": 3
       }
     }
   },
@@ -27,7 +27,7 @@
     "device_id": "1",
     "value": {
       "reading": {
-        "value": 0
+        "value": 4
       }
     }
   }
