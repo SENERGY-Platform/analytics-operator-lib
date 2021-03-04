@@ -18,8 +18,10 @@ package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.exceptions.NoValueException;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,6 +89,24 @@ public class FlexInput {
             }
         }
         return (T) this.value;
+    }
+
+    /**
+     * Return the current filterId and value of the each input as casted type.
+     * Inputs without values or values that can not be casted are excluded.
+     *
+     * @return Map<String, T>
+     */
+    public <T> Map<String, T> getFilterIdValueMap(Class<T> tClass) {
+        Map<String, T> map = new HashMap<>();
+        for (Input input : this.inputs) {
+            try {
+                map.put(input.getFilterId(), input.getValue(tClass));
+            } catch (NoValueException e) {
+                // ignore input
+            }
+        }
+        return map;
     }
 
     /**
