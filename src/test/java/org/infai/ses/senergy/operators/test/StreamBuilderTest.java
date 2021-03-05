@@ -44,7 +44,9 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 import static java.util.Arrays.asList;
 
@@ -58,13 +60,15 @@ public class StreamBuilderTest {
 
     private File stateDir = new File("./state/builder");
 
-    private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
+    private final LocalDateTime time = LocalDateTime.of(2020,1,1,1,1);
+    private String timeString;
 
     Properties props = new Properties();
 
     @Before
     public void setUp(){
         TimeProvider.useFixedClockAt(time);
+        timeString = TimeProvider.nowUTCToString();
         // setup test driver
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
@@ -135,8 +139,8 @@ public class StreamBuilderTest {
         }
 
         Assert.assertEquals(asList(
-                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 0),
-                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 2000)
+                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 0),
+                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 2000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
@@ -172,9 +176,9 @@ public class StreamBuilderTest {
         }
 
         Assert.assertEquals(asList(
-                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 0),
-                new KeyValueTimestamp<>("B", "{\"pipeline_id\":\"debug2\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 1000),
-                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 2000)
+                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 0),
+                new KeyValueTimestamp<>("B", "{\"pipeline_id\":\"debug2\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 1000),
+                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 2000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
@@ -209,9 +213,9 @@ public class StreamBuilderTest {
         }
 
         Assert.assertEquals(asList(
-                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 0),
-                new KeyValueTimestamp<>("B", "{\"pipeline_id\":\"debug2\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 1000),
-                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\"2020-01-01T00:01:00Z\"}", 2000)
+                new KeyValueTimestamp<>("A", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 0),
+                new KeyValueTimestamp<>("B", "{\"pipeline_id\":\"debug2\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 1000),
+                new KeyValueTimestamp<>("D", "{\"pipeline_id\":\"debug\",\"operator_id\":\"1\",\"analytics\":null,\"time\":\""+timeString+"\"}", 2000)
                 ),
                 processorSupplier.theCapturedProcessor().processed);
     }
