@@ -31,6 +31,8 @@ public class FlexInput {
 
     private Object value;
     private String currentFilterId;
+    private String currentSource;
+    private String currentInputTopic;
 
     private List<Input> inputs = new LinkedList<>();
 
@@ -130,7 +132,30 @@ public class FlexInput {
      * @return String
      */
     public String getCurrentFilterId(){
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.currentFilterId = input.getFilterId();
+            }
+        }
         return this.currentFilterId;
+    }
+
+    public String getCurrentSource(){
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.currentSource = input.getSource();
+            }
+        }
+        return this.currentSource;
+    }
+
+    public String getCurrentInputTopic(){
+        for (Input input: this.inputs){
+            if (input.getCurrent()){
+                this.currentInputTopic = input.getInputTopicName();
+            }
+        }
+        return this.currentSource;
     }
 
     protected void setInputs(List<Input> inputs){
