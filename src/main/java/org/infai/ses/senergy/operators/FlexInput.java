@@ -155,7 +155,7 @@ public class FlexInput {
                 this.currentInputTopic = input.getInputTopicName();
             }
         }
-        return this.currentSource;
+        return this.currentInputTopic;
     }
 
     protected void setInputs(List<Input> inputs){
