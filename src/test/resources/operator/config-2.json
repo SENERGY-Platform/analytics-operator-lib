@@ -1,7 +1,6 @@
 {
   "config": {
-    "input": "true",
-    "inputs": "2"
+    "value": "2inputs"
   },
   "inputTopics": [
     {

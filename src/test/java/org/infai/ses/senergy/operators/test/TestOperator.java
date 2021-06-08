@@ -25,37 +25,18 @@ public class TestOperator extends BaseOperator {
 
     @Override
     public void run(Message message) {
-        if (getConfig().getConfigValue("input", "false").equals("true")){
-            try {
-                message.getInput("value").getValue();
-            } catch (NoValueException e){
+        switch (getConfig().getConfigValue("value", "")) {
+            case "2inputs":
+                try {
+                    message.output("val", message.getInput("value").getValue().toString());
+                    message.output("val2", message.getInput("value2").getValue().toString());
+                } catch (NoValueException e) {
 
-            }
-        }
-        if (getConfig().getConfigValue("value", "false").equals("true")){
-            try {
-                Double value = message.getInput("value").getValue();
-                message.output("value", value);
-            } catch (NoValueException e){
-
-            }
-        }
-        if (getConfig().getConfigValue("test", "testVal").equals("test")){
-            message.output("test", "2");
-        } else if (getConfig().getConfigValue("inputs", "1").equals("2")) {
-            try {
-                message.output("val", message.getInput("value").getValue().toString());
-            } catch (NoValueException e){
-
-            }
-            try {
-                message.output("val2", message.getInput("value2").getValue().toString());
-            } catch (NoValueException e){
-
-            }
-        }
-        else {
-            message.output("test", "1");
+                }
+                break;
+            default:
+                message.output("test", "1");
+                break;
         }
     }
 
