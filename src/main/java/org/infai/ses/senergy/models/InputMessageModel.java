@@ -17,6 +17,7 @@
 package org.infai.ses.senergy.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.infai.ses.senergy.operators.Helper;
 
 import java.util.Map;
 
@@ -86,5 +87,10 @@ public class InputMessageModel {
     @JsonProperty("topic")
     public void setTopic(String topic) {
         this.topic = topic;
+    }
+
+    @Override
+    public String toString() {
+        return Helper.getFromObject(this);
     }
 }
