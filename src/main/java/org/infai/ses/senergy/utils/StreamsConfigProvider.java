@@ -17,6 +17,8 @@
 package org.infai.ses.senergy.utils;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
@@ -48,6 +50,7 @@ public class StreamsConfigProvider {
         streamsConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, Helper.getEnv("CONSUMER_AUTO_OFFSET_RESET_CONFIG", "earliest"));
         streamsConfiguration.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, Integer.parseInt(Helper.getEnv("CACHE_MAX_BYTES_BUFFERING_CONFIG", "10")) *(long) 1024 * 1024L);
         streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, Integer.parseInt(Helper.getEnv("COMMIT_INTERVAL_MS_CONFIG", "1000")));
+        streamsConfiguration.put(TopicConfig.RETENTION_MS_CONFIG, Long.parseLong(Helper.getEnv("TOPIC_RETENTION_MS_CONFIG", "172800000")));
     }
 
     public static Properties getStreamsConfiguration(){
