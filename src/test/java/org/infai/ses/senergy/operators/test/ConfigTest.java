@@ -65,4 +65,7 @@ public class ConfigTest {
     public void testGetConfigValue(){
         Assert.assertEquals("test1",config.getConfigValue("test", "test1"));
     }
+
+    @Test
+    public void testGetUserId(){ Assert.assertEquals("not set", config.getUserId());}
 }

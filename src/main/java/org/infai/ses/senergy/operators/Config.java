@@ -118,6 +118,15 @@ public class Config {
         }
     }
 
+    /**
+     * Returns the user id of the user that started the operator.
+     *
+     * @return String
+     */
+    public String getUserId(){
+        return Values.USER_ID;
+    }
+
 
     /**
      * Returns the the input topic configuration which corresponds to the dest name given.
