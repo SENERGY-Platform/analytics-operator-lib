@@ -22,6 +22,7 @@ import org.infai.ses.senergy.operators.Message;
 
 public class TestOperator extends BaseOperator {
 
+    int index = 0;
 
     @Override
     public void run(Message message) {
@@ -33,6 +34,14 @@ public class TestOperator extends BaseOperator {
                 } catch (NoValueException e) {
 
                 }
+                break;
+            case "no_output":
+                break;
+            case "skip_output":
+                if (index < 1) {
+                    message.output("test", "1");
+                }
+                index++;
                 break;
             default:
                 message.output("test", "1");

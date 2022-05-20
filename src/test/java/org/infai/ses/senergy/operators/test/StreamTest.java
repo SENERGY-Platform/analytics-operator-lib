@@ -130,6 +130,50 @@ public class StreamTest {
         }
     }
 
+    @Test
+    public void testProcessSingleStreamAsTableNoOutput() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/singleStreamAsTableNoOutput/config.json").toString());
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/singleStreamAsTableNoOutput/messages.json");
+        ConfigProvider.setConfig(config);
+        stream.setOperator(new TestOperator());
+        stream.processSingleStreamAsTable(config.getInputTopicsConfigs().get(0));
+
+        stream.getOutputStream().process(processorSupplier);
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+            inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+            inputTopic.pipeInput("B", jsonMessages.get(2).toString());
+            inputTopic.pipeInput("G", jsonMessages.get(3).toString());
+        }
+
+        assertEquals(0, processorSupplier.theCapturedProcessor().processed.size());
+    }
+
+    @Test
+    public void testProcessSingleStreamAsTableSkipOutput() throws JSONException {
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/singleStreamAsTableSkipOutput/config.json").toString());
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/singleStreamAsTableSkipOutput/messages.json");
+        ConfigProvider.setConfig(config);
+        stream.setOperator(new TestOperator());
+        stream.processSingleStreamAsTable(config.getInputTopicsConfigs().get(0));
+
+        stream.getOutputStream().process(processorSupplier);
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+            inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+            inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+            inputTopic.pipeInput("B", jsonMessages.get(2).toString());
+            inputTopic.pipeInput("G", jsonMessages.get(3).toString());
+        }
+
+        assertEquals(1, processorSupplier.theCapturedProcessor().processed.size());
+    }
+
 
     @Test
     public void testProcessSingleStreamDeviceId() throws JSONException {

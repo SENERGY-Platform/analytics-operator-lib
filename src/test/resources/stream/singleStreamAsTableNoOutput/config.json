@@ -1,0 +1,18 @@
+{
+  "config": {
+    "value": "no_output"
+  },
+  "inputTopics": [
+    {
+      "Name": "input-topic",
+      "FilterType": "OperatorId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value.reading.value"
+        }
+      ]
+    }
+  ]
+}

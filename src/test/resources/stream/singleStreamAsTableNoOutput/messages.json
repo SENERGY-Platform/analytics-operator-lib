@@ -1,0 +1,18 @@
+[
+  {
+    "pipeline_id": "debug",
+    "operator_id": "1"
+  },
+  {
+    "pipeline_id": "debug",
+    "operator_id": "1"
+  },
+  {
+    "pipeline_id": "BBB",
+    "operator_id": "1"
+  },
+  {
+    "pipeline_id": "debug",
+    "operator_id": "2"
+  }
+]
