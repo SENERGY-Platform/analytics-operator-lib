@@ -61,7 +61,6 @@ public class OperatorFlexTest {
     }
 
     @Test
-    @Ignore
     public void testCurrentFilterValuesWithUnchangingValues(){
         testCurrentFilterValues("operatorFlex/messages-2.json");
     }

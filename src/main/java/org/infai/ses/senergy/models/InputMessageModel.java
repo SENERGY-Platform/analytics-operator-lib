@@ -39,6 +39,8 @@ public class InputMessageModel {
     @JsonProperty("topic")
     private String topic;
 
+    private Boolean processed = false;
+
     @JsonProperty("filterIdFirst")
     public String getFilterIdFirst() {
         return filterIdFirst;
@@ -92,5 +94,13 @@ public class InputMessageModel {
     @Override
     public String toString() {
         return Helper.getFromObject(this);
+    }
+
+    public void setProcessed() {
+        this.processed = true;
+    }
+
+    public Boolean getProcessed(){
+        return this.processed;
     }
 }

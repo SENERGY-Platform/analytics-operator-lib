@@ -117,29 +117,23 @@ public class Message {
                 input.setCurrent(false);
                 List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
                 InputMessageModel msg = this.messageModel.getMessage(input.getInputTopicName());
-                if (tree.size() > 1) {
-                    tree.remove(0);
-                }
-                if (msg != null) {
-                    Object val = this.parse(msg.getValue(), tree);
-                    String testString = String.valueOf(val);
-                    try {
-                        if (!input.getString().equals(testString)){
-                            input.setCurrent(true);
-                        }
-                    } catch (NoValueException e) {
-                        input.setCurrent(true);
+                if (msg == null){
+                    input.setValue(null);
+                    input.setFilterId(null);
+                    log.log(Level.INFO, "No value for input: {0}.", input.getSource());
+                } else if (!msg.getProcessed()){
+                    if (tree.size() > 1) {
+                        tree.remove(0);
                     }
-                    input.setValue(val);
                     String filter = msg.getFilterIdFirst();
                     if (msg.getFilterIdSecond() != null) {
                         filter += "-" + msg.getFilterIdSecond();
                     }
                     input.setFilterId(filter);
-                } else {
-                    input.setValue(null);
-                    input.setFilterId(null);
-                    log.log(Level.INFO, "No value for input: {0}.", input.getSource());
+                    Object val = this.parse(msg.getValue(), tree);
+                    input.setCurrent(true);
+                    input.setValue(val);
+                    msg.setProcessed();
                 }
             }
         }

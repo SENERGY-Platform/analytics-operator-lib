@@ -132,6 +132,7 @@ public class FlexInput {
      * @return String
      */
     public String getCurrentFilterId(){
+        this.currentFilterId = null;
         for (Input input: this.inputs){
             if (input.getCurrent()){
                 this.currentFilterId = input.getFilterId();
