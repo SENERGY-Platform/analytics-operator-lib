@@ -1,0 +1,39 @@
+[
+  {
+    "device_id": "0",
+    "value": {
+      "reading": {
+        "value": 1,
+        "value2": 4
+      }
+    }
+  },
+  {
+    "device_id": "0",
+    "value": {
+      "reading": {
+        "value": 2,
+        "value2": 3
+      }
+    }
+  },
+  {
+    "device_id": "0",
+    "value": {
+      "reading": {
+        "value": 3,
+        "value2": 2
+      }
+    }
+  },
+  {
+    "device_id": "0",
+    "value": {
+      "reading": {
+        "value": 4,
+        "value2": 1
+      }
+    }
+  }
+]
+

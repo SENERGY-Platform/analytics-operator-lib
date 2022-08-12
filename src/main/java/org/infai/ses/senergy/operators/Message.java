@@ -133,10 +133,10 @@ public class Message {
                     Object val = this.parse(msg.getValue(), tree);
                     input.setCurrent(true);
                     input.setValue(val);
-                    msg.setProcessed();
                 }
             }
         }
+        this.messageModel.setProcessed();
     }
 
     private Object parse (Map<String, Object> map, List<String> tree){

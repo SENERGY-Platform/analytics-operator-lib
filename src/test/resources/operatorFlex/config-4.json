@@ -11,17 +11,10 @@
         {
           "Dest": "value",
           "Source": "value.reading.value"
-        }
-      ]
-    },
-    {
-      "Name": "test2",
-      "FilterType": "DeviceId",
-      "FilterValue": "1",
-      "Mappings": [
+        },
         {
           "Dest": "value2",
-          "Source": "value.reading.value"
+          "Source": "value.reading.value2"
         }
       ]
     }

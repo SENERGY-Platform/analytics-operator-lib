@@ -46,4 +46,10 @@ public class MessageModel{
     public AnalyticsMessageModel getOutputMessage(){
         return this.outputMessage;
     }
+
+    public void setProcessed(){
+        for (Map.Entry<String, InputMessageModel> entry: this.inputMessages.entrySet()){
+            entry.getValue().setProcessed();
+        }
+    }
 }

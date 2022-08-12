@@ -61,6 +61,56 @@ public class OperatorFlexTest {
     }
 
     @Test
+    public void testTwoFlexValues(){
+        JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-3.json");
+        String configString = new JSONHelper().parseFile("operatorFlex/config-2.json").toString();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
+        Message message = new Message();
+        MessageModel model =  new MessageModel();
+        testOperator = new TestFlexOperator();
+        testOperator.configMessage(message);
+        int index = 0;
+        for(Object msg : messages){
+            String topicName = config.getInputTopicsConfigs().get(index % 2).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            if (index % 2 != 0){
+                message.setMessage(model);
+                testOperator.run(message);
+            }
+            index++;
+        }
+
+        Assert.assertEquals( 4.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+        Assert.assertEquals( 6.0, message.getMessage().getOutputMessage().getAnalytics().get("test2"));
+    }
+
+    @Test
+    public void testTwoFlexInputsOneMessageDifferentValues(){
+        JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-4.json");
+        String configString = new JSONHelper().parseFile("operatorFlex/config-4.json").toString();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
+        Message message = new Message();
+        MessageModel model =  new MessageModel();
+        testOperator = new TestFlexOperator();
+        testOperator.configMessage(message);
+        for(Object msg : messages){
+            String topicName = config.getInputTopicsConfigs().get(0).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+        }
+
+        Assert.assertEquals( 10.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+        Assert.assertEquals( 10.0, message.getMessage().getOutputMessage().getAnalytics().get("test2"));
+    }
+
+    @Test
     public void testCurrentFilterValuesWithUnchangingValues(){
         testCurrentFilterValues("operatorFlex/messages-2.json");
     }
@@ -72,7 +122,7 @@ public class OperatorFlexTest {
 
     private void testCurrentFilterValues(String messageFile) {
         JSONArray messages = new JSONHelper().parseFile(messageFile);
-        String configString = new JSONHelper().parseFile("operatorFlex/config-2.json").toString();
+        String configString = new JSONHelper().parseFile("operatorFlex/config-3.json").toString();
         Config config = new Config(configString);
         ConfigProvider.setConfig(config);
         testOperator = new TestFlexOperator();

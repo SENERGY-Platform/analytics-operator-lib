@@ -23,6 +23,9 @@ import org.infai.ses.senergy.operators.Message;
 
 public class TestFlexOperator extends BaseOperator {
 
+    Double result = 0.0;
+    Double result2 = 0.0;
+
     @Override
     public void run(Message message) {
         switch (config.getConfigValue("test", "1")) {
@@ -35,13 +38,11 @@ public class TestFlexOperator extends BaseOperator {
                 break;
             }
             case "2": {
-                Double result = 0.0;
-                Double result2 = 0.0;
                 for (Double value : message.getFlexInput("value").getValues()) {
                     result += value;
                 }
                 for (Double value : message.getFlexInput("value2").getValues()) {
-                    result2 -= value;
+                    result2 += value;
                 }
                 message.output("test", result);
                 message.output("test2", result2);
@@ -51,7 +52,7 @@ public class TestFlexOperator extends BaseOperator {
                 // outputs current filterId
                 FlexInput input = message.getFlexInput("value");
                 try {
-                    input.getValue();
+                    result = input.getValue();
                 } catch (NoValueException e) {
                     return;
                 }
@@ -66,10 +67,10 @@ public class TestFlexOperator extends BaseOperator {
     public Message configMessage(Message message) {
         switch (config.getConfigValue("test", "1")) {
             case "1":
-            case "3":
                 message.addFlexInput("value");
                 break;
             case "2":
+            case "3":
                 message.addFlexInput("value");
                 message.addFlexInput("value2");
                 break;

@@ -34,6 +34,8 @@ public class FlexInput {
     private String currentSource;
     private String currentInputTopic;
 
+    private Boolean currentMessageProcessed = false;
+
     private List<Input> inputs = new LinkedList<>();
 
     public List<Double> getValues() {
@@ -157,6 +159,14 @@ public class FlexInput {
             }
         }
         return this.currentInputTopic;
+    }
+
+    public void setCurrentMessageProcessed(Boolean currentMessageProcessed) {
+        this.currentMessageProcessed = currentMessageProcessed;
+    }
+
+    public Boolean getCurrentMessageProcessed() {
+        return currentMessageProcessed;
     }
 
     protected void setInputs(List<Input> inputs){
