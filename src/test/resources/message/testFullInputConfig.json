@@ -1,0 +1,15 @@
+{
+  "inputTopics": [
+    {
+      "Name": "test",
+      "FilterType": "DeviceId",
+      "FilterValue": "0",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value"
+        }
+      ]
+    }
+  ]
+}

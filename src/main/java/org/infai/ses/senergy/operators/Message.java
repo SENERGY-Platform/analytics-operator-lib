@@ -16,8 +16,9 @@
 
 package org.infai.ses.senergy.operators;
 
-import org.infai.ses.senergy.exceptions.NoValueException;
-import org.infai.ses.senergy.models.*;
+import org.infai.ses.senergy.models.InputMessageModel;
+import org.infai.ses.senergy.models.InputTopicModel;
+import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.utils.ConfigProvider;
 
 import java.util.*;
@@ -33,21 +34,21 @@ public class Message {
     private final Map<String, FlexInput> flexInputs = new HashMap<>();
     private final Config config = ConfigProvider.getConfig();
 
-    public Message setMessage (MessageModel message){
+    public Message setMessage(MessageModel message) {
         this.messageModel = message;
         this.parseMessageForInputs();
         this.parseMessageForFlexInputs();
         return this;
     }
 
-    public MessageModel getMessage(){
+    public MessageModel getMessage() {
         return this.messageModel;
     }
 
-    public void addInput (String name){
+    public void addInput(String name) {
         Input input = new Input();
         InputTopicModel topic = this.config.getInputTopicByDestination(name);
-        if (topic != null){
+        if (topic != null) {
             input.setSource(topic.getSourceByDest(name));
             input.setInputTopicName(topic.getName());
             this.inputs.put(name, input);
@@ -56,13 +57,13 @@ public class Message {
         }
     }
 
-    public void addFlexInput (String name){
+    public void addFlexInput(String name) {
         FlexInput flexInput = new FlexInput();
         List<InputTopicModel> topics = this.config.getInputTopicsByDestination(name);
-        if (!topics.isEmpty()){
+        if (!topics.isEmpty()) {
             List<Input> inputsList = new LinkedList<>();
-            for (InputTopicModel topic :  topics){
-                Input input  = new Input();
+            for (InputTopicModel topic : topics) {
+                Input input = new Input();
                 input.setSource(topic.getMappings().get(0).getSource());
                 input.setInputTopicName(topic.getName());
                 input.setCurrent(false);
@@ -70,29 +71,31 @@ public class Message {
             }
             flexInput.setInputs(inputsList);
             this.flexInputs.put(name, flexInput);
-        }else {
+        } else {
             log.log(Level.INFO, "Missing config for flex-input: {0}.", name);
         }
     }
 
-    public Input getInput (String name){
+    public Input getInput(String name) {
         return this.inputs.get(name);
     }
 
-    public FlexInput getFlexInput (String name){
+    public FlexInput getFlexInput(String name) {
         return this.flexInputs.get(name);
     }
 
-    public void output(String name, Object value){
+    public void output(String name, Object value) {
         this.messageModel.getOutputMessage().getAnalytics().put(name, value);
     }
 
     private void parseMessageForInputs() {
-        for (Map.Entry<String, Input> entry  : this.inputs.entrySet()){
+        for (Map.Entry<String, Input> entry : this.inputs.entrySet()) {
             Input input = entry.getValue();
             List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
             InputMessageModel msg = this.messageModel.getMessage(entry.getValue().getInputTopicName());
-            if (tree.size() > 1) {
+            if (tree.size() > 1 || (msg != null && (
+                    (msg.getFilterType() != InputMessageModel.FilterType.OPERATOR_ID && tree.size() == 1 && "value".equals(tree.get(0))) ||
+                    (msg.getFilterType() == InputMessageModel.FilterType.OPERATOR_ID && tree.size() == 1 && "analytics".equals(tree.get(0)))))) {
                 tree.remove(0);
             }
             if (msg != null) {
@@ -111,18 +114,20 @@ public class Message {
     }
 
     private void parseMessageForFlexInputs() {
-        for (Map.Entry<String, FlexInput> entry  : this.flexInputs.entrySet()){
+        for (Map.Entry<String, FlexInput> entry : this.flexInputs.entrySet()) {
             FlexInput flexInput = entry.getValue();
-            for (Input input : flexInput.getInputs()){
+            for (Input input : flexInput.getInputs()) {
                 input.setCurrent(false);
                 List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
                 InputMessageModel msg = this.messageModel.getMessage(input.getInputTopicName());
-                if (msg == null){
+                if (msg == null) {
                     input.setValue(null);
                     input.setFilterId(null);
                     log.log(Level.INFO, "No value for input: {0}.", input.getSource());
-                } else if (!msg.getProcessed()){
-                    if (tree.size() > 1) {
+                } else if (!msg.getProcessed()) {
+                    if (tree.size() > 1 ||
+                            (msg.getFilterType() != InputMessageModel.FilterType.OPERATOR_ID && tree.size() == 1 && "value".equals(tree.get(0))) ||
+                            (msg.getFilterType() == InputMessageModel.FilterType.OPERATOR_ID && tree.size() == 1 && "analytics".equals(tree.get(0)))) {
                         tree.remove(0);
                     }
                     String filter = msg.getFilterIdFirst();
@@ -139,9 +144,9 @@ public class Message {
         this.messageModel.setProcessed();
     }
 
-    private Object parse (Map<String, Object> map, List<String> tree){
-        for (String t : tree){
-            if (map.get(t) instanceof  Map<?, ?>){
+    private Object parse(Map<String, Object> map, List<String> tree) {
+        for (String t : tree) {
+            if (map.get(t) instanceof Map<?, ?>) {
                 map = (Map<String, Object>) map.get(t);
             } else {
                 return map.get(t);

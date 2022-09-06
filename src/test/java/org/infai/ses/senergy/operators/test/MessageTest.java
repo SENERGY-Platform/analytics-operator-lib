@@ -118,4 +118,17 @@ public class MessageTest {
         message.setMessage(messageModel);
         Assert.assertEquals("134534", message.getInput("value").getFilterId());
     }
+
+    @Test
+    public void testFullInput() throws NoValueException {
+        ConfigProvider.setConfig(new Config(new JSONHelper().parseFile("message/testFullInputConfig.json").toString()));
+        DeviceMessageModel inputMessage = JSONHelper.getObjectFromJSONPath("message/testFullInputMessage.json", DeviceMessageModel.class);
+        MessageModel messageModel = new MessageModel();
+        messageModel.putMessage("test", Helper.deviceToInputMessageModel(inputMessage, "test"));
+        Message message = new Message();
+        message.addInput("value");
+        message.setMessage(messageModel);
+        Object value = message.getInput("value").getValue(Object.class);
+        Assert.assertEquals(inputMessage.getValue(), value);
+    }
 }
