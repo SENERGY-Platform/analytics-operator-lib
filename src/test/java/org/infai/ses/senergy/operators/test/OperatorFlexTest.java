@@ -111,6 +111,28 @@ public class OperatorFlexTest {
     }
 
     @Test
+    public void testMultipleMessages(){
+        JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-5.json");
+        String configString = new JSONHelper().parseFile("operatorFlex/config-5.json").toString();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
+        Message message = new Message();
+        MessageModel model =  new MessageModel();
+        testOperator = new TestFlexOperator();
+        testOperator.configMessage(message);
+        int index = 0;
+        for(Object msg : messages){
+            String topicName = config.getInputTopicsConfigs().get(index++).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+        }
+        Assert.assertEquals( 31.5, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+    }
+
+    @Test
     public void testCurrentFilterValuesWithUnchangingValues(){
         testCurrentFilterValues("operatorFlex/messages-2.json");
     }

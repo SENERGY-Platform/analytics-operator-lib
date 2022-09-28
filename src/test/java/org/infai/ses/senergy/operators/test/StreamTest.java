@@ -31,6 +31,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
@@ -44,6 +45,10 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 
 public class StreamTest {
+
+    @Rule
+    public final EnvironmentVariables environmentVariables
+            = new EnvironmentVariables();
 
     private static final String INPUT_TOPIC = "input-topic";
     private static final String INPUT_TOPIC_2 = "input-topic-2";
@@ -311,6 +316,35 @@ public class StreamTest {
             assertEquals(timestamps[index++], result.timestamp());
             assertEquals("debug", result.key());
         }
+    }
+
+    @Ignore
+    public void testProcessOneStreamFourConfigAsTable() throws JSONException {
+        environmentVariables.set("JOIN_STRATEGY", "outer");
+        Stream stream = new Stream();
+        Config config = new Config(new JSONHelper().parseFile("stream/oneStreamFourConfigAsTable/config.json").toString());
+        JSONArray expected = new JSONHelper().parseFile("stream/oneStreamFourConfigAsTable/expected.json");
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/oneStreamFourConfigAsTable/messages.json");
+        stream.setOperator(new TestOperator());
+        stream.processMultipleStreamsAsTable(config.getInputTopicsConfigs());
+
+        stream.getOutputStream().process(processorSupplier);
+
+        try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+            final TestInputTopic<String, String> inputTopic1 =
+                    driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ZERO);
+            inputTopic1.pipeInput(null, jsonMessages.get(0).toString());
+        }
+        int index = 0;
+        long[] timestamps = {0, 0};
+        assertEquals(1, processorSupplier.theCapturedProcessor().processed.size());
+        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+            JSONObject value = (JSONObject) expected.get(index);
+            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp());
+            assertEquals("debug", result.key());
+        }
+        environmentVariables.clear("JOIN_STRATEGY");
     }
 
     @Test

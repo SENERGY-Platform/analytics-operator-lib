@@ -1,0 +1,10 @@
+[
+  {
+    "pipeline_id": "debug",
+    "operator_id": "debug",
+    "analytics": {
+      "test": "1"
+    },
+    "time": "2020-01-01T00:01:00Z"
+  }
+]

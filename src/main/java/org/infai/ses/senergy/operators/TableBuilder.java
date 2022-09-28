@@ -61,11 +61,23 @@ public class TableBuilder {
                     return message;
                 });
             } else {
-                joinedStream = joinedStream.join(stream, (leftValue, rightValue) -> {
-                            message.putMessage(rightValue.getTopic(), rightValue);
-                            return message;
-                        }
-                );
+                if ("outer".equals(Values.JOIN_STRATEGY)) {
+                    joinedStream = joinedStream.outerJoin(stream, (leftValue, rightValue) -> {
+                                if (rightValue != null) {
+                                    message.putMessage(rightValue.getTopic(), rightValue);
+                                }
+                                return message;
+                            }
+                    );
+                } else {
+                    joinedStream = joinedStream.join(stream, (leftValue, rightValue) -> {
+                                if (rightValue != null) {
+                                    message.putMessage(rightValue.getTopic(), rightValue);
+                                }
+                                return message;
+                            }
+                    );
+                }
             }
             i++;
         }

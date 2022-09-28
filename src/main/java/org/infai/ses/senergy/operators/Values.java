@@ -36,4 +36,6 @@ public final class Values {
     public static final String PIPELINE_ID = Helper.getEnv("PIPELINE_ID", "debug");
     public static final String OPERATOR_ID = Helper.getEnv("OPERATOR_ID", "debug");
     public static final String USER_ID = Helper.getEnv("USER_ID", "not set");
+
+    public static final String JOIN_STRATEGY = Helper.getEnv("JOIN_STRATEGY", "inner");
 }

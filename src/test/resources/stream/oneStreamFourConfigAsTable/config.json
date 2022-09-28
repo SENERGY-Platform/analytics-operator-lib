@@ -1,0 +1,48 @@
+{
+  "inputTopics": [
+    {
+      "Name": "input-topic",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value1",
+          "Source": "value.reading.value"
+        }
+      ]
+    },
+    {
+      "Name": "input-topic-2",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value1",
+          "Source": "value.reading.value"
+        }
+      ]
+    },
+    {
+      "Name": "input-topic3",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value1",
+          "Source": "value.reading.value"
+        }
+      ]
+    },
+    {
+      "Name": "input-topic4",
+      "FilterType": "DeviceId",
+      "FilterValue": "1",
+      "Mappings": [
+        {
+          "Dest": "value1",
+          "Source": "value.reading.value"
+        }
+      ]
+    }
+  ]
+}
