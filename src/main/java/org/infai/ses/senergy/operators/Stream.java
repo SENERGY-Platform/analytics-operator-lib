@@ -231,9 +231,9 @@ public class Stream {
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
             this.message.setMessage(value);
             operator.run(this.message);
-            setInputID(this.message);
             MessageModel message = this.message.getMessage();
             if (message.getOutputMessage().getAnalytics().size() > 0) {
+                setInputID(this.message);
                 result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
             }
             return result;
@@ -251,7 +251,7 @@ public class Stream {
         Boolean operatorHasOriginalInput = false;
         try {
             original_input_id_str = original_input_id.getString();
-        } catch (NoValueException e) {
+        } catch (Exception e) {
             operatorHasOriginalInput = true;
         }
 
