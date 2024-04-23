@@ -228,13 +228,44 @@ public class Stream {
         return inputStream.flatMap((key, value) -> {
             List<KeyValue<String, MessageModel>> result = new LinkedList<>();
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
-            operator.run(this.message.setMessage(value));
+            this.message.setMessage(value);
+            operator.run(this.message);
+            setInputID(this.message);
             MessageModel message = this.message.getMessage();
             if (message.getOutputMessage().getAnalytics().size() > 0) {
                 result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
             }
             return result;
         });
+    }
+
+    /**
+     * Set the input id (device, import, operator) to the output message.
+     *
+     * @param message Message
+     */
+    private void setInputID(Message message) {
+        Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
+        // TODO: what should happen with multiple input messages?
+        InputMessageModel inputMessage = inputMessages.get(inputMessages.keySet().iterator().next());
+        InputMessageModel.FilterType filterType = inputMessage.getFilterType();
+        String filterValue = inputMessage.getFilterIdFirst();
+        switch (filterType) {
+            case OPERATOR_ID:
+                message.output("operator_id", filterValue);
+                break;
+
+            case DEVICE_ID:
+                message.output("device_id", filterValue);
+                break;
+        
+            case IMPORT_ID:
+                message.output("import_id", filterValue);
+                break;
+        
+            default:
+                break;
+        }
     }
 
     /**
