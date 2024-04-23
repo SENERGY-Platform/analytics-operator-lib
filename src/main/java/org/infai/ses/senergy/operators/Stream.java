@@ -21,6 +21,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ApplicationState;
@@ -228,13 +229,41 @@ public class Stream {
         return inputStream.flatMap((key, value) -> {
             List<KeyValue<String, MessageModel>> result = new LinkedList<>();
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
-            operator.run(this.message.setMessage(value));
+            this.message.setMessage(value);
+            operator.run(this.message);
+            setInputID(this.message);
             MessageModel message = this.message.getMessage();
             if (message.getOutputMessage().getAnalytics().size() > 0) {
                 result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
             }
             return result;
         });
+    }
+
+    /**
+     * Set the input id (device, import, operator) to the output message.
+     *
+     * @param message Message
+     */
+    private void setInputID(Message message) {
+        FlexInput original_input_id = message.getFlexInput("original_input_id");
+        String original_input_id_str = "";
+        Boolean operatorHasOriginalInput = false;
+        try {
+            original_input_id_str = original_input_id.getString();
+        } catch (NoValueException e) {
+            operatorHasOriginalInput = true;
+        }
+
+        if(operatorHasOriginalInput) {
+            Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
+            // TODO: what should happen with multiple input messages?
+            InputMessageModel inputMessage = inputMessages.get(inputMessages.keySet().iterator().next());
+            String filterValue = inputMessage.getFilterIdFirst();
+            message.output("original_input_id", filterValue);
+        } else {
+            message.output("original_input_id", original_input_id_str);
+        }
     }
 
     /**
