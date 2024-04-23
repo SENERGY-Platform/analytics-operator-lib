@@ -52,6 +52,7 @@ public class Stream {
     public void start(OperatorInterface runOperator) {
         operator = runOperator;
         message = operator.configMessage(message);
+        message.addFlexInput("original_input_id");
         if (config.topicCount() > 1) {
             if (Boolean.TRUE.equals(kTableProcessing)) {
                 processMultipleStreamsAsTable(config.getInputTopicsConfigs());
