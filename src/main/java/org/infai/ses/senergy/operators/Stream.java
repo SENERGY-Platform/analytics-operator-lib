@@ -43,6 +43,7 @@ public class Stream {
     private KafkaStreams streams;
     private StreamsBuilder builder = new StreamsBuilder();
     private Integer windowTime = Values.WINDOW_TIME;
+    private String originalInputName = "original_input_ids";
 
     /**
      * Start the streams application.
@@ -52,7 +53,7 @@ public class Stream {
     public void start(OperatorInterface runOperator) {
         operator = runOperator;
         message = operator.configMessage(message);
-        message.addFlexInput("original_input_id");
+        message.addFlexInput(originalInputName);
         if (config.topicCount() > 1) {
             if (Boolean.TRUE.equals(kTableProcessing)) {
                 processMultipleStreamsAsTable(config.getInputTopicsConfigs());
@@ -247,7 +248,7 @@ public class Stream {
      * @param message Message
      */
     private void setInputID(Message message) {
-        FlexInput original_input_id = message.getFlexInput("original_input_id");
+        FlexInput original_input_id = message.getFlexInput(originalInputName);
         String original_input_id_str = "";
         Boolean operatorHasOriginalInput = false;
         try {
@@ -257,13 +258,18 @@ public class Stream {
         }
 
         if(operatorHasOriginalInput) {
+            List<String> originalInputs = Arrays.asList();
             Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
-            // TODO: what should happen with multiple input messages?
-            InputMessageModel inputMessage = inputMessages.get(inputMessages.keySet().iterator().next());
-            String filterValue = inputMessage.getFilterIdFirst();
-            message.output("original_input_id", filterValue);
+            Iterator<String> it = inputMessages.keySet().iterator();
+            while(it.hasNext()) {
+                InputMessageModel inputMessage = inputMessages.get(it.next());
+                String filterValue = inputMessage.getFilterIdFirst();
+                originalInputs.add(filterValue);
+            }
+            
+            message.output(originalInputName, String.join(",", originalInputs));
         } else {
-            message.output("original_input_id", original_input_id_str);
+            message.output(originalInputName, original_input_id_str);
         }
     }
 
