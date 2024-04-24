@@ -258,7 +258,7 @@ public class Stream {
         }
 
         if(operatorHasOriginalInput) {
-            List<String> originalInputs = Arrays.asList();
+            List<String> originalInputs = new ArrayList<String>();
             Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
             Iterator<String> it = inputMessages.keySet().iterator();
             while(it.hasNext()) {
