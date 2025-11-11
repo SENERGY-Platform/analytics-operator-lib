@@ -133,6 +133,29 @@ public class OperatorFlexTest {
     }
 
     @Test
+    public void testOneFlexInputWithMultipleMappingsOfSameMessage(){
+        JSONArray messages = new JSONHelper().parseFile("operatorFlex/messages-6.json");
+        String configString = new JSONHelper().parseFile("operatorFlex/config-6.json").toString();
+        Config config = new Config(configString);
+        ConfigProvider.setConfig(config);
+        Message message = new Message();
+        MessageModel model =  new MessageModel();
+        testOperator = new TestFlexOperator();
+        testOperator.configMessage(message);
+        for(Object msg : messages){
+            String topicName = config.getInputTopicsConfigs().get(0).getName();
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+        }
+
+        Assert.assertEquals( 5.0, message.getMessage().getOutputMessage().getAnalytics().get("test"));
+    }
+
+
+    @Test
     public void testCurrentFilterValuesWithUnchangingValues(){
         testCurrentFilterValues("operatorFlex/messages-2.json");
     }
