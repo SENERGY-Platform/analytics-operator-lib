@@ -50,6 +50,18 @@ public class FlexInput {
         return list;
     }
 
+    public <T> List<T> getValues(Class<T> tClass) {
+        List<T> list = new LinkedList<>();
+        for (Input input: this.inputs){
+            try {
+                list.add(input.getValue(tClass));
+            } catch (NoValueException e) {
+                log.log(Level.SEVERE, e.getMessage());
+            }
+        }
+        return list;
+    }
+
     /**
      * Return the current value of the flexInput as Double.
      *

@@ -59,6 +59,15 @@ public class TestFlexOperator extends BaseOperator {
                 String f = input.getCurrentFilterId();
                 message.output("test", f);
                 break;
+            case "4": {
+                Double result = 0.0;
+                FlexInput flexInput = message.getFlexInput("value");
+                for (Object value : flexInput.getValues(Object.class)) {
+                    result += (Integer) value;
+                }
+                message.output("test", result);
+                break;
+            }
         }
 
     }
@@ -67,6 +76,7 @@ public class TestFlexOperator extends BaseOperator {
     public Message configMessage(Message message) {
         switch (config.getConfigValue("test", "1")) {
             case "1":
+            case "4":
                 message.addFlexInput("value");
                 break;
             case "2":
