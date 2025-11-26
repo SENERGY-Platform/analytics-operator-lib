@@ -30,7 +30,12 @@ public class StreamsConfigProvider {
 
     private static final Properties streamsConfiguration = new Properties();
     private static String zookeeperConnectionString = Helper.getEnv("ZK_QUORUM", "");
-    private static String kafkaBootstrapString = null;
+    private static String kafkaBootstrapString;
+
+    static {
+        String v = Helper.getEnv("CONFIG_BOOTSTRAP_SERVERS", "");
+        kafkaBootstrapString = v.isEmpty() ? null : v;
+    }
 
     private StreamsConfigProvider() {
         throw new IllegalStateException("Utility class");
@@ -41,7 +46,7 @@ public class StreamsConfigProvider {
         if (kafkaBootstrapString != null){
             streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapString);
         } else {
-            streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Helper.getEnv("CONFIG_BOOTSTRAP_SERVERS", Helper.getBrokerList(zookeeperConnectionString)));
+            streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Helper.getBrokerList(zookeeperConnectionString));
         }
         streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());

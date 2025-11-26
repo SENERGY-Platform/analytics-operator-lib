@@ -23,7 +23,7 @@
     <groupId>org.infai.ses.senergy</groupId>
     <artifactId>operator-lib</artifactId>
     <packaging>jar</packaging>
-    <version>0.3-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
