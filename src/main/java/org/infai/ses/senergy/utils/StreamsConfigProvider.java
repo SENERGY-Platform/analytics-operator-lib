@@ -17,13 +17,13 @@
 package org.infai.ses.senergy.utils;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.infai.ses.senergy.operators.Helper;
 
+import java.util.Objects;
 import java.util.Properties;
 
 public class StreamsConfigProvider {
@@ -43,11 +43,7 @@ public class StreamsConfigProvider {
 
     private static void setProperties(){
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, Helper.getEnv("CONFIG_APPLICATION_ID", "stream-operator"));
-        if (kafkaBootstrapString != null){
-            streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapString);
-        } else {
-            streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Helper.getBrokerList(zookeeperConnectionString));
-        }
+        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Objects.requireNonNullElseGet(kafkaBootstrapString, () -> Helper.getBrokerList(zookeeperConnectionString)));
         streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamsConfiguration.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
