@@ -36,6 +36,7 @@ jobs:
     - name: Setup Java JDK
       uses: actions/setup-java@v5
       with:
+        distribution: 'temurin'
         java-version: 17
 
       # If this run was triggered by a pull request event, then checkout
