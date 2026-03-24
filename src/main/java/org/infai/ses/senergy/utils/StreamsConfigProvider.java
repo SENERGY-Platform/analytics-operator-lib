@@ -29,7 +29,6 @@ import java.util.Properties;
 public class StreamsConfigProvider {
 
     private static final Properties streamsConfiguration = new Properties();
-    private static String zookeeperConnectionString = Helper.getEnv("ZK_QUORUM", "");
     private static String kafkaBootstrapString;
 
     static {
@@ -43,7 +42,7 @@ public class StreamsConfigProvider {
 
     private static void setProperties(){
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, Helper.getEnv("CONFIG_APPLICATION_ID", "stream-operator"));
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, Objects.requireNonNullElseGet(kafkaBootstrapString, () -> Helper.getBrokerList(zookeeperConnectionString)));
+        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapString);
         streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         streamsConfiguration.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
@@ -57,10 +56,6 @@ public class StreamsConfigProvider {
     public static Properties getStreamsConfiguration(){
         setProperties();
         return streamsConfiguration;
-    }
-
-    public static void setZookeeperConnectionString(String zkString){
-        zookeeperConnectionString = zkString;
     }
 
     public static void setKafkaBootstrapString(String kafkaBString){

@@ -21,7 +21,6 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
-import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ApplicationState;

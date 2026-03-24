@@ -23,15 +23,14 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
-import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.InputMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Helper;
-import org.infai.ses.senergy.operators.StreamBuilder;
 import org.infai.ses.senergy.operators.TableBuilder;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
+import org.infai.ses.senergy.testing.utils.KeyValueTimestamp;
 import org.infai.ses.senergy.utils.TimeProvider;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -65,7 +64,9 @@ public class TableBuilderTest {
 
     private final File stateDir = new File("./state/builder");
 
-    private final LocalDateTime time = LocalDateTime.of(2020,01,01,01,01);
+    private final LocalDateTime time = LocalDateTime.of(2020, 1,1,1,1);
+
+    CapturingProcessorSupplier<String, String> processorSupplier = new CapturingProcessorSupplier<>();
 
     Properties props = new Properties();
 
@@ -93,8 +94,6 @@ public class TableBuilderTest {
             return result;
         });
         out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
-
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
@@ -110,7 +109,7 @@ public class TableBuilderTest {
                 new KeyValueTimestamp<>("A", "{\"device_id\":\"1\",\"service_id\":null,\"value\":null}", 0),
                 new KeyValueTimestamp<>("D", "{\"device_id\":\"1\",\"service_id\":null,\"value\":null}", 3000)
                 ),
-                processorSupplier.theCapturedProcessor().processed);
+                processorSupplier.processed);
     }
 
     @Test
@@ -128,7 +127,6 @@ public class TableBuilderTest {
         });
         out.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
@@ -144,7 +142,7 @@ public class TableBuilderTest {
                 new KeyValueTimestamp<>("B", "{\"device_id\":\"2\",\"service_id\":null,\"value\":null}", 1000),
                 new KeyValueTimestamp<>("D", "{\"device_id\":\"1\",\"service_id\":null,\"value\":null}", 3000)
                 ),
-                processorSupplier.theCapturedProcessor().processed);
+                processorSupplier.processed);
     }
 
 
@@ -166,7 +164,6 @@ public class TableBuilderTest {
         merged.toStream().to(OUTPUT_TOPIC);
         KStream<String, String> out = merged.toStream().mapValues(Helper::getFromObject);
 
-        final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
         out.process(processorSupplier);
 
         try (final TopologyTestDriver driver = new TopologyTestDriver(builder.build(), props)) {
@@ -179,15 +176,15 @@ public class TableBuilderTest {
             inputTopic2.pipeInput("A", messages.get(1).toString());
             inputTopic2.pipeInput("A", messages.get(2).toString());
         }
-        assertEquals(3, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(3, processorSupplier.processed.size());
         int index = 0;
         int timestamp = 0;
-        for (KeyValueTimestamp<Object, Object> result:processorSupplier.theCapturedProcessor().processed){
+        for (KeyValueTimestamp<String, String> result:processorSupplier.processed){
             JSONObject value = (JSONObject) expected.get(index++);
             //value.put("time", TimeProvider.nowUTCToString());
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),result.value, JSONCompareMode.LENIENT);
             assertEquals(timestamp,
-                    result.timestamp());
+                    result.timestamp);
             timestamp += 1000;
         }
     }

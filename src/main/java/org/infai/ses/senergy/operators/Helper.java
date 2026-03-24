@@ -17,61 +17,21 @@
 package org.infai.ses.senergy.operators;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kafka.cluster.Broker;
-import kafka.zk.KafkaZkClient;
-import kafka.zookeeper.ZooKeeperClient;
-import org.apache.kafka.common.network.ListenerName;
-import org.apache.kafka.common.security.auth.SecurityProtocol;
-import org.apache.kafka.common.utils.Time;
 import org.infai.ses.senergy.models.AnalyticsMessageModel;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.ImportMessageModel;
 import org.infai.ses.senergy.models.InputMessageModel;
-import scala.collection.JavaConversions;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Helper {
 
-    private static final String ZOOKEEPER_METRIC_GROUP = "zookeeper-metrics-group";
-    private static final String ZOOKEEPER_METRIC_TYPE = "zookeeper";
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = Logger.getLogger(Helper.class.getName());
 
     private Helper() {
         throw new IllegalStateException("Utility class");
-    }
-
-    /**
-     * Returns a String list of kafka instances from zookeeper.
-     *
-     * @param zookeeperConnect zookeeper connection string
-     * @return string list of kafka instances.
-     */
-    public static String getBrokerList(String zookeeperConnect) {
-        if (zookeeperConnect == null || zookeeperConnect.equals("")) {
-            return "localhost:2181";
-        }
-        int sessionTimeoutMs = 10 * 1000;
-        int connectionTimeoutMs = 8 * 1000;
-        ZooKeeperClient zooKeeperClient = new ZooKeeperClient(zookeeperConnect, sessionTimeoutMs, connectionTimeoutMs, 1, Time.SYSTEM, ZOOKEEPER_METRIC_GROUP, ZOOKEEPER_METRIC_TYPE);
-        KafkaZkClient client = new KafkaZkClient(zooKeeperClient, false, Time.SYSTEM);
-        client.getAllBrokersInCluster();
-        List<String> brokerList = new ArrayList<>();
-        List<Broker> brokers = JavaConversions.seqAsJavaList(client.getAllBrokersInCluster());
-        for (Broker broker : brokers) {
-            //assuming you do not enable security
-            if (broker != null) {
-                brokerList.add(broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))
-                        .host() + ":" + broker.brokerEndPoint(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)).port());
-            }
-        }
-        client.close();
-        zooKeeperClient.close();
-        return String.join(",", brokerList);
     }
 
     /**

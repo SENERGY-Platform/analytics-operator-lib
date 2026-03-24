@@ -20,9 +20,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.test.MockProcessorSupplier;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.testing.utils.KeyValueTimestamp;
 import org.infai.ses.senergy.utils.ApplicationState;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
@@ -31,7 +31,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.infai.ses.senergy.testing.utils.JSONHelper;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
@@ -46,15 +45,11 @@ import static org.junit.Assert.assertEquals;
 
 public class StreamTest {
 
-    @Rule
-    public final EnvironmentVariables environmentVariables
-            = new EnvironmentVariables();
-
     private static final String INPUT_TOPIC = "input-topic";
     private static final String INPUT_TOPIC_2 = "input-topic-2";
     private final File stateDir = new File("./state/stream");
-    private final LocalDateTime time = LocalDateTime.of(2020, 01, 01, 01, 01);
-    private final MockProcessorSupplier<String, String> processorSupplier = new MockProcessorSupplier<>();
+    private final LocalDateTime time = LocalDateTime.of(2020, 1, 1, 1, 1);
+    CapturingProcessorSupplier<String, String> processorSupplier = new CapturingProcessorSupplier<>();
     Properties props = new Properties();
 
     @Before
@@ -99,11 +94,11 @@ public class StreamTest {
         inputTopic.pipeInput("G", jsonMessages.get(3).toString());
 
         int index = 0;
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        assertEquals(2, processorSupplier.processed.size());
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
         }
     }
 
@@ -126,12 +121,12 @@ public class StreamTest {
             inputTopic.pipeInput("G", jsonMessages.get(3).toString());
         }
 
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(2, processorSupplier.processed.size());
         int index = 0;
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
         }
     }
 
@@ -154,7 +149,7 @@ public class StreamTest {
             inputTopic.pipeInput("G", jsonMessages.get(3).toString());
         }
 
-        assertEquals(0, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(0, processorSupplier.processed.size());
     }
 
     @Test
@@ -176,7 +171,7 @@ public class StreamTest {
             inputTopic.pipeInput("G", jsonMessages.get(3).toString());
         }
 
-        assertEquals(1, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(1, processorSupplier.processed.size());
     }
 
 
@@ -200,10 +195,10 @@ public class StreamTest {
         }
 
         int index = 0;
-        for (KeyValueTimestamp result : processorSupplier.theCapturedProcessor().processed) {
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
         }
     }
 
@@ -236,8 +231,8 @@ public class StreamTest {
         }
 
         expected.put("time", TimeProvider.nowUTCToString());
-        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.theCapturedProcessor().processed.get(0).value(), JSONCompareMode.LENIENT);
-        assertEquals(8000, processorSupplier.theCapturedProcessor().processed.get(0).timestamp());
+        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.processed.get(0).value, JSONCompareMode.LENIENT);
+        assertEquals(8000, processorSupplier.processed.get(0).timestamp);
     }
 
     @Test
@@ -273,12 +268,12 @@ public class StreamTest {
 
         int index = 0;
         long[] timestamps = {6000, 8000};
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        assertEquals(2, processorSupplier.processed.size());
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index);
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
-            assertEquals(timestamps[index++], result.timestamp());
-            assertEquals("debug", result.key());
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp);
+            assertEquals("debug", result.key);
         }
     }
 
@@ -309,18 +304,18 @@ public class StreamTest {
 
         int index = 0;
         long[] timestamps = {0, 0};
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        assertEquals(2, processorSupplier.processed.size());
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index);
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
-            assertEquals(timestamps[index++], result.timestamp());
-            assertEquals("debug", result.key());
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp);
+            assertEquals("debug", result.key);
         }
     }
 
     @Ignore
     public void testProcessOneStreamFourConfigAsTable() throws JSONException {
-        environmentVariables.set("JOIN_STRATEGY", "outer");
+        System.setProperty("JOIN_STRATEGY", "outer");
         Stream stream = new Stream();
         Config config = new Config(new JSONHelper().parseFile("stream/oneStreamFourConfigAsTable/config.json").toString());
         JSONArray expected = new JSONHelper().parseFile("stream/oneStreamFourConfigAsTable/expected.json");
@@ -337,14 +332,14 @@ public class StreamTest {
         }
         int index = 0;
         long[] timestamps = {0, 0};
-        assertEquals(1, processorSupplier.theCapturedProcessor().processed.size());
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        assertEquals(1, processorSupplier.processed.size());
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index);
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
-            assertEquals(timestamps[index++], result.timestamp());
-            assertEquals("debug", result.key());
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp);
+            assertEquals("debug", result.key);
         }
-        environmentVariables.clear("JOIN_STRATEGY");
+        System.clearProperty("JOIN_STRATEGY");
     }
 
     @Test
@@ -369,7 +364,7 @@ public class StreamTest {
             inputTopic2.pipeInput(null, jsonMessages.get(4).toString());
             inputTopic2.pipeInput(null, jsonMessages.get(5).toString());
         }
-        assertEquals(4, processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(4, processorSupplier.processed.size());
     }
 
     //@Test
@@ -422,8 +417,8 @@ public class StreamTest {
 
         JSONObject expected = new JSONHelper().parseFile("stream/testComplexMessageExpected.json");
         expected.put("time", TimeProvider.nowUTCToString());
-        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.theCapturedProcessor().processed.get(0).value(), JSONCompareMode.LENIENT);
-        assertEquals(0, processorSupplier.theCapturedProcessor().processed.get(0).timestamp());
+        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.processed.get(0).value, JSONCompareMode.LENIENT);
+        assertEquals(0, processorSupplier.processed.get(0).timestamp);
     }
 
     private void testProcessMultipleStreams(int numStreams) {
@@ -458,7 +453,7 @@ public class StreamTest {
         //}
         //expected = expected.substring(0, expected.length() - 1); //remove last ','
         //expected += "],\"pipeline_id\":\"1\",\"time\":\"" + TimeProvider.nowUTCToString() + "\"}";
-        assertEquals(1,processorSupplier.theCapturedProcessor().processed.size());
+        assertEquals(1,processorSupplier.processed.size());
     }
 
     private void testProcessMultipleStreamsWithMultipleMessages(int numStreams) {
@@ -493,7 +488,7 @@ public class StreamTest {
             }
         }
 
-        Assert.assertEquals(expectedValues.get(numStreams).intValue(), processorSupplier.theCapturedProcessor().processed.size());
+        Assert.assertEquals(expectedValues.get(numStreams).intValue(), processorSupplier.processed.size());
     }
 
     @Test
@@ -516,10 +511,10 @@ public class StreamTest {
         }
 
         int index = 0;
-        for (KeyValueTimestamp result : processorSupplier.theCapturedProcessor().processed) {
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index++);
             value.put("time", TimeProvider.nowUTCToString());
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
         }
     }
 
@@ -552,8 +547,8 @@ public class StreamTest {
         }
 
         expected.put("time", TimeProvider.nowUTCToString());
-        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.theCapturedProcessor().processed.get(0).value(), JSONCompareMode.LENIENT);
-        assertEquals(8000, processorSupplier.theCapturedProcessor().processed.get(0).timestamp());
+        JSONAssert.assertEquals(expected.toString(),(String) processorSupplier.processed.get(0).value, JSONCompareMode.LENIENT);
+        assertEquals(8000, processorSupplier.processed.get(0).timestamp);
     }
 
     @Test
@@ -589,12 +584,12 @@ public class StreamTest {
 
         int index = 0;
         long[] timestamps = {6000, 8000};
-        assertEquals(2, processorSupplier.theCapturedProcessor().processed.size());
-        for (KeyValueTimestamp<Object, Object> result : processorSupplier.theCapturedProcessor().processed) {
+        assertEquals(2, processorSupplier.processed.size());
+        for (KeyValueTimestamp<String, String> result : processorSupplier.processed) {
             JSONObject value = (JSONObject) expected.get(index);
-            JSONAssert.assertEquals(value.toString(),(String) result.value(), JSONCompareMode.LENIENT);
-            assertEquals(timestamps[index++], result.timestamp());
-            assertEquals("debug", result.key());
+            JSONAssert.assertEquals(value.toString(),(String) result.value, JSONCompareMode.LENIENT);
+            assertEquals(timestamps[index++], result.timestamp);
+            assertEquals("debug", result.key);
         }
     }
 }
