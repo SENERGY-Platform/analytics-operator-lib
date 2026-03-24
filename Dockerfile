@@ -1,4 +1,4 @@
-FROM maven:3.9-openjdk-17-slim as builder
+FROM maven:3.9-eclipse-temurin as builder
 ADD src /usr/src/app/src
 ADD pom.xml /usr/src/app
 WORKDIR /usr/src/app
