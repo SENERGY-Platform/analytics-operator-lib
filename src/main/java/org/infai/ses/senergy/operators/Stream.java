@@ -163,6 +163,7 @@ public class Stream {
                 merged = inputStream;
             }
         }
+        assert merged != null;
         KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(merged));
         outputStream(afterOperatorStream);
     }
@@ -266,7 +267,7 @@ public class Stream {
         }
 
         if(operatorHasOriginalInput) {
-            List<String> originalInputs = new ArrayList<String>();
+            List<String> originalInputs = new ArrayList<>();
             Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
             for (String s : inputMessages.keySet()) {
                 InputMessageModel inputMessage = inputMessages.get(s);
@@ -340,12 +341,12 @@ public class Stream {
         for (InputTopicModel topicConfig : topicConfigs) {
             KStream<String, InputMessageModel> parsedInputStream = switch (topicConfig.getFilterType()) {
                 case "OperatorId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
-                        JSONSerdes.AnalyticsMessage(), v -> Helper.analyticsToInputMessageModel((AnalyticsMessageModel) v, topicConfig.getName()));
+                        JSONSerdes.AnalyticsMessage(), v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName()));
                 case "ImportId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
-                        JSONSerdes.ImportMessage(), v -> Helper.importToInputMessageModel((ImportMessageModel) v, topicConfig.getName()));
+                        JSONSerdes.ImportMessage(), v -> Helper.importToInputMessageModel(v, topicConfig.getName()));
                 default -> // DeviceId
                         getOrCreateStream(topicConfig, streamLineKey, inputMap,
-                                JSONSerdes.DeviceMessage(), v -> Helper.deviceToInputMessageModel((DeviceMessageModel) v, topicConfig.getName()));
+                                JSONSerdes.DeviceMessage(), v -> Helper.deviceToInputMessageModel(v, topicConfig.getName()));
             };
             inputStreams.add(parsedInputStream);
         }
@@ -381,24 +382,6 @@ public class Stream {
             String outKey = Boolean.TRUE.equals(streamLineKey) ? "A" : key;
             return List.of(KeyValue.pair(outKey, converter.apply(value)));
         });
-    }
-
-    private KStream<String, InputMessageModel> deviceStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, DeviceMessageModel> filteredStream) {
-        return convertToInputStream(
-                streamLineKey, filteredStream, v -> Helper.deviceToInputMessageModel(v, topicConfig.getName())
-        );
-    }
-
-    private KStream<String, InputMessageModel> analyticsStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, AnalyticsMessageModel> filteredStream) {
-        return convertToInputStream(
-                streamLineKey, filteredStream, v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName())
-        );
-    }
-
-    private KStream<String, InputMessageModel> importStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, ImportMessageModel> filteredStream) {
-        return convertToInputStream(
-                streamLineKey, filteredStream, v -> Helper.importToInputMessageModel(v, topicConfig.getName())
-        );
     }
 
     /**
