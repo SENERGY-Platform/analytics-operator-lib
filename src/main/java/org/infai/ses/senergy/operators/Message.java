@@ -98,7 +98,7 @@ public class Message {
                     (msg.getFilterType() == InputMessageModel.FilterType.OPERATOR_ID && tree.size() == 1 && "analytics".equals(tree.get(0)))))) {
                 tree.remove(0);
             }
-            if (msg != null) {
+            if (msg != null && msg.getValue() != null) {
                 input.setValue(this.parse(msg.getValue(), tree));
                 String filter = msg.getFilterIdFirst();
                 if (msg.getFilterIdSecond() != null) {
@@ -120,7 +120,7 @@ public class Message {
                 input.setCurrent(false);
                 List<String> tree = new ArrayList<>(Arrays.asList(input.getSource().split("\\.")));
                 InputMessageModel msg = this.messageModel.getMessage(input.getInputTopicName());
-                if (msg == null) {
+                if (msg == null || msg.getValue() == null) {
                     input.setValue(null);
                     input.setFilterId(null);
                     log.log(Level.INFO, "No value for input: {0}.", input.getSource());
@@ -144,12 +144,18 @@ public class Message {
         this.messageModel.setProcessed();
     }
 
+    @SuppressWarnings("unchecked")
     private Object parse(Map<String, Object> map, List<String> tree) {
+        if (map == null) {
+            return null;
+        }
+
         for (String t : tree) {
-            if (map.get(t) instanceof Map<?, ?>) {
-                map = (Map<String, Object>) map.get(t);
+            Object next = map.get(t);
+            if (next instanceof Map<?, ?>) {
+                map = (Map<String, Object>) next;
             } else {
-                return map.get(t);
+                return next;
             }
         }
         return map;

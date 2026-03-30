@@ -29,6 +29,7 @@ import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class Stream {
 
@@ -130,7 +131,7 @@ public class Stream {
      */
     public void processMultipleStreamsAsTable(List<InputTopicModel> topicConfigs) {
         List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
-        List<KTable<String, InputMessageModel>> inputTables = new LinkedList<>();
+        List<KTable<String, InputMessageModel>> inputTables = new ArrayList<>();
         for (KStream<String, InputMessageModel> inputStream : inputStreams) {
             if (DEBUG) {
                 inputStream.print(Printed.toSysOut());
@@ -228,16 +229,23 @@ public class Stream {
      */
     private KStream<String, MessageModel> runOperatorLogic(KStream<String, MessageModel> inputStream) {
         return inputStream.flatMap((key, value) -> {
-            List<KeyValue<String, MessageModel>> result = new LinkedList<>();
+            Message localMessage = new Message();
+            localMessage = operator.configMessage(localMessage);
+
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
-            this.message.setMessage(value);
-            operator.run(this.message);
-            MessageModel message = this.message.getMessage();
-            if (!message.getOutputMessage().getAnalytics().isEmpty()) {
-                setInputID(this.message);
-                result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
+            localMessage.setMessage(value);
+
+            operator.run(localMessage);
+
+            MessageModel resultMessage = localMessage.getMessage();
+            if (!resultMessage.getOutputMessage().getAnalytics().isEmpty()) {
+                setInputID(localMessage);
+                String outKey = !Values.OPERATOR_ID.equals("debug")
+                        ? Values.OPERATOR_ID
+                        : Values.PIPELINE_ID;
+                return List.of(KeyValue.pair(outKey, resultMessage));
             }
-            return result;
+            return List.of();
         });
     }
 
@@ -264,7 +272,7 @@ public class Stream {
                 String filterValue = inputMessage.getFilterIdFirst();
                 originalInputs.add(filterValue);
             }
-            
+
             message.output(originalInputName, String.join(",", originalInputs));
         } else {
             message.output(originalInputName, original_input_id_str);
@@ -320,7 +328,7 @@ public class Stream {
     }
 
     private List<KStream<String, InputMessageModel>> parseStreams (List<InputTopicModel> topicConfigs, Boolean streamLineKey) {
-        List<KStream<String, InputMessageModel>> inputStreams = new LinkedList<>();
+        List<KStream<String, InputMessageModel>> inputStreams = new ArrayList<>();
         Map<String, KStream<String, AnalyticsMessageModel>> analyticsInputMap = new HashMap<>();
         Map<String, KStream<String, DeviceMessageModel>> devicesInputMap = new HashMap<>();
         Map<String, KStream<String, ImportMessageModel>> importInputMap = new HashMap<>();
@@ -334,9 +342,7 @@ public class Stream {
                     this.checkApplicationStatus();
                     analyticsInputMap.put(topicConfig.getName(), inputData);
                 } else {
-                    inputData = analyticsInputMap.get(topicConfig.getName()).branch(
-                            (key, value) -> true
-                    )[0];
+                    inputData = analyticsInputMap.get(topicConfig.getName());
                 }
                 KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
                 parsedInputStream = analyticsStreamToInputStream(streamLineKey, topicConfig, filteredStream);
@@ -348,9 +354,7 @@ public class Stream {
                     this.checkApplicationStatus();
                     importInputMap.put(topicConfig.getName(), inputData);
                 } else {
-                    inputData = importInputMap.get(topicConfig.getName()).branch(
-                            (key, value) -> true
-                    )[0];
+                    inputData = importInputMap.get(topicConfig.getName());
                 }
                 KStream<String, ImportMessageModel> filteredStream = filterStream(topicConfig, inputData);
                 parsedInputStream = importStreamToInputStream(streamLineKey, topicConfig, filteredStream);
@@ -362,9 +366,7 @@ public class Stream {
                     this.checkApplicationStatus();
                     devicesInputMap.put(topicConfig.getName(), inputData);
                 } else {
-                    inputData = devicesInputMap.get(topicConfig.getName()).branch(
-                            (key, value) -> true
-                    )[0];
+                    inputData = devicesInputMap.get(topicConfig.getName());
                 }
                 KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
                 parsedInputStream = deviceStreamToInputStream(streamLineKey, topicConfig, filteredStream);
@@ -374,46 +376,50 @@ public class Stream {
         return inputStreams;
     }
 
-    private KStream<String, InputMessageModel> deviceStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, DeviceMessageModel> filteredStream) {
-        KStream<String, InputMessageModel> parsedInputStream;
-        parsedInputStream =  filteredStream.flatMap((key, value) -> {
-            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.deviceToInputMessageModel(value, topicConfig.getName())));
-            return result;
+    private <T> KStream<String, InputMessageModel> convertToInputStream(
+            Boolean streamLineKey, KStream<String, T> filteredStream, Function<T, InputMessageModel> converter
+    ) {
+        return filteredStream.flatMap((key, value) -> {
+            String outKey = Boolean.TRUE.equals(streamLineKey) ? "A" : key;
+            return List.of(KeyValue.pair(outKey, converter.apply(value)));
         });
-        return parsedInputStream;
+    }
+
+    private KStream<String, InputMessageModel> deviceStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, DeviceMessageModel> filteredStream) {
+        return convertToInputStream(
+                streamLineKey, filteredStream, v -> Helper.deviceToInputMessageModel(v, topicConfig.getName())
+        );
     }
 
     private KStream<String, InputMessageModel> analyticsStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, AnalyticsMessageModel> filteredStream) {
-        KStream<String, InputMessageModel> parsedInputStream;
-        parsedInputStream =  filteredStream.flatMap((key, value) -> {
-            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.analyticsToInputMessageModel(value, topicConfig.getName())));
-            return result;
-        });
-        return parsedInputStream;
+        return convertToInputStream(
+                streamLineKey, filteredStream, v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName())
+        );
     }
 
     private KStream<String, InputMessageModel> importStreamToInputStream(Boolean streamLineKey, InputTopicModel topicConfig, KStream<String, ImportMessageModel> filteredStream) {
-        KStream<String, InputMessageModel> parsedInputStream;
-        parsedInputStream =  filteredStream.flatMap((key, value) -> {
-            List<KeyValue<String, InputMessageModel>> result = new LinkedList<>();
-            result.add(KeyValue.pair(Boolean.TRUE.equals(streamLineKey) ? "A" : key, Helper.importToInputMessageModel(value, topicConfig.getName())));
-            return result;
-        });
-        return parsedInputStream;
+        return convertToInputStream(
+                streamLineKey, filteredStream, v -> Helper.importToInputMessageModel(v, topicConfig.getName())
+        );
     }
 
+    /**
+     * Converts an InputMessageModel stream to a MessageModel stream.
+     *
+     * @param stream The stream to be converted.
+     * @return The converted stream.
+     */
     private KStream<String, MessageModel> toMessageModel(KStream<String, InputMessageModel> stream) {
-        return stream.flatMap((key, value) -> {
+        return stream.map((key, value) -> {
             MessageModel messageModel = new MessageModel();
             messageModel.putMessage(value.getTopic(), value);
-            List<KeyValue<String, MessageModel>> result = new LinkedList<>();
-            result.add(KeyValue.pair(key, messageModel));
-            return result;
+            return KeyValue.pair(key, messageModel);
         });
     }
 
+    /**
+     * Checks the application status and closes the streams if the error status is not 0.
+     */
     private void checkApplicationStatus(){
         if (ApplicationState.getErrorStatus() != 0){
             this.streams.close();
