@@ -6,6 +6,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.api.ContextualProcessor;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.StreamBuilder;
@@ -22,10 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.apache.kafka.streams.processor.api.Record;
 
-import org.apache.kafka.streams.processor.Processor;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.apache.kafka.streams.processor.api.ProcessorSupplier;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,26 +38,16 @@ import java.util.Properties;
 
 import static java.util.Arrays.asList;
 
-class CapturingProcessorSupplier<K, V> implements ProcessorSupplier<K, V> {
+class CapturingProcessorSupplier<K, V> implements ProcessorSupplier<K, V, K, V> {
     public final List<KeyValueTimestamp<K, V>> processed = new LinkedList<>();
 
     @Override
-    public Processor<K, V> get() {
-        return new Processor<>() {
-            private ProcessorContext context;
-
+    public org.apache.kafka.streams.processor.api.Processor<K, V, K, V> get() {
+        return new ContextualProcessor<K, V, K, V>() {
             @Override
-            public void init(ProcessorContext context) {
-                this.context = context;
+            public void process(Record<K, V> record) {
+                processed.add(new KeyValueTimestamp<>(record.key(), record.value(), record.timestamp()));
             }
-
-            @Override
-            public void process(K key, V value) {
-                processed.add(new KeyValueTimestamp<>(key, value, context.timestamp()));
-            }
-
-            @Override
-            public void close() {}
         };
     }
 }

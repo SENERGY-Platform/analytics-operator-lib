@@ -15,6 +15,7 @@
  */
 
 package org.infai.ses.senergy.models;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.infai.ses.senergy.operators.Values;
 
 import java.util.HashMap;
@@ -22,8 +23,11 @@ import java.util.Map;
 
 public class MessageModel{
 
-    private Map<String, InputMessageModel> inputMessages = new HashMap<>();
-    private AnalyticsMessageModel outputMessage = new AnalyticsMessageModel();
+    private final Map<String, InputMessageModel> inputMessages = new HashMap<>();
+    private final AnalyticsMessageModel outputMessage = new AnalyticsMessageModel();
+
+    @JsonIgnore
+    private long kafkaTimestamp = -1;
 
     public MessageModel(){
         this.outputMessage.setOperatorId(Values.OPERATOR_ID);
@@ -51,5 +55,14 @@ public class MessageModel{
         for (Map.Entry<String, InputMessageModel> entry: this.inputMessages.entrySet()){
             entry.getValue().setProcessed();
         }
+    }
+
+    @JsonIgnore
+    public void setKafkaTimestamp(long timestamp){
+        this.kafkaTimestamp = timestamp;
+    }
+    @JsonIgnore
+    public long getKafkaTimestamp(){
+        return this.kafkaTimestamp;
     }
 }

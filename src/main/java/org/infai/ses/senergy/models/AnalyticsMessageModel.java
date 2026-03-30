@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.infai.ses.senergy.utils.TimeProvider;
 
@@ -69,5 +70,7 @@ public class AnalyticsMessageModel {
     public void setTime(String time){
         this.time = time;
     }
+
+
 
 }

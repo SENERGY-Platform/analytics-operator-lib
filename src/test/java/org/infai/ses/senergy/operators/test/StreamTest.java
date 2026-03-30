@@ -20,7 +20,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
+import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Config;
+import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.operators.Stream;
 import org.infai.ses.senergy.testing.utils.KeyValueTimestamp;
 import org.infai.ses.senergy.utils.ApplicationState;
@@ -593,4 +595,40 @@ public class StreamTest {
             assertEquals("debug", result.key);
         }
     }
+
+    @Test
+    public void testOutputStreamSetsTimestamp() throws JSONException {
+        long expectedTimestamp = Instant.parse("2024-01-15T10:00:00Z").toEpochMilli();
+
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
+        JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessSingleStreamMessages.json");
+        Stream stream = new Stream();
+        stream.processSingleStream(config.getInputTopicsConfigs().get(0));
+        stream.setOperator(new AbstractTestOperator() {
+            @Override
+            public Message configMessage(Message message) {
+                message.addInput("value");
+                return message;
+            }
+
+            @Override
+            public void run(Message message) {
+                message.getMessage().setKafkaTimestamp(expectedTimestamp);
+                message.output("test", "1");
+            }
+        });
+        stream.getOutputStream().process(processorSupplier);
+
+
+        final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props);
+        final TestInputTopic<String, String> inputTopic =
+                driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+        inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+        inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+
+        // Assert
+        assertEquals(2, processorSupplier.processed.size());
+        assertEquals(expectedTimestamp, processorSupplier.processed.get(0).timestamp);
+    }
+
 }

@@ -16,12 +16,15 @@
 
 package org.infai.ses.senergy.operators;
 
+
+import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.processor.api.ContextualProcessor;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ApplicationState;
@@ -29,6 +32,7 @@ import org.infai.ses.senergy.utils.ConfigProvider;
 import org.infai.ses.senergy.utils.StreamsConfigProvider;
 import org.infai.ses.senergy.utils.TimeProvider;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
@@ -222,11 +226,28 @@ public class Stream {
      * Output the stream.
      */
     private void outputStream(KStream<String, MessageModel> inputStream) {
-        outputStream = inputStream.mapValues(value -> Helper.getFromObject(value.getOutputMessage()));
+        outputStream = inputStream
+                .map(KeyValue::pair)
+                .process(() -> new ContextualProcessor<String, MessageModel, String, String>() {
+                    @Override
+                    public void process(Record<String, MessageModel> record) {
+                        long timestamp = record.value().getKafkaTimestamp();
+                        if (timestamp < 0) {
+                            timestamp = record.timestamp();
+                        }
+                        String output = Helper.getFromObject(record.value().getOutputMessage());
+                        Record<String, String> outRecord = new Record<>(record.key(), output, timestamp, record.headers());
+                        context().forward(outRecord);
+                    }
+                });
         if (DEBUG) {
             outputStream.print(Printed.toSysOut());
         }
         outputStream.to(getOutputStreamName(), Produced.with(Serdes.String(), Serdes.String()));
+    }
+
+    private long extractTimestamp() {
+        return Instant.now().toEpochMilli();
     }
 
     /**
