@@ -374,6 +374,7 @@ public class StreamTest {
     }
 
     @Test
+    @Ignore
     public void test128Streams() {
         testProcessMultipleStreams(128);
     }

@@ -40,9 +40,9 @@ public class Stream {
     private Message message = new Message();
     private final Config config = ConfigProvider.getConfig();
     private KafkaStreams streams;
-    private StreamsBuilder builder = new StreamsBuilder();
+    private final StreamsBuilder builder = new StreamsBuilder();
     private Integer windowTime = Values.WINDOW_TIME;
-    private String originalInputName = "original_input_ids";
+    private final String originalInputName = "original_input_ids";
 
     /**
      * Start the streams application.
@@ -54,7 +54,7 @@ public class Stream {
         message = operator.configMessage(message);
         message.addFlexInput(originalInputName);
         if (config.topicCount() > 1) {
-            if (Boolean.TRUE.equals(kTableProcessing)) {
+            if (kTableProcessing) {
                 processMultipleStreamsAsTable(config.getInputTopicsConfigs());
             } else {
                 processMultipleStreams(config.getInputTopicsConfigs());
@@ -63,7 +63,7 @@ public class Stream {
             processSingleStream(config.getInputTopicsConfigs().get(0));
         }
         streams = new KafkaStreams(this.builder.build(), StreamsConfigProvider.getStreamsConfiguration());
-        if (Boolean.TRUE.equals(resetApp)) {
+        if (resetApp) {
             streams.cleanUp();
         }
 
@@ -86,7 +86,7 @@ public class Stream {
     public void processSingleStream(InputTopicModel topicConfig) {
         KStream<String, InputMessageModel> messagesStream = parseInputStream(topicConfig, false);
 
-        if (Boolean.TRUE.equals(DEBUG)) {
+        if (DEBUG) {
             messagesStream.print(Printed.toSysOut());
         }
         KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(messagesStream));
@@ -100,7 +100,7 @@ public class Stream {
      */
     public void processSingleStreamAsTable(InputTopicModel topicConfig) {
         KTable<String, InputMessageModel> messagesStream = parseInputStream(topicConfig, false).toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage()));
-        if (Boolean.TRUE.equals(DEBUG)) {
+        if (DEBUG) {
             messagesStream.toStream().print(Printed.toSysOut());
         }
         KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(messagesStream.toStream()));
@@ -114,7 +114,7 @@ public class Stream {
      */
     public void processMultipleStreams(List<InputTopicModel> topicConfigs) {
         List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
-        if (Boolean.TRUE.equals(DEBUG)) {
+        if (DEBUG) {
             for (KStream<String, InputMessageModel> inputStream : inputStreams) {
                 inputStream.print(Printed.toSysOut());
             }
@@ -132,7 +132,7 @@ public class Stream {
         List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
         List<KTable<String, InputMessageModel>> inputTables = new LinkedList<>();
         for (KStream<String, InputMessageModel> inputStream : inputStreams) {
-            if (Boolean.TRUE.equals(DEBUG)) {
+            if (DEBUG) {
                 inputStream.print(Printed.toSysOut());
             }
             inputTables.add(inputStream.toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage())));
@@ -148,7 +148,7 @@ public class Stream {
      */
     public void mergeMultipleStreams(List<InputTopicModel> topicConfigs){
         List<KStream<String, InputMessageModel>> inputStreams = parseStreams(topicConfigs, true);
-        if (Boolean.TRUE.equals(DEBUG)) {
+        if (DEBUG) {
             for (KStream<String, InputMessageModel> inputStream : inputStreams) {
                 inputStream.print(Printed.toSysOut());
             }
@@ -215,7 +215,7 @@ public class Stream {
      */
     private void outputStream(KStream<String, MessageModel> inputStream) {
         outputStream = inputStream.mapValues(value -> Helper.getFromObject(value.getOutputMessage()));
-        if (Boolean.TRUE.equals(DEBUG)) {
+        if (DEBUG) {
             outputStream.print(Printed.toSysOut());
         }
         outputStream.to(getOutputStreamName(), Produced.with(Serdes.String(), Serdes.String()));
@@ -233,7 +233,7 @@ public class Stream {
             this.message.setMessage(value);
             operator.run(this.message);
             MessageModel message = this.message.getMessage();
-            if (message.getOutputMessage().getAnalytics().size() > 0) {
+            if (!message.getOutputMessage().getAnalytics().isEmpty()) {
                 setInputID(this.message);
                 result.add(KeyValue.pair(!Values.OPERATOR_ID.equals("debug") ? Values.OPERATOR_ID : Values.PIPELINE_ID, message));
             }
@@ -249,7 +249,7 @@ public class Stream {
     private void setInputID(Message message) {
         FlexInput original_input_id = message.getFlexInput(originalInputName);
         String original_input_id_str = "";
-        Boolean operatorHasOriginalInput = false;
+        boolean operatorHasOriginalInput = false;
         try {
             original_input_id_str = original_input_id.getString();
         } catch (Exception e) {
@@ -259,9 +259,8 @@ public class Stream {
         if(operatorHasOriginalInput) {
             List<String> originalInputs = new ArrayList<String>();
             Map<String, InputMessageModel> inputMessages = message.getMessage().getMessages();
-            Iterator<String> it = inputMessages.keySet().iterator();
-            while(it.hasNext()) {
-                InputMessageModel inputMessage = inputMessages.get(it.next());
+            for (String s : inputMessages.keySet()) {
+                InputMessageModel inputMessage = inputMessages.get(s);
                 String filterValue = inputMessage.getFilterIdFirst();
                 originalInputs.add(filterValue);
             }
