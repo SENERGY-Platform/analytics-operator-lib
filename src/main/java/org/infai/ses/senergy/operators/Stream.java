@@ -45,6 +45,10 @@ public class Stream {
     private final StreamsBuilder builder = new StreamsBuilder();
     private Integer windowTime = Values.WINDOW_TIME;
     private final String originalInputName = "original_input_ids";
+    private static final String DEFAULT_STREAM_KEY = "A";
+    private static final String FILTER_OPERATOR_ID = "OperatorId";
+    private static final String FILTER_IMPORT_ID = "ImportId";
+    private static final String FILTER_DEVICE_ID = "DeviceId";
 
     /**
      * Start the streams application.
@@ -86,13 +90,7 @@ public class Stream {
      * @param topicConfig InputTopicModel
      */
     public void processSingleStream(InputTopicModel topicConfig) {
-        KStream<String, InputMessageModel> messagesStream = parseInputStream(topicConfig, false);
-
-        if (DEBUG) {
-            messagesStream.print(Printed.toSysOut());
-        }
-        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(messagesStream));
-        outputStream(afterOperatorStream);
+        processSingleStreamGen(topicConfig, false);
     }
 
     /**
@@ -101,11 +99,18 @@ public class Stream {
      * @param topicConfig InputTopicModel
      */
     public void processSingleStreamAsTable(InputTopicModel topicConfig) {
-        KTable<String, InputMessageModel> messagesStream = parseInputStream(topicConfig, false).toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage()));
+        processSingleStreamGen(topicConfig, true);
+    }
+
+    private void processSingleStreamGen(InputTopicModel topicConfig, boolean asTable) {
+        KStream<String, InputMessageModel> stream = parseInputStream(topicConfig, false);
         if (DEBUG) {
-            messagesStream.toStream().print(Printed.toSysOut());
+            stream.print(Printed.toSysOut());
         }
-        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(toMessageModel(messagesStream.toStream()));
+        KStream<String, MessageModel> afterOperatorStream = runOperatorLogic(
+                asTable ? toMessageModel(stream.toTable(Materialized.with(Serdes.String(), JSONSerdes.InputMessage())).toStream())
+                        : toMessageModel(stream)
+        );
         outputStream(afterOperatorStream);
     }
 
@@ -306,10 +311,10 @@ public class Stream {
      */
     private KStream<String, InputMessageModel> parseInputStream(InputTopicModel topicConfig, Boolean streamLineKey) {
         return switch (topicConfig.getFilterType()) {
-            case "OperatorId" ->
+            case FILTER_OPERATOR_ID ->
                     convertTopicStream(topicConfig, builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage())),
                             streamLineKey, v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName()));
-            case "ImportId" ->
+            case FILTER_IMPORT_ID ->
                     convertTopicStream(topicConfig, builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage())),
                             streamLineKey, v -> Helper.importToInputMessageModel(v, topicConfig.getName()));
             default ->
@@ -340,11 +345,11 @@ public class Stream {
 
         for (InputTopicModel topicConfig : topicConfigs) {
             KStream<String, InputMessageModel> parsedInputStream = switch (topicConfig.getFilterType()) {
-                case "OperatorId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
+                case FILTER_OPERATOR_ID -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
                         JSONSerdes.AnalyticsMessage(), v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName()));
-                case "ImportId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
+                case FILTER_IMPORT_ID -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
                         JSONSerdes.ImportMessage(), v -> Helper.importToInputMessageModel(v, topicConfig.getName()));
-                default -> // DeviceId
+                default -> // DeviceID
                         getOrCreateStream(topicConfig, streamLineKey, inputMap,
                                 JSONSerdes.DeviceMessage(), v -> Helper.deviceToInputMessageModel(v, topicConfig.getName()));
             };
@@ -367,6 +372,7 @@ public class Stream {
         @SuppressWarnings("unchecked")
         KStream<String, T> inputData = (KStream<String, T>) inputMap.computeIfAbsent(topicConfig.getName(), name -> {
             KStream<String, T> stream = builder.stream(name, Consumed.with(Serdes.String(), serde));
+
             checkApplicationStatus();
             return stream;
         });
@@ -379,7 +385,7 @@ public class Stream {
             Boolean streamLineKey, KStream<String, T> filteredStream, Function<T, InputMessageModel> converter
     ) {
         return filteredStream.flatMap((key, value) -> {
-            String outKey = Boolean.TRUE.equals(streamLineKey) ? "A" : key;
+            String outKey = Boolean.TRUE.equals(streamLineKey) ? DEFAULT_STREAM_KEY : key;
             return List.of(KeyValue.pair(outKey, converter.apply(value)));
         });
     }
