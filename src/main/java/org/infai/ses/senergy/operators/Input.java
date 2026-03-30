@@ -62,61 +62,49 @@ public class Input {
         return getValue(Integer.class);
     }
 
-    /**
-     * Return the value of the input as casted type.
-     *
-     * @return T
-     */
-    public  <T>T getValue(Class<T> tClass) throws NoValueException {
-        if (this.value != null){
-            if (tClass.equals(String.class)){
-                if (this.value instanceof String){
-                    return (T) this.value;
-                } else {
-                    return (T) String.valueOf(this.value);
-                }
-            } else if (tClass.equals(Double.class)){
-                if (this.value instanceof Double){
-                    return (T) this.value;
-                } else if (this.value instanceof Integer) {
-                    Integer val = (Integer) this.value;
-                    return (T) Double.valueOf(val);
-                } else if (this.value instanceof String) {
-                    String val =  (String) this.value;
-                    try{
-                        return (T) Double.valueOf(val);
-                    } catch(NumberFormatException e){
-                        throw new NoValueException("Cannot convert type to return value - " + e.getMessage());
-                    }
-                }else {
-                    throw new NoValueException("Cannot convert type to return value: " + this.value.getClass().getName() + " to " + tClass.getName());
-                }
-            } else if (tClass.equals(Integer.class)){
-                if (this.value instanceof Integer){
-                    return (T) this.value;
-                } else if (this.value instanceof Double) {
-                    Integer val = ((Double) this.value).intValue();
-                    return (T) val;
-                } else if (this.value instanceof String) {
-                    String string =  (String) this.value;
-                    try{
-                        Integer val = Double.valueOf(string).intValue();
-                        return (T) val;
-                    } catch(NumberFormatException e){
-                        throw new NoValueException("Cannot convert type to return value - " + e.getMessage());
-                    }
-                }else {
-                    throw new NoValueException("Cannot convert type to return value: " + this.value.getClass().getName() + " to " + tClass.getName());
-                }
-            }  else if (tClass.isInstance(this.value)){
-                    return (T) this.value;
-            } else {
-                throw new NoValueException("Cannot use type to return value: " + tClass.getName());
-            }
-
-        } else {
+    public <T> T getValue(Class<T> tClass) throws NoValueException {
+        if (this.value == null) {
             throw new NoValueException("No input value is set for: " + this.source);
         }
+        if (tClass.equals(String.class)) {
+            return tClass.cast(this.value instanceof String ? this.value : String.valueOf(this.value));
+        }
+        if (tClass.equals(Double.class)) {
+            return tClass.cast(toDouble());
+        }
+        if (tClass.equals(Integer.class)) {
+            return tClass.cast(toInteger());
+        }
+        if (tClass.isInstance(this.value)) {
+            return tClass.cast(this.value);
+        }
+        throw new NoValueException("Cannot use type to return value: " + tClass.getName());
+    }
+
+    private Double toDouble() throws NoValueException {
+        if (this.value instanceof Double) return (Double) this.value;
+        if (this.value instanceof Integer) return ((Integer) this.value).doubleValue();
+        if (this.value instanceof String) {
+            try {
+                return Double.valueOf((String) this.value);
+            } catch (NumberFormatException e) {
+                throw new NoValueException("Cannot convert type to return value - " + e.getMessage());
+            }
+        }
+        throw new NoValueException("Cannot convert to Double: " + this.value.getClass().getName());
+    }
+
+    private Integer toInteger() throws NoValueException {
+        if (this.value instanceof Integer) return (Integer) this.value;
+        if (this.value instanceof Double) return ((Double) this.value).intValue();
+        if (this.value instanceof String) {
+            try {
+                return Double.valueOf((String) this.value).intValue();
+            } catch (NumberFormatException e) {
+                throw new NoValueException("Cannot convert type to return value - " + e.getMessage());
+            }
+        }
+        throw new NoValueException("Cannot convert to Integer: " + this.value.getClass().getName());
     }
 
     /**
