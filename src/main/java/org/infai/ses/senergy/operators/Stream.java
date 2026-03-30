@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
@@ -287,93 +288,90 @@ public class Stream {
      * @return KStream<String, T>
      */
     private <T> KStream<String, T> filterStream(InputTopicModel topic, KStream<String, T> inputData) {
-        KStream<String, T> filterData;
-        String[] filterValues = topic.getFilterValue().split(",");
-        String[] filterValues2;
-        if (topic.getFilterValue2() != null){
-            filterValues2 = topic.getFilterValue2().split(",");
-        } else {
-            filterValues2 = new String[]{Values.PIPELINE_ID};
-        }
-        filterData = StreamBuilder.filterBy(inputData, filterValues, filterValues2);
-        return filterData;
+        String[] filterValues1 = topic.getFilterValue().split(",");
+        String[] filterValues2 = Optional.ofNullable(topic.getFilterValue2())
+                .map(v -> v.split(","))
+                .orElse(new String[]{Values.PIPELINE_ID});
+        return StreamBuilder.filterBy(inputData, filterValues1, filterValues2);
     }
 
+
     /**
-     * Get a record stream by topic config.
+     * Parse the input stream as a record stream.
      *
      * @param topicConfig InputTopicModel
+     * @param streamLineKey Boolean
      * @return KStream<String, InputMessageModel>
      */
     private KStream<String, InputMessageModel> parseInputStream(InputTopicModel topicConfig, Boolean streamLineKey) {
-        if (topicConfig.getFilterType().equals("OperatorId")) {
-            KStream<String, AnalyticsMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
-            KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            filteredStream.process(OffsetCheck::new);
-            this.checkApplicationStatus();
-            return analyticsStreamToInputStream(streamLineKey, topicConfig,filteredStream);
-        } else if (topicConfig.getFilterType().equals("ImportId")) {
-            KStream<String, ImportMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage()));
-            KStream<String, ImportMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            filteredStream.process(OffsetCheck::new);
-            this.checkApplicationStatus();
-            return importStreamToInputStream(streamLineKey, topicConfig,filteredStream);
-        } else {
-            KStream<String, DeviceMessageModel> inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
-            KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-            filteredStream.process(OffsetCheck::new);
-            this.checkApplicationStatus();
-            return deviceStreamToInputStream(streamLineKey, topicConfig, filteredStream);
-        }
+        return switch (topicConfig.getFilterType()) {
+            case "OperatorId" ->
+                    convertTopicStream(topicConfig, builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage())),
+                            streamLineKey, v -> Helper.analyticsToInputMessageModel(v, topicConfig.getName()));
+            case "ImportId" ->
+                    convertTopicStream(topicConfig, builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage())),
+                            streamLineKey, v -> Helper.importToInputMessageModel(v, topicConfig.getName()));
+            default ->
+                    convertTopicStream(topicConfig, builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage())),
+                            streamLineKey, v -> Helper.deviceToInputMessageModel(v, topicConfig.getName()));
+        };
     }
 
-    private List<KStream<String, InputMessageModel>> parseStreams (List<InputTopicModel> topicConfigs, Boolean streamLineKey) {
+    private <T> KStream<String, InputMessageModel> convertTopicStream(
+            InputTopicModel topicConfig, KStream<String, T> inputStream, Boolean streamLineKey, Function<T, InputMessageModel> converter
+    ) {
+        KStream<String, T> filteredStream = filterStream(topicConfig, inputStream);
+        checkApplicationStatus();
+        return convertToInputStream(streamLineKey, filteredStream, converter);
+    }
+
+
+    /**
+     * Parse the input streams as a record stream.
+     *
+     * @param topicConfigs List<InputTopicModel>
+     * @param streamLineKey Boolean
+     * @return List<KStream<String, InputMessageModel>>
+     */
+    private List<KStream<String, InputMessageModel>> parseStreams(List<InputTopicModel> topicConfigs, Boolean streamLineKey) {
         List<KStream<String, InputMessageModel>> inputStreams = new ArrayList<>();
-        Map<String, KStream<String, AnalyticsMessageModel>> analyticsInputMap = new HashMap<>();
-        Map<String, KStream<String, DeviceMessageModel>> devicesInputMap = new HashMap<>();
-        Map<String, KStream<String, ImportMessageModel>> importInputMap = new HashMap<>();
+        Map<String, KStream<?, ?>> inputMap = new HashMap<>(); // Unified map for all types
+
         for (InputTopicModel topicConfig : topicConfigs) {
-            KStream<String, InputMessageModel> parsedInputStream;
-            if (topicConfig.getFilterType().equals("OperatorId")) {
-                KStream<String, AnalyticsMessageModel> inputData;
-                if (!analyticsInputMap.containsKey(topicConfig.getName())) {
-                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.AnalyticsMessage()));
-                    inputData.process(OffsetCheck::new);
-                    this.checkApplicationStatus();
-                    analyticsInputMap.put(topicConfig.getName(), inputData);
-                } else {
-                    inputData = analyticsInputMap.get(topicConfig.getName());
-                }
-                KStream<String, AnalyticsMessageModel> filteredStream = filterStream(topicConfig, inputData);
-                parsedInputStream = analyticsStreamToInputStream(streamLineKey, topicConfig, filteredStream);
-            } else if (topicConfig.getFilterType().equals("ImportId")) {
-                KStream<String, ImportMessageModel> inputData;
-                if (!analyticsInputMap.containsKey(topicConfig.getName())) {
-                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.ImportMessage()));
-                    inputData.process(OffsetCheck::new);
-                    this.checkApplicationStatus();
-                    importInputMap.put(topicConfig.getName(), inputData);
-                } else {
-                    inputData = importInputMap.get(topicConfig.getName());
-                }
-                KStream<String, ImportMessageModel> filteredStream = filterStream(topicConfig, inputData);
-                parsedInputStream = importStreamToInputStream(streamLineKey, topicConfig, filteredStream);
-            } else {
-                KStream<String, DeviceMessageModel> inputData;
-                if (!devicesInputMap.containsKey(topicConfig.getName())) {
-                    inputData = this.builder.stream(topicConfig.getName(), Consumed.with(Serdes.String(), JSONSerdes.DeviceMessage()));
-                    inputData.process(OffsetCheck::new);
-                    this.checkApplicationStatus();
-                    devicesInputMap.put(topicConfig.getName(), inputData);
-                } else {
-                    inputData = devicesInputMap.get(topicConfig.getName());
-                }
-                KStream<String, DeviceMessageModel> filteredStream = filterStream(topicConfig, inputData);
-                parsedInputStream = deviceStreamToInputStream(streamLineKey, topicConfig, filteredStream);
-            }
+            KStream<String, InputMessageModel> parsedInputStream = switch (topicConfig.getFilterType()) {
+                case "OperatorId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
+                        JSONSerdes.AnalyticsMessage(), v -> Helper.analyticsToInputMessageModel((AnalyticsMessageModel) v, topicConfig.getName()));
+                case "ImportId" -> getOrCreateStream(topicConfig, streamLineKey, inputMap,
+                        JSONSerdes.ImportMessage(), v -> Helper.importToInputMessageModel((ImportMessageModel) v, topicConfig.getName()));
+                default -> // DeviceId
+                        getOrCreateStream(topicConfig, streamLineKey, inputMap,
+                                JSONSerdes.DeviceMessage(), v -> Helper.deviceToInputMessageModel((DeviceMessageModel) v, topicConfig.getName()));
+            };
             inputStreams.add(parsedInputStream);
         }
+
         return inputStreams;
+    }
+
+    /**
+     * Generic helper to get or create a KStream, filter it, process offsets, and convert to InputMessageModel.
+     */
+    private <T> KStream<String, InputMessageModel> getOrCreateStream(
+            InputTopicModel topicConfig,
+            Boolean streamLineKey,
+            Map<String, KStream<?, ?>> inputMap,
+            Serde<T> serde,
+            Function<T, InputMessageModel> converter
+    ) {
+        @SuppressWarnings("unchecked")
+        KStream<String, T> inputData = (KStream<String, T>) inputMap.computeIfAbsent(topicConfig.getName(), name -> {
+            KStream<String, T> stream = builder.stream(name, Consumed.with(Serdes.String(), serde));
+            checkApplicationStatus();
+            return stream;
+        });
+
+        KStream<String, T> filteredStream = filterStream(topicConfig, inputData);
+        return convertToInputStream(streamLineKey, filteredStream, converter);
     }
 
     private <T> KStream<String, InputMessageModel> convertToInputStream(
