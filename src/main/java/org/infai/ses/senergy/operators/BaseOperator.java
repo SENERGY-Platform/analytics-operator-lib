@@ -17,8 +17,23 @@
 package org.infai.ses.senergy.operators;
 
 import org.infai.ses.senergy.utils.ConfigProvider;
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
+import java.util.Properties;
 
 public abstract class BaseOperator implements OperatorInterface {
+
+    static {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+        try {
+            Properties props = new Properties();
+            props.load(Stream.class.getResourceAsStream("/app.properties"));
+            System.setProperty("project.name", props.getProperty("project.name"));
+        } catch (Exception e) {
+            System.setProperty("project.name", "unknown");
+        }
+    }
 
     protected Config config;
 
