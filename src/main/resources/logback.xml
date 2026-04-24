@@ -31,7 +31,7 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="${LOG_LEVEL:-WARN}">
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
