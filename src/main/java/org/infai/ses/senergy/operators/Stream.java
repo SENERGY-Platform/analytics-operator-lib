@@ -59,10 +59,18 @@ public class Stream {
      *
      * @param runOperator OperatorInterface
      */
-    public void start(OperatorInterface runOperator) {
+    public void start(OperatorInterface runOperator) throws IllegalArgumentException {
+        // Validate before any topology is built
+        config.getInputTopicsConfigs().forEach(topic -> {
+            if (topic.getName() == null || topic.getName().isBlank()) {
+                throw new IllegalArgumentException("Topic name cannot be null or blank. Check your CONFIG.");
+            }
+        });
+
         operator = runOperator;
         message = operator.configMessage(message);
         message.addFlexInput(originalInputName);
+
         if (config.topicCount() > 1) {
             if (kTableProcessing) {
                 processMultipleStreamsAsTable(config.getInputTopicsConfigs());

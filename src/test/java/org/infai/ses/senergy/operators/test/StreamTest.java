@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.*;
+import org.infai.ses.senergy.models.InputTopicModel;
 import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
@@ -43,7 +44,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class StreamTest {
 
@@ -75,6 +76,19 @@ public class StreamTest {
             }
         }
         ApplicationState.resetOffsets();
+    }
+
+    @Test
+    public void start_nullTopicName_throwsIllegalArgumentException() {
+        Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamNoTopicNameConfig.json").toString());
+        ConfigProvider.setConfig(config);
+        Stream stream = new Stream();
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> stream.start(new TestOperator())
+        );
+        assertTrue(ex.getMessage().contains("Topic name cannot be null or blank"));
     }
 
     @Test

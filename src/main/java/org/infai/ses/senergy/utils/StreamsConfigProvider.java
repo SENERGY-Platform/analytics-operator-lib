@@ -48,7 +48,6 @@ public class StreamsConfigProvider {
         streamsConfiguration.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
         streamsConfiguration.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, Helper.getEnv("STREAM_THREADS_CONFIG", "1"));
         streamsConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, Helper.getEnv("CONSUMER_AUTO_OFFSET_RESET_CONFIG", "earliest"));
-        streamsConfiguration.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, Integer.parseInt(Helper.getEnv("CACHE_MAX_BYTES_BUFFERING_CONFIG", "10")) *(long) 1024 * 1024L);
         streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, Integer.parseInt(Helper.getEnv("COMMIT_INTERVAL_MS_CONFIG", "1000")));
         streamsConfiguration.put(TopicConfig.RETENTION_MS_CONFIG, Long.parseLong(Helper.getEnv("TOPIC_RETENTION_MS_CONFIG", "172800000")));
     }
@@ -56,9 +55,5 @@ public class StreamsConfigProvider {
     public static Properties getStreamsConfiguration(){
         setProperties();
         return streamsConfiguration;
-    }
-
-    public static void setKafkaBootstrapString(String kafkaBString){
-        kafkaBootstrapString = kafkaBString;
     }
 }
