@@ -18,11 +18,12 @@ package org.infai.ses.senergy.utils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class TimeProvider {
 
     private static Clock clock = Clock.systemDefaultZone();
-    private static ZoneId zoneId = ZoneId.systemDefault();
+    private static final ZoneId zoneId = ZoneId.systemDefault();
 
     private TimeProvider() {
         throw new IllegalStateException("Utility class");
@@ -34,7 +35,8 @@ public class TimeProvider {
 
     public static String nowUTCToString() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
-        return ZonedDateTime.of(LocalDateTime.now(clock), zoneId).format(formatter);
+        ZonedDateTime now = ZonedDateTime.of(LocalDateTime.now(clock), zoneId);
+        return now.truncatedTo(ChronoUnit.MICROS).format(formatter);
     }
 
     public static LocalDateTime utc(){
