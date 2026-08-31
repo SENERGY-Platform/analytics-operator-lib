@@ -16,6 +16,7 @@
 
 package org.infai.ses.senergy.operators;
 
+import org.infai.ses.senergy.utils.Baggage;
 import org.infai.ses.senergy.utils.ConfigProvider;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -24,15 +25,24 @@ import java.util.Properties;
 public abstract class BaseOperator implements OperatorInterface {
 
     static {
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
+        // Before the bridge is installed, not after: installing it creates the first
+        // logger, which is when logback reads its configuration and resolves the
+        // properties this block sets. Setting them afterwards leaves the encoder with
+        // whatever it resolved to at that point.
+        String project;
         try {
             Properties props = new Properties();
             props.load(Stream.class.getResourceAsStream("/app.properties"));
-            System.setProperty("project.name", props.getProperty("project.name"));
+            project = props.getProperty("project.name");
         } catch (Exception e) {
-            System.setProperty("project.name", "unknown");
+            project = "unknown";
         }
+        System.setProperty("project.name", project == null ? "unknown" : project);
+        System.setProperty(Baggage.CUSTOM_FIELDS_PROPERTY,
+                Baggage.customFields(project, Baggage.fromEnvironment()));
+
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
     }
 
     protected Config config;

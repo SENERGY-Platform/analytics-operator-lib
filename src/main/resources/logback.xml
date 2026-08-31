@@ -26,8 +26,10 @@
                 <logger>logger</logger>
                 <thread>thread</thread>
             </fieldNames>
-            <!-- Static extra fields -->
-            <customFields>{"organization":"github.com/SENERGY-Platform","project":"${project.name}"}</customFields>
+            <!-- Static extra fields. Built in org.infai.ses.senergy.utils.Baggage so
+                 that the OpenTelemetry baggage the operator was deployed with lands on
+                 every record next to the organization and project. -->
+            <customFields>${custom.fields:-{"organization":"github.com/SENERGY-Platform","project":"unknown"}}</customFields>
         </encoder>
     </appender>
 
