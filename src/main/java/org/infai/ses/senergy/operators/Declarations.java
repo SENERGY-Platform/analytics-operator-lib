@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  */
 final class Declarations {
 
-    /** Written by the library itself, not declared by any operator. */
+    /** Added by the library to every operator; the manifest lists it without a declaration. */
     static final String ORIGINAL_INPUT_IDS = "original_input_ids";
 
     private static final Logger log = Logger.getLogger(Declarations.class.getName());

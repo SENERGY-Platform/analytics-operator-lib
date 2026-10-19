@@ -74,7 +74,7 @@ The classpath has to contain the operator and this library. After `mvn package`,
 java -cp target/operator-<name>-jar-with-dependencies.jar org.infai.ses.senergy.operators.Manifest com.example.Threshold
 ```
 
-The output has the `inputs`, `outputs` and `config_values` of the operator, each a list of `{"name", "type"}`:
+The output has the `inputs`, `outputs` and `config_values` of the operator, each a list of `{"name", "type"}`. `original_input_ids`, which the library adds to every operator and flows wire, ends the inputs and the outputs without a declaration:
 
 ```json
 {
@@ -82,12 +82,20 @@ The output has the `inputs`, `outputs` and `config_values` of the operator, each
     {
       "name": "value",
       "type": "float"
+    },
+    {
+      "name": "original_input_ids",
+      "type": "string"
     }
   ],
   "outputs": [
     {
       "name": "exceeded",
       "type": "bool"
+    },
+    {
+      "name": "original_input_ids",
+      "type": "string"
     }
   ],
   "config_values": [

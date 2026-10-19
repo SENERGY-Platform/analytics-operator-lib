@@ -159,7 +159,7 @@ public class ManifestTest {
     @Test
     public void testManifestKeepsSourceOrderTypesAndLeavesDefaultsOut() throws IOException {
         assertEquals(0, generate(Declared.class));
-        // Superclass first, then the order of the source; only name and type, two-space indent, final newline.
+        // Superclass first, then the order of the source, then original_input_ids; only name and type, two-space indent, final newline.
         String expected = String.join("\n",
                 "{",
                 "  \"inputs\": [",
@@ -174,6 +174,10 @@ public class ManifestTest {
                 "    {",
                 "      \"name\": \"alpha\",",
                 "      \"type\": \"bool\"",
+                "    },",
+                "    {",
+                "      \"name\": \"original_input_ids\",",
+                "      \"type\": \"string\"",
                 "    }",
                 "  ],",
                 "  \"outputs\": [",
@@ -183,6 +187,10 @@ public class ManifestTest {
                 "    },",
                 "    {",
                 "      \"name\": \"first\",",
+                "      \"type\": \"string\"",
+                "    },",
+                "    {",
+                "      \"name\": \"original_input_ids\",",
                 "      \"type\": \"string\"",
                 "    }",
                 "  ],",

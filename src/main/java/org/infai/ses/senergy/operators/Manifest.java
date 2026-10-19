@@ -19,6 +19,7 @@ package org.infai.ses.senergy.operators;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.infai.ses.senergy.exceptions.DeclarationException;
+import org.infai.ses.senergy.operators.declaration.Type;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -105,10 +106,24 @@ public final class Manifest {
             return null;
         }
         Map<String, List<Map<String, String>>> manifest = new LinkedHashMap<>();
-        manifest.put("inputs", entries(declarations.inputs()));
-        manifest.put("outputs", entries(declarations.outputs()));
+        // The library adds original_input_ids to every operator as an input and an output, and flows wire it.
+        manifest.put("inputs", withOriginalInputIds(entries(declarations.inputs())));
+        manifest.put("outputs", withOriginalInputIds(entries(declarations.outputs())));
         manifest.put("config_values", entries(declarations.configValues()));
         return manifest;
+    }
+
+    private static List<Map<String, String>> withOriginalInputIds(List<Map<String, String>> entries) {
+        for (Map<String, String> entry : entries) {
+            if (Declarations.ORIGINAL_INPUT_IDS.equals(entry.get("name"))) {
+                return entries;
+            }
+        }
+        Map<String, String> entry = new LinkedHashMap<>();
+        entry.put("name", Declarations.ORIGINAL_INPUT_IDS);
+        entry.put("type", Type.STRING.manifestName());
+        entries.add(entry);
+        return entries;
     }
 
     private static List<Map<String, String>> entries(List<Declarations.Port> ports) {
