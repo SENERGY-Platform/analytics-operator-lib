@@ -1,0 +1,6 @@
+# JitPack builds the tag that operators reference. Its own Maven builds it, because
+# the wrapper JitPack generates otherwise fetches a Maven distribution that failed to download there.
+jdk:
+  - openjdk17
+install:
+  - mvn -B install -DskipTests
