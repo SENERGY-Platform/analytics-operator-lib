@@ -128,13 +128,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams-test-utils</artifactId>
-            <version>${kafka.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
