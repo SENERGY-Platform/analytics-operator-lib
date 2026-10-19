@@ -25,6 +25,8 @@ import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.operators.Stream;
+import org.infai.ses.senergy.operators.declaration.Output;
+import org.infai.ses.senergy.operators.declaration.Type;
 import org.infai.ses.senergy.testing.utils.KeyValueTimestamp;
 import org.infai.ses.senergy.utils.ApplicationState;
 import org.infai.ses.senergy.utils.ConfigProvider;
@@ -43,6 +45,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -645,4 +650,61 @@ public class StreamTest {
         assertEquals(expectedTimestamp, processorSupplier.processed.get(0).timestamp);
     }
 
+    public static class DeclaringOperator extends AbstractTestOperator {
+        @Output(type = Type.STRING)
+        static final String TEST = "test";
+
+        @Override
+        public Message configMessage(Message message) {
+            message.addInput("value");
+            return message;
+        }
+
+        @Override
+        public void run(Message message) {
+            message.output(TEST, "1");
+            message.output("extra", "2");
+        }
+    }
+
+    @Test
+    public void testUndeclaredOutputIsWarnedOnceAcrossMessages() {
+        List<String> warnings = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                warnings.add(java.text.MessageFormat.format(record.getMessage(), record.getParameters()));
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+        Logger logger = Logger.getLogger("org.infai.ses.senergy.operators.Declarations");
+        logger.addHandler(handler);
+        try {
+            Stream stream = new Stream();
+            Config config = new Config(new JSONHelper().parseFile("stream/testProcessSingleStreamConfig.json").toString());
+            JSONArray jsonMessages = new JSONHelper().parseFile("stream/testProcessSingleStreamMessages.json");
+            stream.setOperator(new DeclaringOperator());
+            stream.processSingleStream(config.getInputTopicsConfigs().get(0));
+            stream.getOutputStream().process(processorSupplier);
+
+            try (final TopologyTestDriver driver = new TopologyTestDriver(stream.getBuilder().build(), props)) {
+                final TestInputTopic<String, String> inputTopic =
+                        driver.createInputTopic(INPUT_TOPIC, new StringSerializer(), new StringSerializer(), Instant.ofEpochMilli(0L), Duration.ofSeconds(1));
+                inputTopic.pipeInput("A", jsonMessages.get(0).toString());
+                inputTopic.pipeInput("A", jsonMessages.get(1).toString());
+            }
+        } finally {
+            logger.removeHandler(handler);
+        }
+
+        assertEquals(2, processorSupplier.processed.size());
+        assertEquals(List.of("Output extra is not declared by " + DeclaringOperator.class.getName() + "."), warnings);
+    }
 }

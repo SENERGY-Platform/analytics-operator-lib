@@ -33,6 +33,7 @@ public class Message {
     private final Map<String, Input> inputs = new HashMap<>();
     private final Map<String, FlexInput> flexInputs = new HashMap<>();
     private final Config config = ConfigProvider.getConfig();
+    private Declarations declarations;
 
     public Message setMessage(MessageModel message) {
         this.messageModel = message;
@@ -76,6 +77,10 @@ public class Message {
         }
     }
 
+    void setDeclarations(Declarations declarations) {
+        this.declarations = declarations;
+    }
+
     public Input getInput(String name) {
         return this.inputs.get(name);
     }
@@ -85,6 +90,9 @@ public class Message {
     }
 
     public void output(String name, Object value) {
+        if (this.declarations != null) {
+            this.declarations.checkOutput(name);
+        }
         this.messageModel.getOutputMessage().getAnalytics().put(name, value);
     }
 

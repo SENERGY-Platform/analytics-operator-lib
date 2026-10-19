@@ -25,6 +25,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.api.ContextualProcessor;
+import org.infai.ses.senergy.exceptions.DeclarationException;
 import org.infai.ses.senergy.models.*;
 import org.infai.ses.senergy.serialization.JSONSerdes;
 import org.infai.ses.senergy.utils.ApplicationState;
@@ -35,6 +36,8 @@ import org.infai.ses.senergy.utils.TimeProvider;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Stream {
 
@@ -42,13 +45,15 @@ public class Stream {
     private static final Boolean DEBUG = Boolean.valueOf(Helper.getEnv("DEBUG", "false"));
     private final Boolean resetApp = Boolean.valueOf(Helper.getEnv("RESET_APP", "false"));
     private final Boolean kTableProcessing = Boolean.valueOf(Helper.getEnv("KTABLE_PROCESSING", "true"));
+    private static final Logger log = Logger.getLogger(Stream.class.getName());
     private OperatorInterface operator;
+    private Declarations declarations;
     private Message message = new Message();
     private final Config config = ConfigProvider.getConfig();
     private KafkaStreams streams;
     private final StreamsBuilder builder = new StreamsBuilder();
     private Integer windowTime = Values.WINDOW_TIME;
-    private final String originalInputName = "original_input_ids";
+    private final String originalInputName = Declarations.ORIGINAL_INPUT_IDS;
     private static final String DEFAULT_STREAM_KEY = "A";
     private static final String FILTER_OPERATOR_ID = "OperatorId";
     private static final String FILTER_IMPORT_ID = "ImportId";
@@ -67,7 +72,7 @@ public class Stream {
             }
         });
 
-        operator = runOperator;
+        setOperator(runOperator);
         message = operator.configMessage(message);
         message.addFlexInput(originalInputName);
 
@@ -210,6 +215,13 @@ public class Stream {
      */
     public void setOperator(OperatorInterface runOperator) {
         operator = runOperator;
+        try {
+            declarations = Declarations.of(runOperator.getClass());
+        } catch (DeclarationException | RuntimeException | LinkageError e) {
+            // Declarations are optional: the manifest generator rejects a broken one, a running operator is not stopped for it.
+            log.log(Level.WARNING, "Ignoring the operator''s declarations: {0}", e.toString());
+            declarations = null;
+        }
     }
 
     /**
@@ -267,6 +279,7 @@ public class Stream {
         return inputStream.flatMap((key, value) -> {
             Message localMessage = new Message();
             localMessage = operator.configMessage(localMessage);
+            localMessage.setDeclarations(declarations);
 
             value.getOutputMessage().setTime(TimeProvider.nowUTCToString());
             localMessage.setMessage(value);
